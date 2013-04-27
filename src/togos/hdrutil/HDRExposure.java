@@ -19,7 +19,7 @@ public class HDRExposure
 	}
 	
 	public void add( HDRExposure other ) throws IncompatibleImageException {
-		if( !isCompatible(other) ) throw new IncompatibleImageException("Cannot add(); images are incompatible");
+		if( !isCompatible(other) ) throw new IncompatibleImageException("Cannot add(); images are incompatible sizes");
 		
 		e.add(other.e);
 		r.add(other.r);

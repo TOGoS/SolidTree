@@ -100,14 +100,27 @@ public class AdjusterUI extends Canvas
 	}
 	
 	public static void main( String[] args ) throws Exception {
-		String dumpFilename = args[0];
-		File dumpFile = new File(dumpFilename);
-		System.err.println("Loading dump...");
-		HDRExposure exp = ChunkyDump.loadChunkyDump(dumpFile);
+		HDRExposure sum = null;
+		for( String arg : args ) {
+			String dumpFilename = arg;
+			File dumpFile = new File(dumpFilename);
+			System.err.println("Loading dump...");
+			HDRExposure exp = ChunkyDump.loadChunkyDump(dumpFile);
+			if( sum == null ) {
+				sum = exp;
+			} else {
+				sum.add(exp);
+			}
+		}
+		
+		if( sum == null ) {
+			System.err.println("No dumps specified!");
+			System.exit(1);
+		}
 		
 		final Frame f = new Frame("Image adjuster");
 		AdjusterUI adj = new AdjusterUI();
-		adj.setImage(exp);
+		adj.setImage(sum);
 		f.add(adj);
 		f.pack();
 		
