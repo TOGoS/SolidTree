@@ -22,6 +22,7 @@ public class AdjusterUI extends Canvas
 	BufferedImage bImg;
 	double exposure = 1000;
 	double gamma = 2.2;
+	boolean dither = true;
 	
 	public AdjusterUI() {
 		super();
@@ -43,6 +44,10 @@ public class AdjusterUI extends Canvas
 					exposure *= neg(controlled ? 1.125 : 1.5, negate);
 					recalculate();
 					break;
+				case KeyEvent.VK_D:
+					dither ^= true;
+					recalculate();
+					break;
 				}
 			}
 		});
@@ -57,7 +62,7 @@ public class AdjusterUI extends Canvas
 		hdrImage.exponentiate( 1/gamma );
 		
 		System.err.println("Calculating output image");
-		hdrImage.toArgb(argbBuf);
+		hdrImage.toArgb(argbBuf, dither);
 		bImg.setRGB(0, 0, hdrImage.width, hdrImage.height, argbBuf, 0, hdrImage.width);
 		
 		repaint();
@@ -94,8 +99,9 @@ public class AdjusterUI extends Canvas
 			g.drawImage(bImg, x, y, x+hdrImage.width*scale, y+hdrImage.height*scale, 0, 0, hdrImage.width, hdrImage.height, null);
 			
 			g.setColor(Color.WHITE);
-			g.drawString(String.format("Exposure: %9.4f", exposure), 4, 16 );
-			g.drawString(String.format("Gamma:    %9.4f", gamma   ), 4, 32 );
+			g.drawString(String.format("Exposure: %12.4f", exposure), 4, 16 );
+			g.drawString(String.format("Gamma:    %12.4f", gamma   ), 4, 32 );
+			g.drawString("Dithering: " +(dither ? "enabled" : "disabled"), 4, 48);
 		}
 	}
 	

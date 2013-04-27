@@ -49,7 +49,7 @@ public class HDRImage
 		return i < 0 ? 0 : i > 255 ? 255 : i;
 	}
 	
-	public void toArgb( int[] dest ) {
+	public void toArgb( int[] dest, boolean dither ) {
 		for( int i=width*height-1; i>=0; --i ) {
 			// Ideal values
 			double iR = 255 * r.data[i];
@@ -57,9 +57,16 @@ public class HDRImage
 			double iB = 255 * b.data[i];
 			// Quantized values
 			// TODO: Use a better dithering algorithm
-			int qR = (int)Math.round(iR + (Math.random() - 0.5));
-			int qG = (int)Math.round(iG + (Math.random() - 0.5));
-			int qB = (int)Math.round(iB + (Math.random() - 0.5));
+			int qR, qG, qB;
+			if( dither ) {
+				qR = (int)Math.round(iR + (Math.random() - 0.5));
+				qG = (int)Math.round(iG + (Math.random() - 0.5));
+				qB = (int)Math.round(iB + (Math.random() - 0.5));
+			} else {
+				qR = (int)Math.round(iR);
+				qG = (int)Math.round(iG);
+				qB = (int)Math.round(iB);
+			}
 			
 			dest[i] =
 				0xFF000000 |
