@@ -27,24 +27,20 @@ public class AdjusterUI extends Canvas
 		super();
 		setBackground(Color.BLACK);
 		addKeyListener(new KeyAdapter() {
-			@Override public void keyTyped(KeyEvent evt) {
+			protected double neg( double v, boolean negate ) {
+				return negate ? 1.0/v : v;
+			}
+			
+			@Override public void keyPressed(KeyEvent evt) {
 				boolean negate = evt.isShiftDown();
-				boolean fast = !evt.isControlDown();
-				switch( evt.getKeyChar() ) {
-				case 'g':
-					gamma *= fast ? 1.5 : 1.125;
+				boolean controlled = evt.isControlDown();
+				switch( evt.getKeyCode() ) {
+				case KeyEvent.VK_G:
+					gamma *= neg(controlled ? 1.125 : 1.5, negate);
 					recalculate();
 					break;
-				case 'G':
-					gamma /= fast ? 1.5 : 1.125;
-					recalculate();
-					break;
-				case 'e':
-					exposure *= fast ? 1.5 : 1.125;
-					recalculate();
-					break;
-				case 'E':
-					exposure /= fast ? 1.5 : 1.125;
+				case KeyEvent.VK_E:
+					exposure *= neg(controlled ? 1.125 : 1.5, negate);
 					recalculate();
 					break;
 				}
