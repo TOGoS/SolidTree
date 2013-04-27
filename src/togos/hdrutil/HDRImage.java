@@ -35,7 +35,7 @@ public class HDRImage
 		for( int c=0; c<colorChannels.length; ++c ) colorChannels[c].exponentiate(p);
 	}
 
-	public double maxRgb() {
+	public double max() {
 		double max = Double.NEGATIVE_INFINITY;
 		for( int c=0; c<colorChannels.length; ++c ) {
 			for( int i=width*height-1; i>=0; --i ) {

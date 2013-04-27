@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -14,21 +16,69 @@ public class AdjusterUI extends Canvas
 {
 	private static final long serialVersionUID = 1L;
 	
+	HDRExposure hdrExposure;
 	HDRImage hdrImage;
 	int[] argbBuf;
 	BufferedImage bImg;
+	double exposure = 1000;
+	double gamma = 2.2;
 	
 	public AdjusterUI() {
 		super();
 		setBackground(Color.BLACK);
+		addKeyListener(new KeyAdapter() {
+			@Override public void keyTyped(KeyEvent evt) {
+				boolean negate = evt.isShiftDown();
+				boolean fast = !evt.isControlDown();
+				switch( evt.getKeyChar() ) {
+				case 'g':
+					gamma *= fast ? 1.5 : 1.125;
+					recalculate();
+					break;
+				case 'G':
+					gamma /= fast ? 1.5 : 1.125;
+					recalculate();
+					break;
+				case 'e':
+					exposure *= fast ? 1.5 : 1.125;
+					recalculate();
+					break;
+				case 'E':
+					exposure /= fast ? 1.5 : 1.125;
+					recalculate();
+					break;
+				}
+			}
+		});
 	}
 	
-	public synchronized void setImage( HDRImage img ) {
-		setPreferredSize( new Dimension(img.width, img.height));
-		this.bImg = new BufferedImage( img.width, img.height, BufferedImage.TYPE_INT_ARGB );
-		this.argbBuf = new int[img.width*img.height];
-		this.hdrImage = img;
+	protected void recalculate() {
+		System.err.println("[Re]oading exposure");
+		hdrImage.load(hdrExposure);
+		System.err.println("Multiplying");
+		hdrImage.multiply(exposure);
+		System.err.println("Exponentiating");
+		hdrImage.exponentiate( 1/gamma );
+		
+		System.err.println("Calculating output image");
+		hdrImage.toArgb(argbBuf);
+		bImg.setRGB(0, 0, hdrImage.width, hdrImage.height, argbBuf, 0, hdrImage.width);
+		
 		repaint();
+	}
+	
+	public synchronized void setImage( HDRExposure exp ) {
+		setPreferredSize( new Dimension(exp.width, exp.height));
+		this.bImg = new BufferedImage( exp.width, exp.height, BufferedImage.TYPE_INT_ARGB );
+		this.argbBuf = new int[exp.width*exp.height];
+		this.hdrImage = new HDRImage( exp.width, exp.height );
+		this.hdrExposure = exp;
+		
+		System.err.println("Calculating default exposure...");
+		hdrImage.load(exp);
+		this.exposure = 100 / hdrImage.max();
+		
+		recalculate();
 	}
 	
 	@Override public void paint( Graphics g ) {
@@ -36,9 +86,6 @@ public class AdjusterUI extends Canvas
 			g.setColor(Color.BLACK);
 			g.fillRect(0, 0, getWidth(), getHeight());
 		} else {
-			hdrImage.toArgb(argbBuf);
-			bImg.setRGB(0, 0, hdrImage.width, hdrImage.height, argbBuf, 0, hdrImage.width);
-			
 			int scale = 2;
 			while( hdrImage.width*scale <= getWidth() && hdrImage.height*scale <= getHeight() ) {
 				++scale;
@@ -49,6 +96,10 @@ public class AdjusterUI extends Canvas
 			int y = (getHeight() - hdrImage.height*scale) / 2;
 			
 			g.drawImage(bImg, x, y, x+hdrImage.width*scale, y+hdrImage.height*scale, 0, 0, hdrImage.width, hdrImage.height, null);
+			
+			g.setColor(Color.WHITE);
+			g.drawString(String.format("Exposure: %9.4f", exposure), 4, 16 );
+			g.drawString(String.format("Gamma:    %9.4f", gamma   ), 4, 32 );
 		}
 	}
 	
@@ -57,16 +108,10 @@ public class AdjusterUI extends Canvas
 		File dumpFile = new File(dumpFilename);
 		System.err.println("Loading dump...");
 		HDRExposure exp = ChunkyDump.loadChunkyDump(dumpFile);
-		System.err.println("Converting to image...");
-		HDRImage img = new HDRImage( exp.width, exp.height );
-		img.load(exp);
-		System.err.println("Adjusting image...");
-		img.multiply(100.0/img.maxRgb());
-		img.exponentiate( 1/3.0 );
 		
 		final Frame f = new Frame("Image adjuster");
 		AdjusterUI adj = new AdjusterUI();
-		adj.setImage(img);
+		adj.setImage(exp);
 		f.add(adj);
 		f.pack();
 		
