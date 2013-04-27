@@ -2,106 +2,59 @@ package togos.hdrutil;
 
 public class HDRImage
 {
-	static class Channel {
-		final double[] data;
-		
-		public Channel( int size ) {
-			this.data = new double[size];
-		}
-		
-		public void set( double value ) {
-			for( int i=data.length-1; i>=0; --i ) data[i] = value;
-		}
-		
-		public void multiply( double v ) {
-			for( int i=data.length-1; i>=0; --i ) data[i] *= v;
-		}
-		
-		public void exponentiate( double p ) {
-			for( int i=data.length-1; i>=0; --i ) data[i] = Math.pow(data[i], p);
-		}
-		
-		////
-		
-		protected void add( Channel other ) {
-			for( int i=data.length-1; i>=0; --i ) data[i] += other.data[i];
-		}
-		
-		protected void multiply( Channel other ) {
-			for( int i=data.length-1; i>=0; --i ) data[i] *= other.data[i];
-		}
-		
-		protected void divide( Channel other ) {
-			for( int i=data.length-1; i>=0; --i ) data[i] /= other.data[i];
-		}
-	}
-	
-	// Standard channels:
-	// 0 = path trace iterations
-	// 1 = red
-	// 2 = green
-	// 3 = blue
-	
 	final int width, height;
-	final Channel[] channels;
+	final Channel r, g, b;
+	final Channel[] colorChannels;
 	
-	public HDRImage( int nChannels, int width, int height ) {
-		this.channels = new Channel[nChannels];
+	public HDRImage( int width, int height ) {
+		this.r = new Channel(width*height);
+		this.g = new Channel(width*height);
+		this.b = new Channel(width*height);
+		this.colorChannels = new Channel[]{ r, g, b };
 		this.width = width;
 		this.height = height;
-		for( int i=0; i<nChannels; ++i ) {
-			channels[i] = new Channel(width*height);
-		}
 	}
 	
-	public boolean isCompatible( HDRImage other ) {
-		return other.width == this.width && other.height == this.height && other.channels.length == this.channels.length;
-	}
-	
-	public void add( HDRImage other ) throws IncompatibleImageException {
-		if( !isCompatible(other) ) throw new IncompatibleImageException("Cannot add(); images are incompatible");
+	public void load( HDRExposure e ) {
+		assert width == e.width;
+		assert height == e.height;
 		
-		for( int i=0; i<channels.length; ++i ) {
-			channels[i].add( other.channels[i] );
+		for( int i=width*height-1; i>=0; --i ) {
+			r.data[i] = e.r.data[i] / e.e.data[i];
+			g.data[i] = e.g.data[i] / e.e.data[i];
+			b.data[i] = e.b.data[i] / e.e.data[i];
 		}
 	}
 	
-	/**
-	 * Divides every channel by the values in channel i.
-	 */
-	public void normalize( int byChannelId ) {
-		assert byChannelId >= 0;
-		assert byChannelId < channels.length;
-		
-		for( int i=0; i<channels.length; ++i ) {
-			if( i != byChannelId ) {
-				channels[i].divide(channels[byChannelId]);
-			}
-		}
-		channels[byChannelId].set(1);
-	}
 	
 	public void multiply( double m ) {
-		for( int i=0; i<channels.length; ++i ) channels[i].multiply(m);
+		for( int c=0; c<colorChannels.length; ++c ) colorChannels[c].multiply(m);
 	}
 	
 	public void exponentiate( double p ) {
-		for( int i=0; i<channels.length; ++i ) channels[i].exponentiate(p);
+		for( int c=0; c<colorChannels.length; ++c ) colorChannels[c].exponentiate(p);
 	}
-	
+
+	public double maxRgb() {
+		double max = Double.NEGATIVE_INFINITY;
+		for( int c=0; c<colorChannels.length; ++c ) {
+			for( int i=width*height-1; i>=0; --i ) {
+				max = Math.max( max, colorChannels[c].data[i] );
+			}
+		}
+		return max;
+	}
+
 	protected static int clampByte( int i ) {
 		return i < 0 ? 0 : i > 255 ? 255 : i;
 	}
 	
 	public void toArgb( int[] dest ) {
-		assert channels.length == 4;
-		assert dest.length >= width*height;
-		
 		for( int i=width*height-1; i>=0; --i ) {
 			// Ideal values
-			double iR = 255 * channels[1].data[i] / channels[0].data[i];
-			double iG = 255 * channels[2].data[i] / channels[0].data[i];
-			double iB = 255 * channels[3].data[i] / channels[0].data[i];
+			double iR = 255 * r.data[i];
+			double iG = 255 * g.data[i];
+			double iB = 255 * b.data[i];
 			// Quantized values
 			// TODO: Use a better dithering algorithm
 			int qR = (int)Math.round(iR + (Math.random() - 0.5));
@@ -110,9 +63,9 @@ public class HDRImage
 			
 			dest[i] =
 				0xFF000000 |
-				(clampByte(qR) << 24) |
-				(clampByte(qG) << 24) | 
-				(clampByte(qB) << 24);
+				(clampByte(qR) << 16) |
+				(clampByte(qG) <<  8) | 
+				(clampByte(qB) <<  0);
 		}
 	}
 }

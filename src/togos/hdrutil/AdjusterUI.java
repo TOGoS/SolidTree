@@ -12,13 +12,21 @@ import java.io.File;
 
 public class AdjusterUI extends Canvas
 {
+	private static final long serialVersionUID = 1L;
+	
 	HDRImage hdrImage;
 	int[] argbBuf;
 	BufferedImage bImg;
 	
+	public AdjusterUI() {
+		super();
+		setBackground(Color.BLACK);
+	}
+	
 	public synchronized void setImage( HDRImage img ) {
-		bImg = new BufferedImage( img.width, img.height, BufferedImage.TYPE_INT_ARGB );
-		argbBuf = new int[img.width*img.height];
+		setPreferredSize( new Dimension(img.width, img.height));
+		this.bImg = new BufferedImage( img.width, img.height, BufferedImage.TYPE_INT_ARGB );
+		this.argbBuf = new int[img.width*img.height];
 		this.hdrImage = img;
 		repaint();
 	}
@@ -30,19 +38,35 @@ public class AdjusterUI extends Canvas
 		} else {
 			hdrImage.toArgb(argbBuf);
 			bImg.setRGB(0, 0, hdrImage.width, hdrImage.height, argbBuf, 0, hdrImage.width);
-			g.drawImage(bImg, 0, 0, null);
+			
+			int scale = 2;
+			while( hdrImage.width*scale <= getWidth() && hdrImage.height*scale <= getHeight() ) {
+				++scale;
+			}
+			--scale;
+			
+			int x = (getWidth() - hdrImage.width*scale) / 2;
+			int y = (getHeight() - hdrImage.height*scale) / 2;
+			
+			g.drawImage(bImg, x, y, x+hdrImage.width*scale, y+hdrImage.height*scale, 0, 0, hdrImage.width, hdrImage.height, null);
 		}
 	}
 	
 	public static void main( String[] args ) throws Exception {
 		String dumpFilename = args[0];
 		File dumpFile = new File(dumpFilename);
-		HDRImage img = ChunkyDump.loadChunkyDump(dumpFile);
+		System.err.println("Loading dump...");
+		HDRExposure exp = ChunkyDump.loadChunkyDump(dumpFile);
+		System.err.println("Converting to image...");
+		HDRImage img = new HDRImage( exp.width, exp.height );
+		img.load(exp);
+		System.err.println("Adjusting image...");
+		img.multiply(100.0/img.maxRgb());
+		img.exponentiate( 1/3.0 );
 		
 		final Frame f = new Frame("Image adjuster");
 		AdjusterUI adj = new AdjusterUI();
 		adj.setImage(img);
-		adj.setPreferredSize( new Dimension(img.width, img.height));
 		f.add(adj);
 		f.pack();
 		
