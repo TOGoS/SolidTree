@@ -131,6 +131,7 @@ public class AdjusterUI extends Canvas
 		f.pack();
 		
 		f.setVisible(true);
+		adj.requestFocus();
 		f.addWindowListener( new WindowAdapter() {
 			@Override public void windowClosing( WindowEvent evt ) {
 				f.dispose();
