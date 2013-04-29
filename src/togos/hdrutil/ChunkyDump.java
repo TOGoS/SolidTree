@@ -13,7 +13,7 @@ public class ChunkyDump
 		int height = in.readInt();
 		int dumpSpp = in.readInt();
 		in.readLong(); // 'dump time', which we don't care about.
-		HDRExposure img = new HDRExposure(4, width, height);
+		HDRExposure img = new HDRExposure(width, height);
 		img.e.set(dumpSpp);
 		System.err.println("Width: "+width+", height:"+height);
 		// Chunky stores columns, but we store rows

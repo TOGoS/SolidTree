@@ -2,10 +2,10 @@ package togos.hdrutil;
 
 public class HDRExposure
 {
-	final int width, height;
-	final Channel e, r, g, b;
+	public final int width, height;
+	public final Channel e, r, g, b;
 	
-	public HDRExposure( int nChannels, int width, int height ) {
+	public HDRExposure( int width, int height ) {
 		this.e = new Channel(width*height);
 		this.r = new Channel(width*height);
 		this.g = new Channel(width*height);

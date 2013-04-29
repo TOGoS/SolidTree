@@ -1,7 +1,7 @@
 package togos.hdrutil;
 
-class Channel {
-	final double[] data;
+public class Channel {
+	public final double[] data;
 	
 	public Channel( int size ) {
 		this.data = new double[size];

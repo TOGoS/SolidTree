@@ -20,7 +20,7 @@ public class AdjusterUI extends Canvas
 	HDRImage hdrImage;
 	int[] argbBuf;
 	BufferedImage bImg;
-	double exposure = 1000;
+	double exposure = 1;
 	double gamma = 2.2;
 	boolean dither = true;
 	
@@ -53,7 +53,7 @@ public class AdjusterUI extends Canvas
 		});
 	}
 	
-	protected void recalculate() {
+	protected synchronized void recalculate() {
 		System.err.println("[Re]oading exposure");
 		hdrImage.load(hdrExposure);
 		System.err.println("Multiplying");
@@ -68,7 +68,7 @@ public class AdjusterUI extends Canvas
 		repaint();
 	}
 	
-	public synchronized void setImage( HDRExposure exp ) {
+	public synchronized void setExposure( HDRExposure exp ) {
 		setPreferredSize( new Dimension(exp.width, exp.height));
 		this.bImg = new BufferedImage( exp.width, exp.height, BufferedImage.TYPE_INT_ARGB );
 		this.argbBuf = new int[exp.width*exp.height];
@@ -77,8 +77,14 @@ public class AdjusterUI extends Canvas
 		
 		System.err.println("Calculating default exposure...");
 		hdrImage.load(exp);
-		this.exposure = 100 / hdrImage.max();
+		if( hdrImage.max() > 0 ) {
+			this.exposure = 100 / hdrImage.max();
+		}
 		
+		recalculate();
+	}
+	
+	public void exposureUpdated() {
 		recalculate();
 	}
 	
@@ -93,16 +99,28 @@ public class AdjusterUI extends Canvas
 			}
 			--scale;
 			
-			int x = (getWidth() - hdrImage.width*scale) / 2;
-			int y = (getHeight() - hdrImage.height*scale) / 2;
+			int right = (getWidth()  - hdrImage.width *scale) / 2;
+			int top   = (getHeight() - hdrImage.height*scale) / 2;
+			int left  = hdrImage.width *scale + right;
+			int bottom= hdrImage.height*scale - top  ;
 			
-			g.drawImage(bImg, x, y, x+hdrImage.width*scale, y+hdrImage.height*scale, 0, 0, hdrImage.width, hdrImage.height, null);
+			g.setColor(Color.BLACK);
+			g.fillRect(0, 0, right, getHeight());
+			g.fillRect(left, 0, getWidth()-left, getHeight());
+			g.fillRect(left, 0, right-left, top);
+			g.fillRect(left, bottom, right-left, getHeight()-bottom);
+			
+			g.drawImage(bImg, right, top, right+hdrImage.width*scale, top+hdrImage.height*scale, 0, 0, hdrImage.width, hdrImage.height, null);
 			
 			g.setColor(Color.WHITE);
 			g.drawString(String.format("Exposure: %12.4f", exposure), 4, 16 );
 			g.drawString(String.format("Gamma:    %12.4f", gamma   ), 4, 32 );
 			g.drawString("Dithering: " +(dither ? "enabled" : "disabled"), 4, 48);
 		}
+	}
+	
+	@Override public void update( Graphics g ) {
+		paint(g);
 	}
 	
 	public static void main( String[] args ) throws Exception {
@@ -126,7 +144,7 @@ public class AdjusterUI extends Canvas
 		
 		final Frame f = new Frame("Image adjuster");
 		AdjusterUI adj = new AdjusterUI();
-		adj.setImage(sum);
+		adj.setExposure(sum);
 		f.add(adj);
 		f.pack();
 		
