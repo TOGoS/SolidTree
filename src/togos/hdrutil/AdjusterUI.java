@@ -58,14 +58,10 @@ public class AdjusterUI extends Canvas
 	}
 	
 	protected synchronized void recalculate() {
-		System.err.println("[Re]oading exposure");
 		hdrImage.load(hdrExposure);
-		System.err.println("Multiplying");
 		hdrImage.multiply(exposure);
-		System.err.println("Exponentiating");
 		hdrImage.exponentiate( 1/gamma );
 		
-		System.err.println("Calculating output image");
 		hdrImage.toArgb(argbBuf, dither);
 		bImg.setRGB(0, 0, hdrImage.width, hdrImage.height, argbBuf, 0, hdrImage.width);
 		
