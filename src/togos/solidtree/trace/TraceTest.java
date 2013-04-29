@@ -13,8 +13,8 @@ import togos.solidtree.SolidNode;
 public class TraceTest
 {
 	public static void main( String[] args ) {
-		int imageWidth = 384;
-		int imageHeight = 256;
+		int imageWidth  = 256;
+		int imageHeight = 384;
 		
 		Tracer t = new Tracer();
 		
@@ -31,11 +31,26 @@ public class TraceTest
 			empty, empty, empty
 		});
 
-		SolidNode floorMirror = new SolidNode( Material.SPACE, 1, 3, 1, new SolidNode[] {
-			empty, mirror, empty
+		SolidNode cornerLightFixture = new SolidNode( Material.SPACE, 1, 3, 1, new SolidNode[] {
+			red, light, empty	
 		});
 		
-		SolidNode smallLight = new SolidNode( Material.SPACE, 3, 3, 3, new SolidNode[] {
+		SolidNode overpoolLights = new SolidNode( Material.SPACE, 8, 1, 8, new SolidNode[] {
+			cornerLightFixture, empty, empty, empty, empty, empty, empty, empty,
+			 empty, empty, empty, empty, empty, empty, empty, empty,
+			 empty, empty, empty, empty, empty, empty, empty, empty,
+			 empty, empty, empty, empty, empty, empty, empty, cornerLightFixture,
+			 cornerLightFixture, empty, empty, empty, empty, empty, empty, empty,
+			 empty, empty, empty, empty, empty, empty, empty, empty,
+			 empty, empty, empty, empty, empty, empty, empty, empty,
+			 empty, empty, empty, empty, empty, empty, empty, cornerLightFixture
+		});
+		
+		SolidNode floorMirror = new SolidNode( Material.SPACE, 1, 4, 1, new SolidNode[] {
+			overpoolLights, mirror, empty, empty
+		});
+		
+		SolidNode ceilingLightFixture = new SolidNode( Material.SPACE, 3, 3, 3, new SolidNode[] {
 			empty, empty, empty,
 			empty, empty, empty,
 			empty, empty, empty,
@@ -52,9 +67,9 @@ public class TraceTest
 		SolidNode n = new SolidNode( Material.SPACE, 3, 3, 3, new SolidNode[] {
 			blue , blue , blue ,
 			pillar, empty, pillar,
-			red, red, red,
+			red, floorMirror, red,
 			
-			blue , smallLight, blue,
+			blue , ceilingLightFixture, blue,
 			pillar, empty, pillar,
 			red , floorMirror, red,
 			
@@ -65,7 +80,7 @@ public class TraceTest
 		
 		t.setRoot( n, 50);
 			
-		double fovY = Math.PI/2; 
+		double fovY = Math.PI*0.75; 
 		Projection projection = new FisheyeProjection(fovY*imageWidth/imageHeight, fovY);
 		
 		HDRExposure exp = new HDRExposure(imageWidth, imageHeight);
@@ -111,7 +126,7 @@ public class TraceTest
 			
 			for( int j=0; j<vectorSize; ++j ) {
 				t.trace(
-					camPosX[j], camPosY[j], camPosZ[j] - 20,
+					camPosX[j], camPosY[j]+5, camPosZ[j] - 20,
 					camDirX[j], camDirY[j], camDirZ[j]
 				);
 				
