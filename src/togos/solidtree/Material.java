@@ -2,17 +2,25 @@ package togos.solidtree;
 
 public class Material
 {
-	public static Material SPACE = new Material(DColor.BLACK, DColor.BLACK, 0);
-	
-	public final DColor diffuseColor;
+	public static Material SPACE = new Material(DColor.BLACK, DColor.BLACK, 0, 0);
+
+	public final DColor filterColor;
 	public final DColor ambientColor;
-	public final double opacity;    // Per meter!
-	public final double scattering; // Chance, per meter
+
+	/**
+	 * Chance that rays will bounce normally off the surface.
+	 */
+	public final double mirrosity;
+
+	/**
+	 * Chance per meter that rays passing through will be scattered
+	 */
+	public final double scattering;
 	
-	public Material( DColor diffuseColor, DColor ambientColor, double opacity  ) {
-		this.diffuseColor = diffuseColor;
+	public Material( DColor filterColor, DColor ambientColor, double mirrosity, double scattering  ) {
+		this.filterColor  = filterColor;
 		this.ambientColor = ambientColor;
-		this.opacity = opacity;
-		this.scattering = 0;
+		this.mirrosity    = mirrosity;
+		this.scattering   = scattering;
 	}
 }
