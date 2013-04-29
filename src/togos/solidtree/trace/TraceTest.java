@@ -1,11 +1,8 @@
 package togos.solidtree.trace;
 
-import java.awt.Canvas;
 import java.awt.Frame;
-import java.awt.Graphics;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
 
 import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.HDRExposure;
@@ -15,14 +12,6 @@ import togos.solidtree.SolidNode;
 
 public class TraceTest
 {
-	static class TraceUI extends Canvas {
-		BufferedImage img;
-		
-		@Override public void paint( Graphics g ) {
-			g.drawImage(img, 0, 0, null);
-		}
-	}
-	
 	public static void main( String[] args ) {
 		int imageWidth = 384;
 		int imageHeight = 256;
@@ -75,11 +64,7 @@ public class TraceTest
 		});
 		
 		t.setRoot( n, 50);
-		
-		BufferedImage img = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
-		
-		//t.trace( 0, 1, 0, 0.61, -0.5, 0 );
-		
+			
 		double fovY = Math.PI/2; 
 		Projection projection = new FisheyeProjection(fovY*imageWidth/imageHeight, fovY);
 		
