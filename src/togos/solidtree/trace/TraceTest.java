@@ -90,13 +90,14 @@ public class TraceTest
 		final Frame f = new Frame();
 		f.add(adj);
 		f.pack();
-		f.setVisible(true);
 		f.addWindowListener(new WindowAdapter() {
 			@Override public void windowClosing( WindowEvent evt ) {
 				f.dispose();
 				System.exit(0);
 			}
 		});
+		f.setVisible(true);
+		adj.requestFocus();
 		
 		int vectorSize = 1024;
 		
