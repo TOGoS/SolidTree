@@ -12,6 +12,10 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
+/*
+ * TODO: Resettable background thread for recalculating image
+ * TODO: Save, eXport, Merge from the UI
+ */
 public class AdjusterUI extends Canvas
 {
 	private static final long serialVersionUID = 1L;
