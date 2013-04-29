@@ -12,9 +12,15 @@ import togos.solidtree.SolidNode;
 
 public class TraceTest
 {
+	enum SampleMethod {
+		LINE,
+		RANDOM
+	}
+	
 	public static void main( String[] args ) {
-		int imageWidth  = 256;
-		int imageHeight = 384;
+		int imageWidth  = 512;
+		int imageHeight = 512;
+		SampleMethod sampleMethod = SampleMethod.RANDOM;
 		
 		Tracer t = new Tracer();
 		
@@ -25,10 +31,61 @@ public class TraceTest
 		SolidNode red   = new SolidNode( new Material(new DColor(0.5,0.1,0.1), DColor.BLACK, 0.0, 1.0) );
 		SolidNode empty = SolidNode.EMPTY;
 		
-		SolidNode pillar = new SolidNode( Material.SPACE, 3, 1, 3, new SolidNode[] {
+		SolidNode fencing = new SolidNode( Material.SPACE, 1, 7, 1, new SolidNode[] {
+			empty, green, empty, green, empty, green, empty
+		});
+		
+		SolidNode nsFence = new SolidNode( Material.SPACE, 3, 1, 1, new SolidNode[] {
+			empty, fencing, empty
+		});
+		SolidNode ewFence = new SolidNode( Material.SPACE, 1, 1, 3, new SolidNode[] {
+			empty, fencing, empty
+		});
+		
+		SolidNode ewPillar = new SolidNode( Material.SPACE, 3, 3, 3, new SolidNode[] {
+			green, green, green,
+			green, empty, green,
+			green, green, green,
+			
+			green, green, green,
+			green, light, green,
+			green, green, green,
+			
+			green, green, green,
+			green, empty, green,
+			green, green, green,
+		});
+		
+		SolidNode nsPillar = new SolidNode( Material.SPACE, 3, 3, 3, new SolidNode[] {
+			green, green, green,
+			green, green, green,
+			green, green, green,
+			
+			green, green, green,
+			empty, light, empty,
+			green, green, green,
+			
+			green, green, green,
+			green, green, green,
+			green, green, green,
+		});
+		
+		SolidNode nsPillarSpace = new SolidNode( Material.SPACE, 3, 1, 3, new SolidNode[] {
+			empty, nsFence, empty,
+			empty, nsPillar, empty,
+			empty, nsFence, empty
+		});
+
+		SolidNode ewPillarSpace = new SolidNode( Material.SPACE, 3, 1, 3, new SolidNode[] {
 			empty, empty, empty,
-			empty, green, empty,
+			ewFence, ewPillar, ewFence,
 			empty, empty, empty
+		});
+		
+		SolidNode cornerPillarSpace = new SolidNode( Material.SPACE, 3, 1, 3, new SolidNode[] {
+			empty, nsFence, empty,
+			ewFence, green, ewFence,
+			empty, nsFence, empty
 		});
 
 		SolidNode cornerLightFixture = new SolidNode( Material.SPACE, 1, 3, 1, new SolidNode[] {
@@ -47,7 +104,7 @@ public class TraceTest
 		});
 		
 		SolidNode floorMirror = new SolidNode( Material.SPACE, 1, 4, 1, new SolidNode[] {
-			overpoolLights, mirror, empty, empty
+			empty, mirror, empty, empty
 		});
 		
 		SolidNode ceilingLightFixture = new SolidNode( Material.SPACE, 3, 3, 3, new SolidNode[] {
@@ -66,15 +123,15 @@ public class TraceTest
 		
 		SolidNode n = new SolidNode( Material.SPACE, 3, 3, 3, new SolidNode[] {
 			blue , blue , blue ,
-			pillar, empty, pillar,
+			cornerPillarSpace, empty, cornerPillarSpace,
 			red, floorMirror, red,
 			
 			blue , ceilingLightFixture, blue,
-			pillar, empty, pillar,
+			nsPillarSpace, empty, nsPillarSpace,
 			red , floorMirror, red,
 			
 			blue , blue , blue ,
-			pillar, pillar, pillar,
+			cornerPillarSpace, ewPillarSpace, cornerPillarSpace,
 			red  , red, red
 		});
 		
@@ -109,10 +166,15 @@ public class TraceTest
 		int sx = 0, sy = 0;
 		while( true ) {
 			for( int j=0; j<vectorSize; ++j ) {
-				screenX[j] = (sx+Math.random()- imageWidth/2.0)/imageWidth;
-				screenY[j] = (sy+Math.random()-imageHeight/2.0)/imageHeight;
-				//screenX[j] = (Math.random()-0.5);
-				//screenY[j] = (Math.random()-0.5);
+				switch( sampleMethod ) {
+				case RANDOM:
+					screenX[j] = (Math.random()-0.5);
+					screenY[j] = (Math.random()-0.5);
+					break;
+				default:
+					screenX[j] = (sx+Math.random()- imageWidth/2.0)/imageWidth;
+					screenY[j] = (sy+Math.random()-imageHeight/2.0)/imageHeight;
+				}
 				
 				++sx;
 				if( sx > imageWidth ) {
@@ -126,7 +188,7 @@ public class TraceTest
 			
 			for( int j=0; j<vectorSize; ++j ) {
 				t.trace(
-					camPosX[j], camPosY[j]+5, camPosZ[j] - 20,
+					camPosX[j], camPosY[j]+5, camPosZ[j] - 10,
 					camDirX[j], camDirY[j], camDirZ[j]
 				);
 				

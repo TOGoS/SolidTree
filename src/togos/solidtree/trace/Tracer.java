@@ -228,7 +228,7 @@ public class Tracer
 		filterRed = filterGreen = filterBlue = 1.0;
 		red = green = blue = 0.0;
 		
-		process: for( int i=0; i<16; ++i ) {
+		process: for( int i=0; i<24; ++i ) {
 			Material material = cursors[cursorIdx].node.material;
 			if( !findNextIntersection( pos, direction, newPos ) ) {
 				return;
