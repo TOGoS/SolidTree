@@ -1,16 +1,17 @@
+// Auto-generated; see Makefile.
 package togos.hdrutil;
 
 public class HDRImage
 {
 	final int width, height;
-	final Channel r, g, b;
-	final Channel[] colorChannels;
+	final HDRChannel r, g, b;
+	final HDRChannel[] colorChannels;
 	
 	public HDRImage( int width, int height ) {
-		this.r = new Channel(width*height);
-		this.g = new Channel(width*height);
-		this.b = new Channel(width*height);
-		this.colorChannels = new Channel[]{ r, g, b };
+		this.r = new HDRChannel(width*height);
+		this.g = new HDRChannel(width*height);
+		this.b = new HDRChannel(width*height);
+		this.colorChannels = new HDRChannel[]{ r, g, b };
 		this.width = width;
 		this.height = height;
 	}
@@ -27,16 +28,16 @@ public class HDRImage
 	}
 	
 	
-	public void multiply( double m ) {
+	public void multiply( float m ) {
 		for( int c=0; c<colorChannels.length; ++c ) colorChannels[c].multiply(m);
 	}
 	
-	public void exponentiate( double p ) {
+	public void exponentiate( float p ) {
 		for( int c=0; c<colorChannels.length; ++c ) colorChannels[c].exponentiate(p);
 	}
 
-	public double max() {
-		double max = Double.NEGATIVE_INFINITY;
+	public float max() {
+		float max = Float.NEGATIVE_INFINITY;
 		for( int c=0; c<colorChannels.length; ++c ) {
 			for( int i=width*height-1; i>=0; --i ) {
 				max = Math.max( max, colorChannels[c].data[i] );
@@ -52,9 +53,9 @@ public class HDRImage
 	public void toArgb( int[] dest, boolean dither ) {
 		for( int i=width*height-1; i>=0; --i ) {
 			// Ideal values
-			double iR = 255 * r.data[i];
-			double iG = 255 * g.data[i];
-			double iB = 255 * b.data[i];
+			float iR = 255 * r.data[i];
+			float iG = 255 * g.data[i];
+			float iB = 255 * b.data[i];
 			// Quantized values
 			// TODO: Use a better dithering algorithm
 			int qR, qG, qB;
@@ -75,4 +76,7 @@ public class HDRImage
 				(clampByte(qB) <<  0);
 		}
 	}
+
+	public int getWidth() { return width; }
+	public int getHeight() { return height; }
 }

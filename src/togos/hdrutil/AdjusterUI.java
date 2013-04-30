@@ -24,8 +24,8 @@ public class AdjusterUI extends Canvas
 	HDRImage hdrImage;
 	int[] argbBuf;
 	BufferedImage bImg;
-	double exposure = 1;
-	double gamma = 2.2;
+	float exposure = 1;
+	float gamma = 2.2f;
 	boolean dither = true;
 	
 	public AdjusterUI() {
@@ -63,16 +63,16 @@ public class AdjusterUI extends Canvas
 		hdrImage.exponentiate( 1/gamma );
 		
 		hdrImage.toArgb(argbBuf, dither);
-		bImg.setRGB(0, 0, hdrImage.width, hdrImage.height, argbBuf, 0, hdrImage.width);
+		bImg.setRGB(0, 0, hdrImage.getWidth(), hdrImage.getHeight(), argbBuf, 0, hdrImage.getWidth());
 		
 		repaint();
 	}
 	
 	public synchronized void setExposure( HDRExposure exp ) {
-		setPreferredSize( new Dimension(exp.width, exp.height));
-		this.bImg = new BufferedImage( exp.width, exp.height, BufferedImage.TYPE_INT_ARGB );
-		this.argbBuf = new int[exp.width*exp.height];
-		this.hdrImage = new HDRImage( exp.width, exp.height );
+		setPreferredSize( new Dimension(exp.getWidth(), exp.getHeight()));
+		this.bImg = new BufferedImage( exp.getWidth(), exp.getHeight(), BufferedImage.TYPE_INT_ARGB );
+		this.argbBuf = new int[exp.getWidth()*exp.getHeight()];
+		this.hdrImage = exp.getImage();
 		this.hdrExposure = exp;
 		
 		System.err.println("Calculating default exposure...");
@@ -94,15 +94,15 @@ public class AdjusterUI extends Canvas
 			g.fillRect(0, 0, getWidth(), getHeight());
 		} else {
 			int scale = 2;
-			while( hdrImage.width*scale <= getWidth() && hdrImage.height*scale <= getHeight() ) {
+			while( hdrImage.getWidth()*scale <= getWidth() && hdrImage.getHeight()*scale <= getHeight() ) {
 				++scale;
 			}
 			--scale;
 			
-			int right = (getWidth()  - hdrImage.width *scale) / 2;
-			int top   = (getHeight() - hdrImage.height*scale) / 2;
-			int left  = hdrImage.width *scale + right;
-			int bottom= hdrImage.height*scale - top  ;
+			int right = (getWidth()  - hdrImage.getWidth() *scale) / 2;
+			int top   = (getHeight() - hdrImage.getHeight()*scale) / 2;
+			int left  = hdrImage.getWidth() *scale + right;
+			int bottom= hdrImage.getHeight()*scale - top  ;
 			
 			g.setColor(Color.BLACK);
 			g.fillRect(0, 0, right, getHeight());
@@ -110,7 +110,7 @@ public class AdjusterUI extends Canvas
 			g.fillRect(left, 0, right-left, top);
 			g.fillRect(left, bottom, right-left, getHeight()-bottom);
 			
-			g.drawImage(bImg, right, top, right+hdrImage.width*scale, top+hdrImage.height*scale, 0, 0, hdrImage.width, hdrImage.height, null);
+			g.drawImage(bImg, right, top, right+hdrImage.getWidth()*scale, top+hdrImage.getHeight()*scale, 0, 0, hdrImage.getWidth(), hdrImage.getHeight(), null);
 			
 			g.setColor(Color.WHITE);
 			g.drawString(String.format("Exposure: %12.4f", exposure), 4, 16 );
@@ -129,7 +129,7 @@ public class AdjusterUI extends Canvas
 			String dumpFilename = arg;
 			File dumpFile = new File(dumpFilename);
 			System.err.println("Loading dump...");
-			HDRExposure exp = ChunkyDump.loadChunkyDump(dumpFile);
+			HDRExposure exp = ChunkyDump.loadExposure(dumpFile);
 			if( sum == null ) {
 				sum = exp;
 			} else {
