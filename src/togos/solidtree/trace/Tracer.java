@@ -137,7 +137,7 @@ public class Tracer
 			d.scale(2);
 		}
 		while( !c.contains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
-			d.scale(0.5);
+			d.scale((double)0.5);
 			
 			assert !d.isZero();
 		}
@@ -205,9 +205,9 @@ public class Tracer
 		}
 		
 		// Fake some waviness for now
-		normal.x += sn.apply((float)pos.x/2, (float)pos.y/3, (float)pos.z/1)*0.1;
-		normal.y += sn.apply((float)pos.x/3, (float)pos.y/2, (float)pos.z/2)*0.1;
-		normal.z += sn.apply((float)pos.x/1, (float)pos.y/1, (float)pos.z/3)*0.1;
+		normal.x += (double)sn.apply((float)pos.x/2, (float)pos.y/3, (float)pos.z/1)*0.1;
+		normal.y += (double)sn.apply((float)pos.x/3, (float)pos.y/2, (float)pos.z/2)*0.1;
+		normal.z += (double)sn.apply((float)pos.x/1, (float)pos.y/1, (float)pos.z/3)*0.1;
 	}
 	
 	SimplexNoise sn = new SimplexNoise();
@@ -225,8 +225,8 @@ public class Tracer
 		setPosition( x, y, z );
 		setDirection( dx, dy, dz );
 		
-		filterRed = filterGreen = filterBlue = 1.0;
-		red = green = blue = 0.0;
+		filterRed = filterGreen = filterBlue = (double)1.0;
+		red = green = blue = (double)0.0;
 		
 		process: for( int i=0; i<24; ++i ) {
 			Material material = cursors[cursorIdx].node.material;
@@ -235,19 +235,19 @@ public class Tracer
 			} else if( material.scattering > 0 && false ) {
 				// Chance of not scattering in 1 meter = (1-S)
 				// Chance of not scattering in 2 meter = (1-S)**2 
-				double dist = Math3D.dist( pos, newPos );
-				double transmission = Math.pow( 1-material.scattering, dist );
+				double dist = VectorMath.dist( pos, newPos );
+				double transmission = (double)Math.pow( 1-material.scattering, dist );
 				if( random.nextDouble() > transmission ) {
 					// Scatter!
 					// Let's say for now it's at some random point (which is terribly wrong).
 					dist *= random.nextDouble();
 					direction.normalize(dist);
-					Math3D.add( pos, direction, pos );
+					VectorMath.add( pos, direction, pos );
 					fixCursor();
 					
-					direction.x = random.nextDouble()-0.5;
-					direction.y = random.nextDouble()-0.5;
-					direction.z = random.nextDouble()-0.5;
+					direction.x = random.nextDouble()-(double)0.5;
+					direction.y = random.nextDouble()-(double)0.5;
+					direction.z = random.nextDouble()-(double)0.5;
 					
 					filterRed   *= material.filterColor.r;
 					filterGreen *= material.filterColor.g;
@@ -269,11 +269,11 @@ public class Tracer
 			calculateNormal();
 			
 			if( random.nextDouble() < material.mirrosity ) {
-				Math3D.reflect(direction, normal, direction);
+				VectorMath.reflect(direction, normal, direction);
 			} else if( material.scattering == 1 ) {
-				direction.x = normal.x + random.nextGaussian()*0.5;
-				direction.y = normal.y + random.nextGaussian()*0.5;
-				direction.z = normal.z + random.nextGaussian()*0.5;
+				direction.x = normal.x + (double)(random.nextGaussian()*0.5);
+				direction.y = normal.y + (double)(random.nextGaussian()*0.5);
+				direction.z = normal.z + (double)(random.nextGaussian()*0.5);
 				
 				filterRed   *= material.filterColor.r;
 				filterGreen *= material.filterColor.g;

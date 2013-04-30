@@ -1,8 +1,9 @@
 package togos.solidtree.trace;
 
-public class Math3D
+
+public class VectorMath
 {
-	private Math3D() { }
+	private VectorMath() { }
 	
 	public static double dotProduct( Vector3D a, Vector3D b ) {
 		return a.x * b.x + a.y * b.y + a.z * b.z;
@@ -25,6 +26,6 @@ public class Math3D
 		double dx = a.x - b.x;
 		double dy = a.y - b.y;
 		double dz = a.z - b.z;
-		return Math.sqrt( dx*dx + dy*dy + dz*dz );
+		return (double)Math.sqrt( dx*dx + dy*dy + dz*dz );
 	}
 }

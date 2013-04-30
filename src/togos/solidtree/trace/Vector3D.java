@@ -20,7 +20,7 @@ final class Vector3D {
 	}
 	
 	public double magnitude() {
-		return Math.sqrt( x*x + y*y + z*z );
+		return (double)Math.sqrt( x*x + y*y + z*z );
 	}
 	
 	public void normalize( double scale ) {

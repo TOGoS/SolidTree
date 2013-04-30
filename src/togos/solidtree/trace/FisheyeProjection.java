@@ -20,9 +20,9 @@ public class FisheyeProjection implements Projection
 			double ay = screenY[i] * fovY;
 			double ax = screenX[i] * fovX;
 			double avSquared = ay * ay + ax * ax;
-			double angleFromCenter = Math.sqrt(avSquared);
-			double dz = Math.cos(angleFromCenter);
-			double dv = Math.sin(angleFromCenter);
+			double angleFromCenter = (double)Math.sqrt(avSquared);
+			double dz = (double)Math.cos(angleFromCenter);
+			double dv = (double)Math.sin(angleFromCenter);
 			double dy, dx;
 			if (angleFromCenter == 0) {
 				dx = dy = 0;

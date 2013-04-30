@@ -1,6 +1,7 @@
 package togos.solidtree.trace;
 
 import java.awt.Frame;
+
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -10,7 +11,7 @@ import togos.solidtree.DColor;
 import togos.solidtree.Material;
 import togos.solidtree.SolidNode;
 
-public class TraceTest
+public class TraceDemo
 {
 	enum SampleMethod {
 		LINE,
@@ -137,7 +138,7 @@ public class TraceTest
 		
 		t.setRoot( n, 50);
 			
-		double fovY = Math.PI*0.75; 
+		double fovY = (double)(Math.PI*0.75); 
 		Projection projection = new FisheyeProjection(fovY*imageWidth/imageHeight, fovY);
 		
 		HDRExposure exp = new HDRExposure(imageWidth, imageHeight);
@@ -168,12 +169,12 @@ public class TraceTest
 			for( int j=0; j<vectorSize; ++j ) {
 				switch( sampleMethod ) {
 				case RANDOM:
-					screenX[j] = (Math.random()-0.5);
-					screenY[j] = (Math.random()-0.5);
+					screenX[j] = (double)(t.random.nextDouble()-0.5);
+					screenY[j] = (double)(t.random.nextDouble()-0.5);
 					break;
 				default:
-					screenX[j] = (sx+Math.random()- imageWidth/2.0)/imageWidth;
-					screenY[j] = (sy+Math.random()-imageHeight/2.0)/imageHeight;
+					screenX[j] = (double)(sx+t.random.nextDouble()- imageWidth/2.0)/imageWidth;
+					screenY[j] = (double)(sy+t.random.nextDouble()-imageHeight/2.0)/imageHeight;
 				}
 				
 				++sx;
