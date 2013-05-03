@@ -11,6 +11,9 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 /*
  * TODO: Resettable background thread for recalculating image
@@ -20,6 +23,8 @@ public class AdjusterUI extends Canvas
 {
 	private static final long serialVersionUID = 1L;
 	
+	protected int overlayTextMode = 1; 
+	String exportFilenamePrefix;
 	HDRExposure hdrExposure;
 	HDRImage hdrImage;
 	int[] argbBuf;
@@ -52,6 +57,20 @@ public class AdjusterUI extends Canvas
 					dither ^= true;
 					recalculate();
 					break;
+				case KeyEvent.VK_X:
+					// Export
+					try {
+						exportImage();
+					} catch( Exception e ) {
+						System.err.println("Failed to export");
+						e.printStackTrace(System.err);
+					}
+					break;
+				case KeyEvent.VK_F1:
+					++overlayTextMode;
+					if( overlayTextMode > 2 ) overlayTextMode = 0;
+					repaint();
+					break;
 				}
 			}
 		});
@@ -66,6 +85,27 @@ public class AdjusterUI extends Canvas
 		bImg.setRGB(0, 0, hdrImage.getWidth(), hdrImage.getHeight(), argbBuf, 0, hdrImage.getWidth());
 		
 		repaint();
+	}
+	
+	protected File getNewOutputFile( String prefix, String suffix ) {
+		File f;
+		for( int i=0; (f = new File(prefix+i+suffix)).exists(); ++i );
+		return f;
+	}
+	
+	protected File getNewImageExportFile() {
+		return getNewOutputFile(exportFilenamePrefix+"-E"+exposure+"-G"+gamma+"-", ".png");
+	}
+	
+	protected void exportImage() throws IOException {
+		BufferedImage img = bImg;
+		if( img == null ) {
+			throw new RuntimeException("No current image");
+		}
+		File out = getNewImageExportFile();
+		System.err.println("Exporting to "+out.getPath()+"...");
+		ImageIO.write(img, "png", out);
+		System.err.println("Wrote "+out.getPath());
 	}
 	
 	public synchronized void setExposure( HDRExposure exp ) {
@@ -111,11 +151,30 @@ public class AdjusterUI extends Canvas
 			g.fillRect(left, bottom, right-left, getHeight()-bottom);
 			
 			g.drawImage(bImg, right, top, right+hdrImage.getWidth()*scale, top+hdrImage.getHeight()*scale, 0, 0, hdrImage.getWidth(), hdrImage.getHeight(), null);
-			
+		}
+
+		int line = 1;
+		
+		if( overlayTextMode >= 1 ) {
 			g.setColor(Color.WHITE);
-			g.drawString(String.format("Exposure: %12.4f", exposure), 4, 16 );
-			g.drawString(String.format("Gamma:    %12.4f", gamma   ), 4, 32 );
-			g.drawString("Dithering: " +(dither ? "enabled" : "disabled"), 4, 48);
+			g.drawString(String.format("Exposure: %12.4f", exposure), 4, 16*line++ );
+			g.drawString(String.format("Gamma:    %12.4f", gamma   ), 4, 16*line++ );
+			g.drawString("Dithering: " +(dither ? "enabled" : "disabled"), 4, 16*line++ );
+		}
+		
+		if( overlayTextMode == 1 ) {
+			g.drawString("Hit F1 for help", 4, 16*line++ );
+		}
+		
+		if( overlayTextMode >= 2 ) {
+			++line;
+			g.drawString("Keys:", 4, 16*line++);
+			g.drawString("  F1 - toggle overlay text", 4, 16*line++);
+			g.drawString("  X  - export image", 4, 16*line++);
+			g.drawString("  E  - change exposure", 4, 16*line++);
+			g.drawString("  G  - change gamma", 4, 16*line++);
+			g.drawString("Hold shift to decrease exposure/gamma", 4, 16*line++);
+			g.drawString("Hold control to change values more slowly", 4, 16*line++);
 		}
 	}
 	
@@ -124,16 +183,25 @@ public class AdjusterUI extends Canvas
 	}
 	
 	public static void main( String[] args ) throws Exception {
+		String sceneName = null;
 		HDRExposure sum = null;
+		int chunkySpp = 0;
 		for( String arg : args ) {
-			String dumpFilename = arg;
-			File dumpFile = new File(dumpFilename);
-			System.err.println("Loading dump...");
-			HDRExposure exp = ChunkyDump.loadExposure(dumpFile);
-			if( sum == null ) {
-				sum = exp;
-			} else {
-				sum.add(exp);
+			if( arg.endsWith(".dump") ) {
+				String dumpFilename = arg;
+				File dumpFile = new File(dumpFilename);
+				sceneName = dumpFile.getName();
+				sceneName = sceneName.substring(0, sceneName.length()-5);
+				System.err.println("Loading "+dumpFile+"...");
+				HDRExposure exp = ChunkyDump.loadExposure(dumpFile);
+				if( exp.e.data.length > 0 ) { 
+					chunkySpp += (int)exp.e.data[0];
+				}
+				if( sum == null ) {
+					sum = exp;
+				} else {
+					sum.add(exp);
+				}
 			}
 		}
 		
@@ -144,6 +212,7 @@ public class AdjusterUI extends Canvas
 		
 		final Frame f = new Frame("Image adjuster");
 		AdjusterUI adj = new AdjusterUI();
+		adj.exportFilenamePrefix = sceneName + (chunkySpp == 0 ? "" : "-"+chunkySpp);
 		adj.setExposure(sum);
 		f.add(adj);
 		f.pack();
