@@ -1,7 +1,8 @@
 package togos.solidtree.trace;
 
 import java.awt.Frame;
-
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -18,14 +19,21 @@ public class TraceDemo
 		RANDOM
 	}
 	
+	static class Camera {
+		boolean preview = true;
+		// TOOD: May eventually want to use quaternions instead of pitch/yaw/etc
+		double x, y, z;
+		double yaw, pitch, roll;
+	}
+	
 	public static void main( String[] args ) {
-		int imageWidth  = 512;
-		int imageHeight = 512;
+		final int imageWidth  = 512;
+		final int imageHeight = 512;
 		SampleMethod sampleMethod = SampleMethod.RANDOM;
 		
 		Tracer t = new Tracer();
 		
-		SolidNode mirror = new SolidNode( new Material(DColor.BLACK, DColor.BLACK, 0.5, 1) );
+		SolidNode mirror = new SolidNode( new Material(new DColor(0.01,0.05,0.2), DColor.BLACK, 0.4, 1) );
 		SolidNode light = new SolidNode( new Material(new DColor(1.0,1.0,1.0), new DColor(2,2,1.5), 0, 1.0) );
 		SolidNode blue  = new SolidNode( new Material(new DColor(0.1,0.1,0.5), DColor.BLACK, 0.0, 1.0) );
 		SolidNode green = new SolidNode( new Material(new DColor(0.1,0.5,0.1), DColor.BLACK, 0.0, 1.0) );
@@ -116,34 +124,81 @@ public class TraceDemo
 			empty, empty, empty,
 			red  , light, red  ,
 			empty, empty, empty,
-
+			
 			empty, empty, empty,
 			empty, empty, empty,
 			empty, empty, empty,
 		});
 		
 		SolidNode n = new SolidNode( Material.SPACE, 3, 3, 3, new SolidNode[] {
-			blue , blue , blue ,
-			cornerPillarSpace, empty, cornerPillarSpace,
 			red, floorMirror, red,
-			
-			blue , ceilingLightFixture, blue,
-			nsPillarSpace, empty, nsPillarSpace,
-			red , floorMirror, red,
-			
+			cornerPillarSpace, empty, cornerPillarSpace,
 			blue , blue , blue ,
+			
+			red , floorMirror, red,
+			nsPillarSpace, empty, nsPillarSpace,
+			blue , ceilingLightFixture, blue,
+			
+			red  , red  , red,
 			cornerPillarSpace, ewPillarSpace, cornerPillarSpace,
-			red  , red, red
+			blue , blue , blue
 		});
 		
 		t.setRoot( n, 50);
-			
-		double fovY = (double)(Math.PI*0.75); 
+		
+		final Camera cam = new Camera();
+		cam.yaw = 0;//Math.PI/8;
+		final double fovY = (double)(Math.PI*0.75); 
 		Projection projection = new FisheyeProjection(fovY*imageWidth/imageHeight, fovY);
 		
-		HDRExposure exp = new HDRExposure(imageWidth, imageHeight);
-		AdjusterUI adj = new AdjusterUI();
+		final HDRExposure exp = new HDRExposure(imageWidth, imageHeight);
+		final AdjusterUI adj = new AdjusterUI();
 		adj.setExposure(exp);
+		adj.addKeyListener(new KeyAdapter() {
+			@Override public void keyPressed( KeyEvent kevt ) {
+				double dir = 1;
+				
+				switch( kevt.getKeyCode() ) {
+				case KeyEvent.VK_P:
+					cam.preview ^= true;
+					exp.clear();
+					break;
+				case KeyEvent.VK_HOME:
+					cam.x += dir * Math.cos(cam.yaw);
+					cam.z -= dir * Math.sin(cam.yaw);
+					exp.clear();
+					break;
+				case KeyEvent.VK_END:
+					cam.x -= dir * Math.cos(cam.yaw);
+					cam.z += dir * Math.sin(cam.yaw);
+					exp.clear();
+					break;
+				case KeyEvent.VK_DOWN:
+					dir = -1;
+				case KeyEvent.VK_UP:
+					cam.x += dir * Math.sin(cam.yaw);
+					cam.z += dir * Math.cos(cam.yaw);
+					exp.clear();
+					break;
+				case KeyEvent.VK_PAGE_UP:
+					cam.y += dir;
+					exp.clear();
+					break;
+				case KeyEvent.VK_PAGE_DOWN:
+					cam.y -= dir;
+					exp.clear();
+					break;
+				case KeyEvent.VK_LEFT:
+					cam.yaw += Math.PI / 16;
+					exp.clear();
+					break;
+				case KeyEvent.VK_RIGHT:
+					cam.yaw -= Math.PI / 16;
+					exp.clear();
+					break;
+				}
+			}
+		});
 		
 		final Frame f = new Frame();
 		f.add(adj);
@@ -188,15 +243,39 @@ public class TraceDemo
 			projection.project(vectorSize, screenX, screenY, camPosX, camPosY, camPosZ, camDirX, camDirY, camDirZ);
 			
 			for( int j=0; j<vectorSize; ++j ) {
-				t.trace(
-					camPosX[j], camPosY[j]+5, camPosZ[j] - 10,
-					camDirX[j], camDirY[j], camDirZ[j]
-				);
+				camPosX[j] += cam.x;
+				camPosY[j] += cam.y;
+				camPosZ[j] += cam.z;
+				
+				double sinYaw = Math.sin(cam.yaw);
+				double cosYaw = Math.cos(cam.yaw);
+				
+				double cdx = camDirX[j];
+				double cdz = camDirZ[j];
+				camDirX[j] = cosYaw*cdx + sinYaw*cdz;  
+				camDirZ[j] = cosYaw*cdz - sinYaw*cdx;
+				
+				if( cam.preview ) {
+					t.quickTrace(
+						camPosX[j], camPosY[j]+5, camPosZ[j] - 10,
+						camDirX[j], camDirY[j], camDirZ[j]
+					);
+				} else {
+					t.trace(
+						camPosX[j], camPosY[j]+5, camPosZ[j] - 10,
+						camDirX[j], camDirY[j], camDirZ[j]
+					);
+				}
 				
 				int pixelX = (int)Math.round((screenX[j]+0.5)*imageWidth);
 				int pixelY = (int)Math.round((screenY[j]+0.5)*imageHeight);
 				pixelX = pixelX < 0 ? 0 : pixelX >= imageWidth  ? imageWidth  - 1 : pixelX;
 				pixelY = pixelY < 0 ? 0 : pixelY >= imageHeight ? imageHeight - 1 : pixelY;
+				
+				// Since z = forward, y = up, x = left, need to invert some things:
+				pixelX = imageWidth - pixelX - 1;
+				pixelY = imageHeight - pixelY - 1;
+				
 				int pixelI = pixelY * imageWidth + pixelX;
 				exp.e.data[pixelI] += 1;
 				exp.r.data[pixelI] += t.red;

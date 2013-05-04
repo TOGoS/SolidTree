@@ -69,6 +69,7 @@ public class Tracer
 			--cursorIdx;
 		}
 		
+		// As long as it's subdividible, subdivide!
 		treeTraversal: while( cursors[cursorIdx].node.divX != 0 ) {
 			Cursor c = cursors[cursorIdx];
 			SolidNode n = c.node;
@@ -86,7 +87,7 @@ public class Tracer
 						
 						cursors[++cursorIdx].set(
 							n.subNode(sx,sy,sz),
-							c.x0+sw*sx, c.y0+sh*sy, c.z0+sd*sz,
+							c.x0+sw*sx    , c.y0+sh*sy    , c.z0+sd*sz    ,
 							c.x0+sw*(sx+1), c.y0+sh*(sy+1), c.z0+sd*(sz+1)
 						);
 
@@ -112,36 +113,35 @@ public class Tracer
 	}
 	
 	/**
-	 * Reposition the cursor to the point of next intersection
+	 * Find a point just past the next intersection and place in dest
 	 * @param p position
 	 * @param d direction
 	 */
 	protected boolean findNextIntersection( Vector3D p, Vector3D d, Vector3D dest ) {
 		if( cursorIdx == 0 ) {
-			if( p.x*d.x >= 0 && p.y*d.y >= 0 && p.z*d.z >= 0 ) {
-				// Heading out; next intersection = infinity!
-				return false;
-			} else {
-				//throw new UnsupportedOperationException("Tracing rays from outside-in is not supported! ("+x+","+y+","+z+") ("+dx+","+dy+","+dz+")");
-				return false;
-			}
+			// Outside the tree; we'll never hit anything
+			return false;
 		}
 		
-		// Shrink until it fits...
 		Cursor c = cursors[cursorIdx];
 		
 		assert !d.isZero();
 		assert c.contains(p);
 		
+		// Grow the direction vector until it
+		// pokes out of the current box...
 		while( c.contains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
 			d.scale(2);
 		}
+		// Shrink the direction vector until it fits
+		// within the current box...
 		while( !c.contains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
 			d.scale((double)0.5);
 			
 			assert !d.isZero();
 		}
-		
+		// Adjust the direction vector to get as close
+		// to the boundary as possible...
 		double ddx = d.x/2, ddy = d.y/2, ddz = d.z/2;
 		for( int i=0; i<10; ++i ) {
 			if( c.contains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
@@ -205,9 +205,9 @@ public class Tracer
 		}
 		
 		// Fake some waviness for now
-		normal.x += (double)sn.apply((float)pos.x/2, (float)pos.y/3, (float)pos.z/1)*0.1;
-		normal.y += (double)sn.apply((float)pos.x/3, (float)pos.y/2, (float)pos.z/2)*0.1;
-		normal.z += (double)sn.apply((float)pos.x/1, (float)pos.y/1, (float)pos.z/3)*0.1;
+		normal.x += (double)sn.apply((float)pos.x/2, (float)pos.y/3, (float)pos.z/1)*0.5;
+		normal.y += (double)sn.apply((float)pos.x/3, (float)pos.y/2, (float)pos.z/2)*0.5;
+		normal.z += (double)sn.apply((float)pos.x/1, (float)pos.y/1, (float)pos.z/3)*0.5;
 	}
 	
 	SimplexNoise sn = new SimplexNoise();
@@ -285,15 +285,30 @@ public class Tracer
 			}
 			// Special case for opaque scattering?
 		}
+	}
+	
+	public void quickTrace( double x, double y, double z, double dx, double dy, double dz ) {
+		setPosition( x, y, z );
+		setDirection( dx, dy, dz );
 		
-		/*
-		Material m = cursors[cursorIdx].node.material;
-		
-		double adjust = normal.x*0.1 + normal.y*0.2 + normal.z*0.3;
-		
-		red   = m.ambientColor.r * (0.5 + adjust);
-		green = m.ambientColor.g * (0.5 + adjust);
-		blue  = m.ambientColor.b * (0.5 + adjust);
-		*/
+		red = green = blue = (double)0.0;
+
+		for( int i=0; i<24; ++i ) {
+			if( !findNextIntersection( pos, direction, newPos ) ) {
+				return;
+			}
+			setPosition(newPos);
+			Material material = cursors[cursorIdx].node.material;
+			if( material.scattering > 0.9 ) {
+				calculateNormal();
+				
+				double adjust = normal.x*0.1 + normal.y*0.2 + normal.z*0.3;
+				
+				red   = material.ambientColor.r + material.filterColor.r * (0.5 + adjust);
+				green = material.ambientColor.g + material.filterColor.g * (0.5 + adjust);
+				blue  = material.ambientColor.b + material.filterColor.b * (0.5 + adjust);
+				return;
+			}
+		}
 	}
 }
