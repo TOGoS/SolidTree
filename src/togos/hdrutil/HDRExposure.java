@@ -37,4 +37,9 @@ public class HDRExposure
 		return img;
 	}
 	
+	public void clear() {
+		for( int i=width*height-1; i>=0; --i ) {
+			e.data[i] = r.data[i] = g.data[i] = b.data[i] = 0;
+		}
+	}
 }
