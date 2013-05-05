@@ -239,8 +239,8 @@ public class Tracer
 			
 			double dist = VectorMath.dist( pos, newPos );
 			if( material.scattering > 0 ) {
-				// Chance of not scattering in 1 meter = (1-S)
-				// Chance of not scattering in 2 meter = (1-S)**2
+				// probability(distance) = 1 - (1 - probability(1)) ** distance  
+				// distance(rand(0..1)) = inverse of probability(distance) or of 1 - probability(distance)
 				double scatterDist = -Math.log(random.nextDouble()) / Math.log( 1 / (1-material.scattering) );
 				if( scatterDist < dist ) {
 					// Scattered!
