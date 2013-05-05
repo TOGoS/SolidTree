@@ -238,7 +238,10 @@ public class Tracer
 			}
 			
 			double dist = VectorMath.dist( pos, newPos );
-			if( material.scattering > 0 ) {
+			
+			if( material.scattering > 0 && material.scattering < 1 ) {
+				// Could run this even when scat = 0 but it would be pointless.
+				
 				// probability(distance) = 1 - (1 - probability(1)) ** distance  
 				// distance(rand(0..1)) = inverse of probability(distance) or of 1 - probability(distance)
 				double scatterDist = -Math.log(random.nextDouble()) / Math.log( 1 / (1-material.scattering) );
@@ -282,16 +285,18 @@ public class Tracer
 			
 			if( random.nextDouble() < material.mirrosity ) {
 				VectorMath.reflect(direction, normal, direction);
-			} else if( material.scattering == 1 && false ) {
+			} else if( material.scattering == 1 ) {
 				// Special case for opaque things since
 				// our position is never precisely at the surface
 				direction.x = normal.x + (double)(random.nextGaussian()*0.5);
 				direction.y = normal.y + (double)(random.nextGaussian()*0.5);
 				direction.z = normal.z + (double)(random.nextGaussian()*0.5);
 				
-				filterRed   *= material.scatterColor.r;
-				filterGreen *= material.scatterColor.g;
-				filterBlue  *= material.scatterColor.b;
+				// To compensate for only sending rays outward rather than
+				// both in and out as full scattering does, divide light by 2:
+				filterRed   *= material.scatterColor.r / 2;
+				filterGreen *= material.scatterColor.g / 2;
+				filterBlue  *= material.scatterColor.b / 2;
 				
 				red   += material.ambientColor.r * filterRed;
 				green += material.ambientColor.g * filterGreen;

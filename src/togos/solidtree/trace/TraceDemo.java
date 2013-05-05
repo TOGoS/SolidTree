@@ -48,12 +48,15 @@ public class TraceDemo
 		Tracer t = new Tracer();
 		final Interrupt<TracerInstruction> tii = new Interrupt<TracerInstruction>();
 		
-		SolidNode mirror= new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.999, new DColor(0.5,0.5,0.1)) );
-		SolidNode light = new SolidNode( new Material(DColor.WHITE, new DColor(2,2,1.5), 0, 1.0, new DColor(1.0,1.0,1.0)) );
-		SolidNode blue  = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.999, new DColor(0.1,0.1,0.5)) );
-		SolidNode green = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.999, new DColor(0.1,0.5,0.1)) );
-		SolidNode red   = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.999, new DColor(0.5,0.1,0.1)) );
-		SolidNode empty = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.0, new DColor(1.0,1.0,1.0)) );
+		SolidNode mirror= new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.9999, new DColor(0.1,0.5,0.1)) );
+		SolidNode rlite = new SolidNode( new Material(DColor.WHITE, new DColor(2,2,1.5), 0, 1, new DColor(1.0,0.1,0.1)) );
+		SolidNode glite = new SolidNode( new Material(DColor.WHITE, new DColor(2,2,1.5), 0, 1, new DColor(0.1,1.0,0.1)) );
+		SolidNode blite = new SolidNode( new Material(DColor.WHITE, new DColor(2,2,1.5), 0, 1, new DColor(0.1,0.1,1.0)) );
+		SolidNode blue  = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.1,0.1,0.5)) );
+		SolidNode green = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.1,0.5,0.1)) );
+		SolidNode red   = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.5,0.1,0.1)) );
+		SolidNode empty = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0, DColor.WHITE) );
+		//SolidNode empty = new SolidNode( new Material(new DColor(0.95,0.95,0.95), new DColor(0.01,0.01,0.01), 0.0, 0, new DColor(1.0,1.0,1.0)) );
 		
 		/*
 		SolidNode fencing = new SolidNode( Material.SPACE, 1, 7, 1, new SolidNode[] {
@@ -162,7 +165,7 @@ public class TraceDemo
 		*/
 		
 		SolidNode sgren = new SolidNode( Material.SPACE, 1, 3, 1, new SolidNode[] {
-			green, empty, mirror
+			green, empty, empty
 		});
 		
 		SolidNode mgren = new SolidNode( Material.SPACE, 1, 3, 1, new SolidNode[] {
@@ -178,7 +181,7 @@ public class TraceDemo
 		});
 		
 		SolidNode pcol = new SolidNode( Material.SPACE, 1,3,1, new SolidNode[] {
-			blue, light, blue
+			rlite, glite, blite
 		});
 		pcol = new SolidNode( Material.SPACE, 1,3,1, new SolidNode[] {
 			pcol, blue, red
@@ -207,7 +210,7 @@ public class TraceDemo
 		
 		final Camera cam = new Camera();
 		cam.yaw = 0;//Math.PI/8;
-		final double fovY = (double)(Math.PI*0.75); 
+		final double fovY = (double)(Math.PI*0.5); 
 		Projection projection = new FisheyeProjection(fovY*imageWidth/imageHeight, fovY);
 		
 		final HDRExposure exp = new HDRExposure(imageWidth, imageHeight);
