@@ -261,9 +261,10 @@ public class Tracer
 				}
 			}
 			
-			red   += material.ambientColor.r * material.filterColor.r * dist;
-			green += material.ambientColor.g * material.filterColor.g * dist;
-			blue  += material.ambientColor.b * material.filterColor.b * dist;
+			// TODO: Figure out how to mix ambient and filter colors 
+			red   += filterRed   * material.ambientColor.r * material.filterColor.r * dist;
+			green += filterGreen * material.ambientColor.g * material.filterColor.g * dist;
+			blue  += filterBlue  * material.ambientColor.b * material.filterColor.b * dist;
 			
 			filterRed   *= Math.pow(material.filterColor.r, dist);
 			filterGreen *= Math.pow(material.filterColor.g, dist);
