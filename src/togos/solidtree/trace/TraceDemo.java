@@ -26,19 +26,34 @@ public class TraceDemo
 		double yaw, pitch, roll;
 	}
 	
+	static class Interrupt<V> {
+		V value = null;
+		public synchronized V set( V v ) {
+			V oldValue = value;
+			this.value = v;
+			return oldValue;
+		}
+	}
+	
+	enum TracerInstruction {
+		CONTINUE,
+		RESET
+	}
+	
 	public static void main( String[] args ) {
 		final int imageWidth  = 128;
 		final int imageHeight = 128;
 		SampleMethod sampleMethod = SampleMethod.LINE;
 		
 		Tracer t = new Tracer();
+		final Interrupt<TracerInstruction> tii = new Interrupt<TracerInstruction>();
 		
-		SolidNode mirror= new SolidNode( new Material(new DColor(0.9, 0.1, 0.1), DColor.BLACK, 0.5, 0.0, new DColor(0.05,0.05,0.1) ) );
+		SolidNode mirror= new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.999, new DColor(0.5,0.5,0.1)) );
 		SolidNode light = new SolidNode( new Material(DColor.WHITE, new DColor(2,2,1.5), 0, 1.0, new DColor(1.0,1.0,1.0)) );
-		SolidNode blue  = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1.0, new DColor(0.1,0.1,0.5)) );
-		SolidNode green = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1.0, new DColor(0.1,0.5,0.1)) );
-		SolidNode red   = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1.0, new DColor(0.5,0.1,0.1)) );
-		SolidNode empty = new SolidNode( new Material(new DColor(0.99, 0.99, 0.99), new DColor(0.0001, 0.0001, 0.0001), 0.0, 0.0, new DColor(1.0,1.0,1.0)) );
+		SolidNode blue  = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.999, new DColor(0.1,0.1,0.5)) );
+		SolidNode green = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.999, new DColor(0.1,0.5,0.1)) );
+		SolidNode red   = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.999, new DColor(0.5,0.1,0.1)) );
+		SolidNode empty = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.0, new DColor(1.0,1.0,1.0)) );
 		
 		/*
 		SolidNode fencing = new SolidNode( Material.SPACE, 1, 7, 1, new SolidNode[] {
@@ -151,7 +166,7 @@ public class TraceDemo
 		});
 		
 		SolidNode mgren = new SolidNode( Material.SPACE, 1, 3, 1, new SolidNode[] {
-			green, green, empty
+			mirror, green, empty
 		});
  
 		SolidNode field = new SolidNode( Material.SPACE, 5, 1, 5, new SolidNode[] {
@@ -205,40 +220,40 @@ public class TraceDemo
 				switch( kevt.getKeyCode() ) {
 				case KeyEvent.VK_P:
 					cam.preview ^= true;
-					exp.clear();
+					tii.set( TracerInstruction.RESET );
 					break;
 				case KeyEvent.VK_HOME:
 					cam.x += dir * Math.cos(cam.yaw);
 					cam.z -= dir * Math.sin(cam.yaw);
-					exp.clear();
+					tii.set( TracerInstruction.RESET );
 					break;
 				case KeyEvent.VK_END:
 					cam.x -= dir * Math.cos(cam.yaw);
 					cam.z += dir * Math.sin(cam.yaw);
-					exp.clear();
+					tii.set( TracerInstruction.RESET );
 					break;
 				case KeyEvent.VK_DOWN:
 					dir = -1;
 				case KeyEvent.VK_UP:
 					cam.x += dir * Math.sin(cam.yaw);
 					cam.z += dir * Math.cos(cam.yaw);
-					exp.clear();
+					tii.set( TracerInstruction.RESET );
 					break;
 				case KeyEvent.VK_PAGE_UP:
 					cam.y += dir;
-					exp.clear();
+					tii.set( TracerInstruction.RESET );
 					break;
 				case KeyEvent.VK_PAGE_DOWN:
 					cam.y -= dir;
-					exp.clear();
+					tii.set( TracerInstruction.RESET );
 					break;
 				case KeyEvent.VK_LEFT:
 					cam.yaw += Math.PI / 16;
-					exp.clear();
+					tii.set( TracerInstruction.RESET );
 					break;
 				case KeyEvent.VK_RIGHT:
 					cam.yaw -= Math.PI / 16;
-					exp.clear();
+					tii.set( TracerInstruction.RESET );
 					break;
 				}
 			}
@@ -265,6 +280,23 @@ public class TraceDemo
 		int r = 0;
 		int sx = 0, sy = 0;
 		while( true ) {
+			TracerInstruction ti = tii.set( TracerInstruction.CONTINUE );
+			if( ti == TracerInstruction.RESET ) {
+				r = 0;
+				exp.clear();
+				/*
+				for( int i=exp.width*exp.height-1; i>=0; --i ) {
+					double e = exp.e.data[i];
+					if( e != 0 ) {
+						exp.r.data[i] /= e;
+						exp.g.data[i] /= e;
+						exp.b.data[i] /= e;
+					}
+					exp.e.data[i] = 1;
+				}
+				*/
+			}
+			
 			for( int j=0; j<vectorSize; ++j ) {
 				switch( sampleMethod ) {
 				case RANDOM:
