@@ -27,19 +27,20 @@ public class TraceDemo
 	}
 	
 	public static void main( String[] args ) {
-		final int imageWidth  = 512;
-		final int imageHeight = 512;
-		SampleMethod sampleMethod = SampleMethod.RANDOM;
+		final int imageWidth  = 128;
+		final int imageHeight = 128;
+		SampleMethod sampleMethod = SampleMethod.LINE;
 		
 		Tracer t = new Tracer();
 		
-		SolidNode mirror = new SolidNode( new Material(new DColor(0.01,0.05,0.2), DColor.BLACK, 0.4, 1) );
-		SolidNode light = new SolidNode( new Material(new DColor(1.0,1.0,1.0), new DColor(2,2,1.5), 0, 1.0) );
-		SolidNode blue  = new SolidNode( new Material(new DColor(0.1,0.1,0.5), DColor.BLACK, 0.0, 1.0) );
-		SolidNode green = new SolidNode( new Material(new DColor(0.1,0.5,0.1), DColor.BLACK, 0.0, 1.0) );
-		SolidNode red   = new SolidNode( new Material(new DColor(0.5,0.1,0.1), DColor.BLACK, 0.0, 1.0) );
-		SolidNode empty = SolidNode.EMPTY;
+		SolidNode mirror= new SolidNode( new Material(new DColor(0.9, 0.1, 0.1), DColor.BLACK, 0.5, 0.0, new DColor(0.05,0.05,0.1) ) );
+		SolidNode light = new SolidNode( new Material(DColor.WHITE, new DColor(2,2,1.5), 0, 1.0, new DColor(1.0,1.0,1.0)) );
+		SolidNode blue  = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1.0, new DColor(0.1,0.1,0.5)) );
+		SolidNode green = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1.0, new DColor(0.1,0.5,0.1)) );
+		SolidNode red   = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1.0, new DColor(0.5,0.1,0.1)) );
+		SolidNode empty = new SolidNode( new Material(new DColor(0.99, 0.99, 0.99), new DColor(0.0001, 0.0001, 0.0001), 0.0, 0.0, new DColor(1.0,1.0,1.0)) );
 		
+		/*
 		SolidNode fencing = new SolidNode( Material.SPACE, 1, 7, 1, new SolidNode[] {
 			empty, green, empty, green, empty, green, empty
 		});
@@ -137,11 +138,54 @@ public class TraceDemo
 			
 			red , floorMirror, red,
 			nsPillarSpace, empty, nsPillarSpace,
-			blue , ceilingLightFixture, blue,
+			blue , empty, blue,
 			
 			red  , red  , red,
 			cornerPillarSpace, ewPillarSpace, cornerPillarSpace,
 			blue , blue , blue
+		});
+		*/
+		
+		SolidNode sgren = new SolidNode( Material.SPACE, 1, 3, 1, new SolidNode[] {
+			green, empty, mirror
+		});
+		
+		SolidNode mgren = new SolidNode( Material.SPACE, 1, 3, 1, new SolidNode[] {
+			green, green, empty
+		});
+ 
+		SolidNode field = new SolidNode( Material.SPACE, 5, 1, 5, new SolidNode[] {
+			empty, empty, green, empty, empty,
+			mgren, sgren, empty, red  , empty,
+			empty, empty, empty, empty, empty,
+			empty, sgren, empty, empty, mgren,
+			green, empty, empty, sgren, empty,
+		});
+		
+		SolidNode pcol = new SolidNode( Material.SPACE, 1,3,1, new SolidNode[] {
+			blue, light, blue
+		});
+		pcol = new SolidNode( Material.SPACE, 1,3,1, new SolidNode[] {
+			pcol, blue, red
+		});
+
+		
+		SolidNode pcell = new SolidNode( Material.SPACE, 3,1,3, new SolidNode[] {
+			empty, empty, empty,
+			empty, pcol , empty,
+			empty, empty, empty,
+		});
+		
+		SolidNode n = new SolidNode( Material.SPACE, 3, 3, 3, new SolidNode[] {
+			green, green, green,
+			field, field, field,
+			empty, empty, empty,
+			green, green, green,
+			field, pcell, field,
+			empty, empty, empty,
+			green, green, green,
+			field, field, field,
+			empty, empty, empty,
 		});
 		
 		t.setRoot( n, 50);
@@ -283,7 +327,7 @@ public class TraceDemo
 				exp.b.data[pixelI] += t.blue;
 			}
 			
-			if( r % 40 == 0 ) {
+			if( r % 10 == 0 ) {
 				adj.exposureUpdated();
 			}
 			++r;

@@ -204,10 +204,12 @@ public class Tracer
 			}
 		}
 		
+		/*
 		// Fake some waviness for now
 		normal.x += (double)sn.apply((float)pos.x/2, (float)pos.y/3, (float)pos.z/1)*0.5;
 		normal.y += (double)sn.apply((float)pos.x/3, (float)pos.y/2, (float)pos.z/2)*0.5;
 		normal.z += (double)sn.apply((float)pos.x/1, (float)pos.y/1, (float)pos.z/3)*0.5;
+		*/
 	}
 	
 	SimplexNoise sn = new SimplexNoise();
@@ -230,40 +232,50 @@ public class Tracer
 		
 		process: for( int i=0; i<24; ++i ) {
 			Material material = cursors[cursorIdx].node.material;
+			boolean scattered = false;
 			if( !findNextIntersection( pos, direction, newPos ) ) {
 				return;
-			} else if( material.scattering > 0 && false ) {
+			}
+			
+			double dist = VectorMath.dist( pos, newPos );
+			if( material.scattering > 0 && material.scattering < 1 ) {
 				// Chance of not scattering in 1 meter = (1-S)
 				// Chance of not scattering in 2 meter = (1-S)**2 
-				double dist = VectorMath.dist( pos, newPos );
 				double transmission = (double)Math.pow( 1-material.scattering, dist );
 				if( random.nextDouble() > transmission ) {
 					// Scatter!
 					// Let's say for now it's at some random point (which is terribly wrong).
-					dist *= random.nextDouble();
+					dist *= Math.abs(random.nextGaussian());
 					direction.normalize(dist);
 					VectorMath.add( pos, direction, pos );
-					fixCursor();
 					
 					direction.x = random.nextDouble()-(double)0.5;
 					direction.y = random.nextDouble()-(double)0.5;
 					direction.z = random.nextDouble()-(double)0.5;
 					
-					filterRed   *= material.filterColor.r;
-					filterGreen *= material.filterColor.g;
-					filterBlue  *= material.filterColor.b;
+					filterRed   *= material.scatterColor.r;
+					filterGreen *= material.scatterColor.g;
+					filterBlue  *= material.scatterColor.b;
 					
-					red   += material.ambientColor.r * filterRed;
-					green += material.ambientColor.g * filterGreen;
-					blue  += material.ambientColor.b * filterBlue;
-					
-					continue process;
+					scattered = true;
 				}
 			}
+			
+			red   += material.ambientColor.r * material.filterColor.r * dist;
+			green += material.ambientColor.g * material.filterColor.g * dist;
+			blue  += material.ambientColor.b * material.filterColor.b * dist;
+			
+			filterRed   *= Math.pow(material.filterColor.r, dist);
+			filterGreen *= Math.pow(material.filterColor.g, dist);
+			filterBlue  *= Math.pow(material.filterColor.b, dist);
 			
 			// Otherwise it just passes through!
 			
 			setPosition(newPos);
+			// Eventually want to decide based on IoR of old and new materials
+			// rather than just skipping surface effects if scattering
+			if( scattered ) continue process;
+			
 			material = cursors[cursorIdx].node.material;
 			
 			calculateNormal();
@@ -271,19 +283,20 @@ public class Tracer
 			if( random.nextDouble() < material.mirrosity ) {
 				VectorMath.reflect(direction, normal, direction);
 			} else if( material.scattering == 1 ) {
+				// Special case for opaque things since
+				// our position is never precisely at the surface
 				direction.x = normal.x + (double)(random.nextGaussian()*0.5);
 				direction.y = normal.y + (double)(random.nextGaussian()*0.5);
 				direction.z = normal.z + (double)(random.nextGaussian()*0.5);
 				
-				filterRed   *= material.filterColor.r;
-				filterGreen *= material.filterColor.g;
-				filterBlue  *= material.filterColor.b;
+				filterRed   *= material.scatterColor.r;
+				filterGreen *= material.scatterColor.g;
+				filterBlue  *= material.scatterColor.b;
 				
 				red   += material.ambientColor.r * filterRed;
 				green += material.ambientColor.g * filterGreen;
 				blue  += material.ambientColor.b * filterBlue;
 			}
-			// Special case for opaque scattering?
 		}
 	}
 	
@@ -304,9 +317,9 @@ public class Tracer
 				
 				double adjust = normal.x*0.1 + normal.y*0.2 + normal.z*0.3;
 				
-				red   = material.ambientColor.r + material.filterColor.r * (0.5 + adjust);
-				green = material.ambientColor.g + material.filterColor.g * (0.5 + adjust);
-				blue  = material.ambientColor.b + material.filterColor.b * (0.5 + adjust);
+				red   = material.ambientColor.r + material.scatterColor.r * (0.5 + adjust);
+				green = material.ambientColor.g + material.scatterColor.g * (0.5 + adjust);
+				blue  = material.ambientColor.b + material.scatterColor.b * (0.5 + adjust);
 				return;
 			}
 		}

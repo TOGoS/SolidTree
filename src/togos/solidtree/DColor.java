@@ -5,6 +5,7 @@ import java.util.Random;
 public class DColor
 {
 	public static final DColor BLACK = new DColor(0,0,0);
+	public static final DColor WHITE = new DColor(1,1,1);
 	
 	public final double r, g, b;
 	public DColor( double r, double g, double b ) {
