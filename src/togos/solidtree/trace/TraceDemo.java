@@ -49,13 +49,13 @@ public class TraceDemo
 		final Interrupt<TracerInstruction> tii = new Interrupt<TracerInstruction>();
 		
 		SolidNode mirror= new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.9999, new DColor(0.1,0.5,0.1)) );
-		SolidNode rlite = new SolidNode( new Material(DColor.WHITE, new DColor(2,2,1.5), 0, 1, new DColor(1.0,0.1,0.1)) );
-		SolidNode glite = new SolidNode( new Material(DColor.WHITE, new DColor(2,2,1.5), 0, 1, new DColor(0.1,1.0,0.1)) );
-		SolidNode blite = new SolidNode( new Material(DColor.WHITE, new DColor(2,2,1.5), 0, 1, new DColor(0.1,0.1,1.0)) );
-		SolidNode blue  = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.1,0.1,0.5)) );
-		SolidNode green = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.1,0.5,0.1)) );
-		SolidNode red   = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.5,0.1,0.1)) );
-		SolidNode empty = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0, DColor.WHITE) );
+		SolidNode rlite = new SolidNode( new Material(DColor.WHITE, new DColor(2,1,1), 0, 1, DColor.WHITE) );
+		SolidNode glite = new SolidNode( new Material(DColor.WHITE, new DColor(1,2,1), 0, 1, DColor.WHITE) );
+		SolidNode blite = new SolidNode( new Material(DColor.WHITE, new DColor(1,1,2), 0, 1, DColor.WHITE) );
+		SolidNode blue  = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.1,0.1,1.0)) );
+		SolidNode green = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.1,1.0,0.1)) );
+		SolidNode red   = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(1.0,0.1,0.1)) );
+		SolidNode empty = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.01, DColor.WHITE) );
 		//SolidNode empty = new SolidNode( new Material(new DColor(0.95,0.95,0.95), new DColor(0.01,0.01,0.01), 0.0, 0, new DColor(1.0,1.0,1.0)) );
 		
 		/*
