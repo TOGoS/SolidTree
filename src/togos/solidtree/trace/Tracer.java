@@ -238,16 +238,16 @@ public class Tracer
 			}
 			
 			double dist = VectorMath.dist( pos, newPos );
-			if( material.scattering > 0 && material.scattering < 1 ) {
+			if( material.scattering > 0 ) {
 				// Chance of not scattering in 1 meter = (1-S)
 				// Chance of not scattering in 2 meter = (1-S)**2 
-				double transmission = (double)Math.pow( 1-material.scattering, dist );
-				if( random.nextDouble() > transmission ) {
-					// Scatter!
+				//double transmission = (double)Math.pow( 1-material.scattering, dist );
+				double scatterDist = (1-material.scattering) * (1 / (random.nextDouble()) - 1);
+				if( scatterDist < dist ) {
+					// Scattered!
 					// Let's say for now it's at some random point (which is terribly wrong).
-					dist *= Math.abs(random.nextGaussian());
-					direction.normalize(dist);
-					VectorMath.add( pos, direction, pos );
+					direction.normalize(scatterDist);
+					VectorMath.add( pos, direction, newPos );
 					
 					direction.x = random.nextDouble()-(double)0.5;
 					direction.y = random.nextDouble()-(double)0.5;
@@ -283,7 +283,7 @@ public class Tracer
 			
 			if( random.nextDouble() < material.mirrosity ) {
 				VectorMath.reflect(direction, normal, direction);
-			} else if( material.scattering == 1 ) {
+			} else if( material.scattering == 1 && false ) {
 				// Special case for opaque things since
 				// our position is never precisely at the surface
 				direction.x = normal.x + (double)(random.nextGaussian()*0.5);
