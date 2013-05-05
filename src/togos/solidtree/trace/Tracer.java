@@ -240,9 +240,8 @@ public class Tracer
 			double dist = VectorMath.dist( pos, newPos );
 			if( material.scattering > 0 ) {
 				// Chance of not scattering in 1 meter = (1-S)
-				// Chance of not scattering in 2 meter = (1-S)**2 
-				//double transmission = (double)Math.pow( 1-material.scattering, dist );
-				double scatterDist = (1-material.scattering) * (1 / (random.nextDouble()) - 1);
+				// Chance of not scattering in 2 meter = (1-S)**2
+				double scatterDist = -Math.log(random.nextDouble()) / Math.log( 1 / (1-material.scattering) );
 				if( scatterDist < dist ) {
 					// Scattered!
 					// Let's say for now it's at some random point (which is terribly wrong).
