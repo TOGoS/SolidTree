@@ -40,22 +40,125 @@ public class TraceDemo
 		RESET
 	}
 	
+	protected static SolidNode mkNode( int w, int h, int d, SolidNode...parts ) {
+		return new SolidNode( Material.SPACE, w, h, d, parts );
+	}
+	
 	public static void main( String[] args ) {
-		final int imageWidth  = 128;
-		final int imageHeight = 128;
+		final int imageWidth  = 512;
+		final int imageHeight = 384;
 		SampleMethod sampleMethod = SampleMethod.LINE;
 		
 		Tracer t = new Tracer();
 		final Interrupt<TracerInstruction> tii = new Interrupt<TracerInstruction>();
 		
-		SolidNode mirror= new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.9999, new DColor(0.1,0.5,0.1)) );
+		SolidNode light = new SolidNode( new Material(DColor.WHITE, new DColor(2,2,2), 0, 1, DColor.WHITE) );
+		SolidNode mirrr = new SolidNode( new Material(new DColor(0.3,0.4,0.4), DColor.BLACK, 0.2, 1, new DColor(0.1,0.5,0.1)) );
 		SolidNode rlite = new SolidNode( new Material(DColor.WHITE, new DColor(2,1,1), 0, 1, DColor.WHITE) );
 		SolidNode glite = new SolidNode( new Material(DColor.WHITE, new DColor(1,2,1), 0, 1, DColor.WHITE) );
 		SolidNode blite = new SolidNode( new Material(DColor.WHITE, new DColor(1,1,2), 0, 1, DColor.WHITE) );
-		SolidNode blue  = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.1,0.1,1.0)) );
-		SolidNode green = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.1,1.0,0.1)) );
+		SolidNode sblue  = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.5,0.5,1.0)) );
+		SolidNode green = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.5,1.0,0.5)) );
 		SolidNode red   = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(1.0,0.1,0.1)) );
-		SolidNode empty = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.01, DColor.WHITE) );
+		SolidNode empty = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0, DColor.WHITE) );
+		SolidNode walll  = mkNode( 4, 4, 4,
+			sblue, sblue, sblue, sblue,
+			empty, sblue, empty, empty,
+			empty, sblue, empty, empty,
+			sblue, sblue, sblue, sblue,
+			
+			sblue, sblue, sblue, sblue,
+			empty, sblue, sblue, sblue,
+			empty, sblue, sblue, sblue,
+			sblue, sblue, sblue, sblue,
+
+			sblue, sblue, sblue, sblue,
+			sblue, sblue, sblue, empty,
+			sblue, sblue, sblue, empty,
+			sblue, sblue, sblue, sblue,
+
+			sblue, sblue, sblue, sblue,
+			empty, empty, sblue, empty,
+			empty, empty, sblue, empty,
+			sblue, sblue, sblue, sblue
+		);
+		
+		SolidNode whiteTile = new SolidNode(  new Material(DColor.WHITE, DColor.BLACK, 0.1, 1, new DColor(0.6,0.6,0.6)) );
+		SolidNode blackTile = new SolidNode(  new Material(DColor.WHITE, DColor.BLACK, 0.1, 1, new DColor(0,0,0)) );
+		SolidNode dirtyWhiteTile = mkNode( 2, 1, 2,
+			mkNode( 2, 1, 2, whiteTile, whiteTile, whiteTile, blackTile ),
+			mkNode( 2, 1, 2, whiteTile, whiteTile, blackTile, whiteTile ),
+			mkNode( 2, 1, 2, whiteTile, whiteTile, whiteTile, whiteTile ),
+			mkNode( 2, 1, 2, blackTile, whiteTile, whiteTile, blackTile )
+		);
+		SolidNode dirtyBlackTile = mkNode( 2, 1, 2,
+			mkNode( 2, 1, 2, blackTile, blackTile, blackTile, dirtyWhiteTile ),
+			mkNode( 2, 1, 2, dirtyWhiteTile, blackTile, blackTile, blackTile ),
+			mkNode( 2, 1, 2, blackTile, blackTile, dirtyWhiteTile, blackTile ),
+			mkNode( 2, 1, 2, blackTile, dirtyWhiteTile, blackTile, blackTile )
+		);
+		dirtyBlackTile = mkNode( 2, 1, 2,
+			mkNode( 2, 1, 2, dirtyBlackTile, dirtyBlackTile, dirtyBlackTile, dirtyWhiteTile ),
+			mkNode( 2, 1, 2, dirtyWhiteTile, dirtyBlackTile, dirtyBlackTile, dirtyBlackTile ),
+			mkNode( 2, 1, 2, dirtyBlackTile, dirtyBlackTile, dirtyWhiteTile, dirtyBlackTile ),
+			mkNode( 2, 1, 2, dirtyBlackTile, dirtyWhiteTile, dirtyBlackTile, dirtyBlackTile )
+		);
+		
+		SolidNode floor = mkNode( 2, 1, 2, dirtyBlackTile, dirtyWhiteTile, dirtyWhiteTile, dirtyBlackTile );
+		floor = mkNode( 2, 1, 2, floor, floor, floor, floor );
+		floor = mkNode( 2, 1, 2, floor, floor, floor, floor );
+		floor = mkNode( 2, 1, 2, floor, floor, floor, floor );
+		SolidNode clite = mkNode( 4, 4, 4,
+			green, green, green, green,
+			green, green, green, green,
+			green, green, green, green,
+			green, green, green, green,
+			
+			green, empty, empty, green,
+			green, light, light, green,
+			green, light, light, green,
+			green, light, light, green,
+			
+			green, empty, empty, green,
+			green, light, light, green,
+			green, light, light, green,
+			green, light, light, green,
+			
+			green, green, green, green,
+			green, green, green, green,
+			green, green, green, green,
+			green, green, green, green
+		);
+		SolidNode ceiling = mkNode( 2, 1, 2, green, clite, clite, green );
+		ceiling = mkNode( 2, 1, 2, ceiling, ceiling, ceiling, ceiling );
+		ceiling = mkNode( 2, 1, 2, ceiling, ceiling, ceiling, ceiling );
+		ceiling = mkNode( 2, 1, 2, ceiling, ceiling, ceiling, ceiling );
+		
+		SolidNode maze = mkNode( 16, 1, 16,
+			walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
+			walll, empty, empty, empty, empty, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, empty, empty, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, empty, walll, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, empty, empty, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, empty, empty, empty, empty, red  , walll, walll, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, walll, empty, walll, empty, empty, walll, walll, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, empty, empty, walll, empty, empty, walll, walll, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, walll, empty, walll, empty, empty, walll, mirrr, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, walll, empty, walll, walll, empty, empty, empty, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, empty, empty, walll, walll, empty, empty, empty, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, empty, walll, walll, walll, empty, red  , empty, walll, walll, walll, walll, walll, walll,
+			walll, empty, empty, empty, walll, red  , mirrr, empty, empty, empty, walll, walll, walll, walll, walll, walll,
+			walll, empty, empty, empty, empty, empty, empty, empty, empty, empty, walll, walll, walll, walll, walll, walll,
+			walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll
+		);
+		
+		SolidNode m = mkNode( 1, 3, 1, floor, maze, ceiling );
+		
+		SolidNode grating = new SolidNode( Material.SPACE, 2, 1, 2, new SolidNode[] {
+			empty, green, green, green
+		});
+		
 		//SolidNode empty = new SolidNode( new Material(new DColor(0.95,0.95,0.95), new DColor(0.01,0.01,0.01), 0.0, 0, new DColor(1.0,1.0,1.0)) );
 		
 		/*
@@ -169,7 +272,7 @@ public class TraceDemo
 		});
 		
 		SolidNode mgren = new SolidNode( Material.SPACE, 1, 3, 1, new SolidNode[] {
-			mirror, green, empty
+			mirrr, green, empty
 		});
  
 		SolidNode field = new SolidNode( Material.SPACE, 5, 1, 5, new SolidNode[] {
@@ -184,7 +287,7 @@ public class TraceDemo
 			rlite, glite, blite
 		});
 		pcol = new SolidNode( Material.SPACE, 1,3,1, new SolidNode[] {
-			pcol, blue, red
+			pcol, sblue, red
 		});
 
 		
@@ -194,19 +297,31 @@ public class TraceDemo
 			empty, empty, empty,
 		});
 		
+		SolidNode flite = new SolidNode( Material.SPACE, 1,3,1, new SolidNode[] {
+			green,
+			light,
+			new SolidNode( Material.SPACE, 1,3,1, new SolidNode[] {
+				empty, empty, new SolidNode( Material.SPACE, 3,1,3, new SolidNode[] {
+					grating,grating,grating,
+					grating,grating,grating,
+					grating,grating,grating
+				})
+			})
+		});
+		
 		SolidNode n = new SolidNode( Material.SPACE, 3, 3, 3, new SolidNode[] {
 			green, green, green,
 			field, field, field,
 			empty, empty, empty,
-			green, green, green,
-			field, pcell, field,
+			green, flite, green,
+			field, empty, field,
 			empty, empty, empty,
 			green, green, green,
 			field, field, field,
 			empty, empty, empty,
 		});
 		
-		t.setRoot( n, 50);
+		t.setRoot( m, 160, 30, 160 );
 		
 		final Camera cam = new Camera();
 		cam.yaw = 0;//Math.PI/8;
@@ -336,12 +451,12 @@ public class TraceDemo
 				
 				if( cam.preview ) {
 					t.quickTrace(
-						camPosX[j], camPosY[j]+5, camPosZ[j] - 10,
+						camPosX[j], camPosY[j], camPosZ[j],
 						camDirX[j], camDirY[j], camDirZ[j]
 					);
 				} else {
 					t.trace(
-						camPosX[j], camPosY[j]+5, camPosZ[j] - 10,
+						camPosX[j], camPosY[j], camPosZ[j],
 						camDirX[j], camDirY[j], camDirZ[j]
 					);
 				}
