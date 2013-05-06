@@ -23,6 +23,14 @@ public class Tracer
 				z >= z0 && z <= z1;
 		}
 		
+		public boolean onEdge( double x, double y, double z ) {
+			return contains(x,y,z) && (
+				x == x0 || x == x1 ||
+				y == y0 || y == y1 ||
+				z == z0 || z == z1
+			);
+		}
+		
 		public void set(
 			SolidNode node,
 			double x0, double y0, double z0,
@@ -33,14 +41,7 @@ public class Tracer
 			this.x0 = x0; this.y0 = y0; this.z0 = z0;
 			this.x1 = x1; this.y1 = y1; this.z1 = z1;
 		}
-		
-		public void set( SolidNode node, double min, double max ) {
-			set( node, min, min, min, max, max, max );
-		}
 	}
-	
-	private SolidNode rootNode = SolidNode.EMPTY;
-	private double rootScale; // At 1, rootNode's edges are 0.5 m from the origin
 	
 	Random random = new Random();
 	
@@ -51,14 +52,15 @@ public class Tracer
 	
 	public Tracer() {
 		for( int i=0; i<cursors.length; ++i ) cursors[i] = new Cursor();
-		cursors[0].set( SolidNode.EMPTY, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY );
-		setRoot( SolidNode.EMPTY, 0 );
+		cursors[0].set( SolidNode.EMPTY,
+			Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY,
+			Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY
+		);
+		setRoot( SolidNode.EMPTY, 0, 0, 0 );
 	}
 	
-	public void setRoot( SolidNode n, double scale ) {
-		this.rootNode = n;
-		this.rootScale = scale;
-		cursors[1].set( rootNode, -rootScale/2, rootScale/2 );
+	public void setRoot( SolidNode root, double width, double height, double depth ) {
+		cursors[1].set( root, -width/2, -height/2, -depth/2, width/2, height/2, depth/2 );
 	}
 	
 	protected Cursor fixCursor() {
@@ -128,18 +130,25 @@ public class Tracer
 		assert !d.isZero();
 		assert c.contains(p);
 		
-		// Grow the direction vector until it
-		// pokes out of the current box...
-		while( c.contains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
-			d.scale(2);
+		// TODO: There is some slowness when rays go directly along an edge.
+		// Figure a good way to deal with that situation.
+		if( c.onEdge(p.x, p.y, p.z) ) return false;
+		
+		if( !c.onEdge(p.x, p.y, p.z) ) {
+			// Grow the direction vector until it
+			// pokes out of the current box...
+			while( c.contains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
+				d.scale(2);
+			}
+			// Shrink the direction vector until it fits
+			// within the current box...
+			while( !c.contains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
+				d.scale((double)0.5);
+				
+				assert !d.isZero();
+			}
 		}
-		// Shrink the direction vector until it fits
-		// within the current box...
-		while( !c.contains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
-			d.scale((double)0.5);
-			
-			assert !d.isZero();
-		}
+		assert !d.isZero();
 		// Adjust the direction vector to get as close
 		// to the boundary as possible...
 		double ddx = d.x/2, ddy = d.y/2, ddz = d.z/2;
@@ -157,6 +166,7 @@ public class Tracer
 		}
 		// Make sure it's just past the boundary
 		while( c.contains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
+			assert ddx != 0 || ddy != 0 || ddz != 0;
 			d.x += ddx;
 			d.y += ddy;
 			d.z += ddz;
