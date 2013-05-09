@@ -5,8 +5,11 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
 
 import togos.hdrutil.AdjusterUI;
+import togos.hdrutil.ChunkyDump;
 import togos.hdrutil.HDRExposure;
 import togos.solidtree.DColor;
 import togos.solidtree.Material;
@@ -44,9 +47,16 @@ public class TraceDemo
 		return new SolidNode( Material.SPACE, w, h, d, parts );
 	}
 	
+	protected static File getNewOutputFile( String prefix, String suffix ) {
+		File f;
+		for( int i=0; (f = new File(prefix+i+suffix)).exists(); ++i );
+		return f;
+	}
+	
 	public static void main( String[] args ) {
 		final int imageWidth  = 512;
 		final int imageHeight = 384;
+		final String sceneName = "test"; 
 		SampleMethod sampleMethod = SampleMethod.LINE;
 		
 		Tracer t = new Tracer();
@@ -60,7 +70,7 @@ public class TraceDemo
 		SolidNode sblue  = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.5,0.5,1.0)) );
 		SolidNode green = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.5,1.0,0.5)) );
 		SolidNode red   = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(1.0,0.1,0.1)) );
-		SolidNode empty = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0, DColor.WHITE) );
+		SolidNode empty = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.05, DColor.WHITE) );
 		SolidNode walll  = mkNode( 4, 4, 4,
 			sblue, sblue, sblue, sblue,
 			empty, sblue, empty, empty,
@@ -140,10 +150,10 @@ public class TraceDemo
 			walll, empty, walll, empty, empty, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
 			walll, empty, walll, empty, walll, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
 			walll, empty, walll, empty, empty, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, empty, empty, mirrr, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
 			walll, empty, walll, empty, empty, empty, empty, red  , walll, walll, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, walll, empty, walll, empty, empty, walll, walll, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, empty, empty, walll, empty, empty, walll, walll, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, walll, empty, walll, empty, empty, empty, empty, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, empty, empty, walll, empty, empty, empty, empty, walll, walll, walll, walll, walll, walll,
 			walll, empty, walll, walll, empty, walll, empty, empty, walll, mirrr, walll, walll, walll, walll, walll, walll,
 			walll, empty, walll, walll, empty, walll, walll, empty, empty, empty, walll, walll, walll, walll, walll, walll,
 			walll, empty, walll, empty, empty, walll, walll, empty, empty, empty, walll, walll, walll, walll, walll, walll,
@@ -336,6 +346,18 @@ public class TraceDemo
 				double dir = 1;
 				
 				switch( kevt.getKeyCode() ) {
+				case KeyEvent.VK_D:
+					String baseName = sceneName+"-"+(int)exp.getAverageExposure();
+					File saveFile = getNewOutputFile(baseName+"-", ".dump");
+					try {
+						System.err.println("Saving as "+saveFile);
+						ChunkyDump.saveExposure(exp, saveFile);
+						System.err.println("Saved!");
+					} catch( IOException e ) {
+						System.err.println("ERROR SAVING DUMP!");
+						e.printStackTrace(System.err);
+					}
+					break;
 				case KeyEvent.VK_P:
 					cam.preview ^= true;
 					tii.set( TracerInstruction.RESET );
