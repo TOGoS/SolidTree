@@ -4,7 +4,10 @@ package togos.hdrutil;
 public class HDRExposure
 {
 	public final int width, height;
-	public final HDRChannel e, r, g, b;
+	/** Virtual exposure time for each pixel */
+	public final HDRChannel e;
+	/** Sum of red, green, and blue over entire exposure for each pixel */ 
+	public final HDRChannel r, g, b;
 	
 	public HDRExposure( int width, int height ) {
 		this.e = new HDRChannel(width*height);
@@ -41,5 +44,13 @@ public class HDRExposure
 		for( int i=width*height-1; i>=0; --i ) {
 			e.data[i] = r.data[i] = g.data[i] = b.data[i] = 0;
 		}
+	}
+	
+	public double getAverageExposure() {
+		double sum = 0;
+		for( int i=width*height-1; i>=0; --i ) {
+			sum += e.data[i];
+		}
+		return sum / (width*height);
 	}
 }
