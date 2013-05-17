@@ -140,12 +140,12 @@ public class Tracer
 			// Grow the direction vector until it
 			// pokes out of the current box...
 			while( c.contains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
-				d.scale(2);
+				d.scaleInPlace(2);
 			}
 			// Shrink the direction vector until it fits
 			// within the current box...
 			while( !c.contains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
-				d.scale((double)0.5);
+				d.scaleInPlace((double)0.5);
 				
 				assert !d.isZero();
 			}
@@ -242,7 +242,7 @@ public class Tracer
 		if( factor == 0 ) return zeroVector;
 		
 		VectorMath.reflect( incoming, normal, mirrorVector );
-		mirrorVector.normalize(factor);
+		mirrorVector.normalizeInPlace(factor);
 		return mirrorVector;
 	}
 	
@@ -255,7 +255,7 @@ public class Tracer
 			randomVector.y = random.nextGaussian();
 			randomVector.z = random.nextGaussian();
 		} while( randomVector.isZero() );
-		randomVector.normalize(factor);
+		randomVector.normalizeInPlace(factor);
 		return randomVector;
 	}
 	
@@ -269,19 +269,22 @@ public class Tracer
 		filterBlue  *= material.filterColor.b;
     }
 	
+	private final Vector3D normalTerm = new Vector3D();
 	/**
 	 * Redirect ray and apply material color
 	 * according to the given normal and material properties.
 	 */
 	protected boolean onHit( Vector3D ray, Vector3D normal, SurfaceMaterialLayer sm ) {
 		if( random.nextDouble() < sm.opacity ) {
-			Vector3D rand = randomVector(sm.randomRedirectFactor);
-			Vector3D mirror = mirrorVector(ray, normal, sm.mirrorRedirectFactor);
-			normal.normalize( sm.normalRedirectFactor );
-			ray.normalize( sm.forwardRedirectFactor );
-			VectorMath.add( ray, normal, ray );
-			VectorMath.add( ray, mirror, ray );
-			VectorMath.add( ray, rand  , ray );
+			Vector3D randTerm = randomVector(sm.randomRedirectFactor);
+			Vector3D mirrorTerm = mirrorVector(ray, normal, sm.mirrorRedirectFactor);
+			VectorMath.normalize( normal, sm.normalRedirectFactor, normalTerm );
+			
+			ray.normalizeInPlace( sm.forwardRedirectFactor );
+			VectorMath.add( ray, normalTerm, ray );
+			VectorMath.add( ray, mirrorTerm, ray );
+			VectorMath.add( ray, randTerm  , ray );
+			assert ray.isRegular();
 			
 			applyMaterialColor( sm );
 			return true;
@@ -311,7 +314,51 @@ public class Tracer
 	}
 	
 	public int maxSteps = 24;
-	public int maxBounces = 5;
+	public int maxBounces = 10;
+	
+	final Vector3D scratch = new Vector3D();
+	
+	//TODO: Fix this, because it doesn't work!
+	private void refract( double ni, double nr ) {
+		direction.normalizeInPlace(1);
+		
+		double dotProduct = -normal.normalize().dot(direction);
+		if( dotProduct < 0 ) {
+			// Happens when we get near edges
+			red += filterRed;
+			return;
+		}
+		assert dotProduct >= 0;
+		assert dotProduct <= 1;
+		
+		Vector3D s = normal.normalize( dotProduct ).add( direction );
+		double sinAngleOfIncidence = s.magnitude();
+		if( sinAngleOfIncidence >= 1 ) {
+			System.err.println("Sin = "+sinAngleOfIncidence);
+			green += filterGreen;
+			return;
+		}
+		assert sinAngleOfIncidence > 0;
+		assert sinAngleOfIncidence < 1;
+		
+		double sinAngleOfRefraction = sinAngleOfIncidence * ni / nr;
+		if( sinAngleOfRefraction > 1 ) {
+			// Total internal reflection?
+			// Or a bug.  Because it seems to happen too often.
+			VectorMath.reflect( direction, normal, direction );
+			return;
+		}
+		
+		assert sinAngleOfRefraction >= 0;
+		assert sinAngleOfRefraction < 1;
+		
+		double angleOfRefraction = Math.asin( sinAngleOfRefraction );
+		assert angleOfRefraction >= 0;
+		
+		double cosAngleOfRefraction = Math.cos(angleOfRefraction);
+		
+		direction.set( s.normalize( sinAngleOfRefraction ).subtract(normal.normalize(cosAngleOfRefraction)) );
+	}
 	
 	public void trace( double x, double y, double z, double dx, double dy, double dz ) {
 		setPosition( x, y, z );
@@ -339,9 +386,9 @@ public class Tracer
 				if( scatterDist < dist ) {
 					// Scattered!
 					// Let's say for now it's at some random point (which is terribly wrong).
-					direction.normalize(scatterDist);
+					direction.normalizeInPlace(scatterDist);
 					VectorMath.add( pos, direction, newPos );
-					processSurfaceInteraction( direction, normal, material.particleMaterial );
+					processSurfaceInteraction( direction, randomVector(1), material.particleMaterial );
 					++bounces;
 					
 					scattered = true;
@@ -361,17 +408,21 @@ public class Tracer
 			
 			setPosition(newPos);
 			// If scattered can skip surface check since we know newSurface = surface 
-			if( scattered ) continue step;
+			if( scattered ) {
+				continue step;
+			}
 			
 			VolumetricMaterial newMaterial = cursors[cursorIdx].node.material;
 			
 			calculateNormal();
 			
 			if( newMaterial != material ) {
-				++bounces;
-				if( processSurfaceInteraction( direction, normal, newMaterial.surfaceMaterial ) ) {
-					// TODO: IoR redirection
+				assert direction.isRegular();
+				if( processSurfaceInteraction( direction, normal, newMaterial.surfaceMaterial ) && newMaterial.indexOfRefraction != material.indexOfRefraction ) {
+					refract( material.indexOfRefraction, newMaterial.indexOfRefraction );
 				}
+				++bounces;
+				assert direction.isRegular();
 			}
 		}
 	}

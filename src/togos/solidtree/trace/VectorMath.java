@@ -15,6 +15,12 @@ public class VectorMath
 		dest.z = a.z + b.z;
 	}
 	
+	public static void subtract( Vector3D a, Vector3D b, Vector3D dest ) {
+		dest.x = a.x - b.x;
+		dest.y = a.y - b.y;
+		dest.z = a.z - b.z;
+	}
+	
 	public static void reflect( Vector3D v, Vector3D across, Vector3D dest ) {
 		double dot = dotProduct( v, across );
 		dest.x = -2 * dot * across.x + v.x;
@@ -28,4 +34,9 @@ public class VectorMath
 		double dz = a.z - b.z;
 		return (double)Math.sqrt( dx*dx + dy*dy + dz*dz );
 	}
+
+	public static void normalize( Vector3D normal, double scale, Vector3D dest ) {
+		dest.set(normal);
+		dest.normalizeInPlace(scale);
+    }
 }

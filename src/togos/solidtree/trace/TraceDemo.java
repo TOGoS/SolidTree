@@ -94,6 +94,26 @@ public class TraceDemo
 		SolidNode green = new SolidNode( opaqueVolumetricMaterial(new DColor(0.1,0.4,0.1)) );
 		SolidNode red   = new SolidNode( opaqueVolumetricMaterial(new DColor(0.4,0.1,0.1)) );
 		SolidNode empty = new SolidNode( VolumetricMaterial.SPACE );
+		
+		SolidNode glass = new SolidNode( new VolumetricMaterial(
+			SurfaceMaterial.TRANSPARENT,
+			1.5, DColor.WHITE, DColor.BLACK,
+			0, SurfaceMaterial.TRANSPARENT
+		) );
+		SolidNode fglas = mkNode( 3, 3, 3,
+			empty, empty, empty,
+			empty, empty, empty,
+			empty, empty, empty,
+			
+			empty, empty, empty,
+			empty, glass, empty,
+			empty, empty, empty,
+			
+			empty, empty, empty,
+			empty, empty, empty,
+			empty, empty, empty
+		);
+		
 		SolidNode walll  = mkNode( 4, 4, 4,
 			sblue, sblue, sblue, sblue,
 			empty, sblue, empty, empty,
@@ -173,9 +193,9 @@ public class TraceDemo
 			walll, empty, walll, empty, empty, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
 			walll, empty, walll, empty, walll, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
 			walll, empty, walll, empty, empty, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, empty, empty, mirrr, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, empty, empty, empty, empty, red  , walll, walll, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, walll, empty, walll, empty, empty, empty, empty, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, empty, empty, mirrr, fglas, red  , walll, walll, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, empty, empty, empty, empty, fglas, walll, walll, walll, walll, walll, walll, walll, walll,
+			walll, empty, walll, walll, empty, glass, empty, empty, empty, empty, walll, walll, walll, walll, walll, walll,
 			walll, empty, walll, empty, empty, walll, empty, empty, empty, empty, walll, walll, walll, walll, walll, walll,
 			walll, empty, walll, walll, empty, walll, empty, empty, walll, mirrr, walll, walll, walll, walll, walll, walll,
 			walll, empty, walll, walll, empty, walll, walll, empty, empty, empty, walll, walll, walll, walll, walll, walll,
