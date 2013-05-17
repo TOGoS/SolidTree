@@ -3,21 +3,20 @@ package togos.solidtree;
 public class VolumetricMaterial
 {
 	public static VolumetricMaterial SPACE = new VolumetricMaterial(
-		0, SurfaceMaterial.TRANSPARENT,
+		SurfaceMaterial.TRANSPARENT,
 		1, DColor.WHITE, DColor.BLACK,
 		0, SurfaceMaterial.TRANSPARENT
 	);
 	
 	public static VolumetricMaterial opaque( SurfaceMaterial surface ) {
 		return new VolumetricMaterial(
-			1, surface,
+			surface,
 			1, DColor.WHITE, DColor.BLACK,
 			0, SurfaceMaterial.TRANSPARENT
 		);
 	}
 	
 	/** Chance that the redirection of a given ray will be determined by the surface material */
-	public final double surfaceInteractionChance;
 	public final SurfaceMaterial surfaceMaterial;
 	
 	public final double indexOfRefraction;
@@ -29,11 +28,10 @@ public class VolumetricMaterial
 	public final SurfaceMaterial particleMaterial;
 	
 	public VolumetricMaterial(
-		double surfaceInteractionChance, SurfaceMaterial surfaceMaterial,
+		SurfaceMaterial surfaceMaterial,
 		double indexOfRefraction, DColor internalFilterColor, DColor internalEmissionColor,
 		double particleInteractionChance, SurfaceMaterial particleMaterial
 	) {
-		this.surfaceInteractionChance = surfaceInteractionChance;
 		this.surfaceMaterial = surfaceMaterial;
 		this.indexOfRefraction = indexOfRefraction;
 		this.internalFilterColor = internalFilterColor;

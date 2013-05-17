@@ -13,6 +13,7 @@ import togos.hdrutil.ChunkyDump;
 import togos.hdrutil.HDRExposure;
 import togos.solidtree.DColor;
 import togos.solidtree.SurfaceMaterial;
+import togos.solidtree.SurfaceMaterialLayer;
 import togos.solidtree.VolumetricMaterial;
 import togos.solidtree.SolidNode;
 
@@ -56,7 +57,7 @@ public class TraceDemo
 	
 	public static final VolumetricMaterial opaqueVolumetricMaterial( DColor filterColor, DColor emissionColor ) {
 		return VolumetricMaterial.opaque(
-			new SurfaceMaterial( filterColor, emissionColor, 0, 1, 1, 0 )
+			new SurfaceMaterial(new SurfaceMaterialLayer( 1, filterColor, emissionColor, 0, 1, 1, 0 ))
 		);
 	}
 	
@@ -64,15 +65,18 @@ public class TraceDemo
 		return opaqueVolumetricMaterial( filterColor, DColor.BLACK );
 	}
 	
-	public static final VolumetricMaterial mirrorVolumetricMaterial( DColor filterColor ) {
+	public static final VolumetricMaterial mirrorVolumetricMaterial( double scattering, DColor filterColor ) {
 		return VolumetricMaterial.opaque(
-			new SurfaceMaterial( filterColor, DColor.BLACK, 1, 0, 0, 0 )
+			new SurfaceMaterial(
+				new SurfaceMaterialLayer( scattering, filterColor, DColor.BLACK, 0, 1, 1, 0 ),
+				new SurfaceMaterialLayer( 1, filterColor, DColor.BLACK, 1, 0, 0, 0 )
+			)
 		);
 	}
 	
 	public static void main( String[] args ) {
-		final int imageWidth  = 512;
-		final int imageHeight = 384;
+		final int imageWidth  = 128;//512;
+		final int imageHeight = 128;//384;
 		final String sceneName = "test"; 
 		SampleMethod sampleMethod = SampleMethod.LINE;
 		
@@ -82,7 +86,7 @@ public class TraceDemo
 		VolumetricMaterial gray = opaqueVolumetricMaterial( new DColor(0.3, 0.3, 0.3) );
 		
 		SolidNode light = new SolidNode( opaqueVolumetricMaterial(DColor.WHITE /*should be black!*/, new DColor(2,2,2) ));
-		SolidNode mirrr = new SolidNode( mirrorVolumetricMaterial(new DColor(0.1,0.5,0.1)) );
+		SolidNode mirrr = new SolidNode( mirrorVolumetricMaterial(0.1, new DColor(0.1,0.5,0.1)) );
 		SolidNode rlite = new SolidNode( gray );
 		SolidNode glite = new SolidNode( gray );
 		SolidNode blite = new SolidNode( gray );
@@ -112,8 +116,8 @@ public class TraceDemo
 			sblue, sblue, sblue, sblue
 		);
 		
-		SolidNode whiteTile = new SolidNode( mirrorVolumetricMaterial(new DColor(0.5,0.5,0.5)) );
-		SolidNode blackTile = new SolidNode( mirrorVolumetricMaterial(new DColor(0.1,0.1,0.1)) );
+		SolidNode whiteTile = new SolidNode( mirrorVolumetricMaterial(0.5, new DColor(0.90, 0.90, 0.90)) );
+		SolidNode blackTile = new SolidNode( mirrorVolumetricMaterial(0.5, new DColor(0.01, 0.01, 0.01)) );
 		SolidNode dirtyWhiteTile = mkNode( 2, 1, 2,
 			mkNode( 2, 1, 2, whiteTile, whiteTile, whiteTile, blackTile ),
 			mkNode( 2, 1, 2, whiteTile, whiteTile, blackTile, whiteTile ),
