@@ -13,18 +13,18 @@ public class SurfaceMaterial
 	public final double mirrorRedirectFactor;
 	public final double randomRedirectFactor;
 	public final double normalRedirectFactor;
-	public final double straightRedirectFactor;
+	public final double forwardRedirectFactor;
 	
 	public SurfaceMaterial(
 		DColor filterColor, DColor emissionColor,
-		double scatterMirror, double scatterRandom,
-		double scatterNormal, double scatterStraight
+		double mirrorRF, double randomRF,
+		double normalRF, double forwardRF
 	) {
 		this.filterColor   = filterColor;
 		this.emissionColor = emissionColor;
-		this.mirrorRedirectFactor   = scatterMirror;
-		this.randomRedirectFactor   = scatterRandom;
-		this.normalRedirectFactor   = scatterNormal;
-		this.straightRedirectFactor = scatterStraight;
+		this.mirrorRedirectFactor   = mirrorRF;
+		this.randomRedirectFactor   = randomRF;
+		this.normalRedirectFactor   = normalRF;
+		this.forwardRedirectFactor  = forwardRF;
 	}
 }

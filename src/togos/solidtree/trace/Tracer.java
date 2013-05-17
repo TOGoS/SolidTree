@@ -276,7 +276,7 @@ public class Tracer
 		Vector3D rand = randomVector(sm.randomRedirectFactor);
 		Vector3D mirror = mirrorVector(ray, normal, sm.mirrorRedirectFactor);
 		normal.normalize( sm.normalRedirectFactor );
-		ray.normalize( sm.straightRedirectFactor );
+		ray.normalize( sm.forwardRedirectFactor );
 		VectorMath.add( ray, normal, ray );
 		VectorMath.add( ray, mirror, ray );
 		VectorMath.add( ray, rand  , ray );

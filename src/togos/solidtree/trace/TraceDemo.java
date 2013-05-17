@@ -56,12 +56,18 @@ public class TraceDemo
 	
 	public static final VolumetricMaterial opaqueVolumetricMaterial( DColor filterColor, DColor emissionColor ) {
 		return VolumetricMaterial.opaque(
-			new SurfaceMaterial( filterColor, emissionColor, 0, 1, 2, 0 )
+			new SurfaceMaterial( filterColor, emissionColor, 0, 1, 1, 0 )
 		);
 	}
 	
 	public static final VolumetricMaterial opaqueVolumetricMaterial( DColor filterColor ) {
 		return opaqueVolumetricMaterial( filterColor, DColor.BLACK );
+	}
+	
+	public static final VolumetricMaterial mirrorVolumetricMaterial( DColor filterColor ) {
+		return VolumetricMaterial.opaque(
+			new SurfaceMaterial( filterColor, DColor.BLACK, 1, 0, 0, 0 )
+		);
 	}
 	
 	public static void main( String[] args ) {
@@ -76,7 +82,7 @@ public class TraceDemo
 		VolumetricMaterial gray = opaqueVolumetricMaterial( new DColor(0.3, 0.3, 0.3) );
 		
 		SolidNode light = new SolidNode( opaqueVolumetricMaterial(DColor.WHITE /*should be black!*/, new DColor(2,2,2) ));
-		SolidNode mirrr = new SolidNode( gray );
+		SolidNode mirrr = new SolidNode( mirrorVolumetricMaterial(new DColor(0.1,0.5,0.1)) );
 		SolidNode rlite = new SolidNode( gray );
 		SolidNode glite = new SolidNode( gray );
 		SolidNode blite = new SolidNode( gray );
@@ -106,8 +112,8 @@ public class TraceDemo
 			sblue, sblue, sblue, sblue
 		);
 		
-		SolidNode whiteTile = new SolidNode( opaqueVolumetricMaterial(DColor.WHITE) );
-		SolidNode blackTile = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK) );
+		SolidNode whiteTile = new SolidNode( mirrorVolumetricMaterial(new DColor(0.5,0.5,0.5)) );
+		SolidNode blackTile = new SolidNode( mirrorVolumetricMaterial(new DColor(0.1,0.1,0.1)) );
 		SolidNode dirtyWhiteTile = mkNode( 2, 1, 2,
 			mkNode( 2, 1, 2, whiteTile, whiteTile, whiteTile, blackTile ),
 			mkNode( 2, 1, 2, whiteTile, whiteTile, blackTile, whiteTile ),
