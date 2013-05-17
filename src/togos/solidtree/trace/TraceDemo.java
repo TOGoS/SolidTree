@@ -12,7 +12,8 @@ import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.ChunkyDump;
 import togos.hdrutil.HDRExposure;
 import togos.solidtree.DColor;
-import togos.solidtree.Material;
+import togos.solidtree.SurfaceMaterial;
+import togos.solidtree.VolumetricMaterial;
 import togos.solidtree.SolidNode;
 
 public class TraceDemo
@@ -44,13 +45,23 @@ public class TraceDemo
 	}
 	
 	protected static SolidNode mkNode( int w, int h, int d, SolidNode...parts ) {
-		return new SolidNode( Material.SPACE, w, h, d, parts );
+		return new SolidNode( VolumetricMaterial.SPACE, w, h, d, parts );
 	}
 	
 	protected static File getNewOutputFile( String prefix, String suffix ) {
 		File f;
 		for( int i=0; (f = new File(prefix+i+suffix)).exists(); ++i );
 		return f;
+	}
+	
+	public static final VolumetricMaterial opaqueVolumetricMaterial( DColor filterColor, DColor emissionColor ) {
+		return VolumetricMaterial.opaque(
+			new SurfaceMaterial( filterColor, emissionColor, 0, 1, 2, 0 )
+		);
+	}
+	
+	public static final VolumetricMaterial opaqueVolumetricMaterial( DColor filterColor ) {
+		return opaqueVolumetricMaterial( filterColor, DColor.BLACK );
 	}
 	
 	public static void main( String[] args ) {
@@ -62,15 +73,17 @@ public class TraceDemo
 		Tracer t = new Tracer();
 		final Interrupt<TracerInstruction> tii = new Interrupt<TracerInstruction>();
 		
-		SolidNode light = new SolidNode( new Material(DColor.WHITE, new DColor(2,2,2), 0, 1, DColor.WHITE) );
-		SolidNode mirrr = new SolidNode( new Material(new DColor(0.3,0.4,0.4), DColor.BLACK, 0.2, 1, new DColor(0.1,0.5,0.1)) );
-		SolidNode rlite = new SolidNode( new Material(DColor.WHITE, new DColor(2,1,1), 0, 1, DColor.WHITE) );
-		SolidNode glite = new SolidNode( new Material(DColor.WHITE, new DColor(1,2,1), 0, 1, DColor.WHITE) );
-		SolidNode blite = new SolidNode( new Material(DColor.WHITE, new DColor(1,1,2), 0, 1, DColor.WHITE) );
-		SolidNode sblue  = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.5,0.5,1.0)) );
-		SolidNode green = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(0.5,1.0,0.5)) );
-		SolidNode red   = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 1, new DColor(1.0,0.1,0.1)) );
-		SolidNode empty = new SolidNode( new Material(DColor.WHITE, DColor.BLACK, 0.0, 0.05, DColor.WHITE) );
+		VolumetricMaterial gray = opaqueVolumetricMaterial( new DColor(0.3, 0.3, 0.3) );
+		
+		SolidNode light = new SolidNode( opaqueVolumetricMaterial(DColor.WHITE /*should be black!*/, new DColor(2,2,2) ));
+		SolidNode mirrr = new SolidNode( gray );
+		SolidNode rlite = new SolidNode( gray );
+		SolidNode glite = new SolidNode( gray );
+		SolidNode blite = new SolidNode( gray );
+		SolidNode sblue = new SolidNode( opaqueVolumetricMaterial(new DColor(0.1,0.1,0.4)) );
+		SolidNode green = new SolidNode( opaqueVolumetricMaterial(new DColor(0.1,0.4,0.1)) );
+		SolidNode red   = new SolidNode( opaqueVolumetricMaterial(new DColor(0.4,0.1,0.1)) );
+		SolidNode empty = new SolidNode( VolumetricMaterial.SPACE );
 		SolidNode walll  = mkNode( 4, 4, 4,
 			sblue, sblue, sblue, sblue,
 			empty, sblue, empty, empty,
@@ -93,8 +106,8 @@ public class TraceDemo
 			sblue, sblue, sblue, sblue
 		);
 		
-		SolidNode whiteTile = new SolidNode(  new Material(DColor.WHITE, DColor.BLACK, 0.1, 1, new DColor(0.6,0.6,0.6)) );
-		SolidNode blackTile = new SolidNode(  new Material(DColor.WHITE, DColor.BLACK, 0.1, 1, new DColor(0,0,0)) );
+		SolidNode whiteTile = new SolidNode( opaqueVolumetricMaterial(DColor.WHITE) );
+		SolidNode blackTile = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK) );
 		SolidNode dirtyWhiteTile = mkNode( 2, 1, 2,
 			mkNode( 2, 1, 2, whiteTile, whiteTile, whiteTile, blackTile ),
 			mkNode( 2, 1, 2, whiteTile, whiteTile, blackTile, whiteTile ),
@@ -165,7 +178,7 @@ public class TraceDemo
 		
 		SolidNode m = mkNode( 1, 3, 1, floor, maze, ceiling );
 		
-		SolidNode grating = new SolidNode( Material.SPACE, 2, 1, 2, new SolidNode[] {
+		SolidNode grating = new SolidNode( VolumetricMaterial.SPACE, 2, 1, 2, new SolidNode[] {
 			empty, green, green, green
 		});
 		
@@ -277,15 +290,15 @@ public class TraceDemo
 		});
 		*/
 		
-		SolidNode sgren = new SolidNode( Material.SPACE, 1, 3, 1, new SolidNode[] {
+		SolidNode sgren = new SolidNode( VolumetricMaterial.SPACE, 1, 3, 1, new SolidNode[] {
 			green, empty, empty
 		});
 		
-		SolidNode mgren = new SolidNode( Material.SPACE, 1, 3, 1, new SolidNode[] {
+		SolidNode mgren = new SolidNode( VolumetricMaterial.SPACE, 1, 3, 1, new SolidNode[] {
 			mirrr, green, empty
 		});
  
-		SolidNode field = new SolidNode( Material.SPACE, 5, 1, 5, new SolidNode[] {
+		SolidNode field = new SolidNode( VolumetricMaterial.SPACE, 5, 1, 5, new SolidNode[] {
 			empty, empty, green, empty, empty,
 			mgren, sgren, empty, red  , empty,
 			empty, empty, empty, empty, empty,
@@ -293,25 +306,25 @@ public class TraceDemo
 			green, empty, empty, sgren, empty,
 		});
 		
-		SolidNode pcol = new SolidNode( Material.SPACE, 1,3,1, new SolidNode[] {
+		SolidNode pcol = new SolidNode( VolumetricMaterial.SPACE, 1,3,1, new SolidNode[] {
 			rlite, glite, blite
 		});
-		pcol = new SolidNode( Material.SPACE, 1,3,1, new SolidNode[] {
+		pcol = new SolidNode( VolumetricMaterial.SPACE, 1,3,1, new SolidNode[] {
 			pcol, sblue, red
 		});
 
 		
-		SolidNode pcell = new SolidNode( Material.SPACE, 3,1,3, new SolidNode[] {
+		SolidNode pcell = new SolidNode( VolumetricMaterial.SPACE, 3,1,3, new SolidNode[] {
 			empty, empty, empty,
 			empty, pcol , empty,
 			empty, empty, empty,
 		});
 		
-		SolidNode flite = new SolidNode( Material.SPACE, 1,3,1, new SolidNode[] {
+		SolidNode flite = new SolidNode( VolumetricMaterial.SPACE, 1,3,1, new SolidNode[] {
 			green,
 			light,
-			new SolidNode( Material.SPACE, 1,3,1, new SolidNode[] {
-				empty, empty, new SolidNode( Material.SPACE, 3,1,3, new SolidNode[] {
+			new SolidNode( VolumetricMaterial.SPACE, 1,3,1, new SolidNode[] {
+				empty, empty, new SolidNode( VolumetricMaterial.SPACE, 3,1,3, new SolidNode[] {
 					grating,grating,grating,
 					grating,grating,grating,
 					grating,grating,grating
@@ -319,7 +332,7 @@ public class TraceDemo
 			})
 		});
 		
-		SolidNode n = new SolidNode( Material.SPACE, 3, 3, 3, new SolidNode[] {
+		SolidNode n = new SolidNode( VolumetricMaterial.SPACE, 3, 3, 3, new SolidNode[] {
 			green, green, green,
 			field, field, field,
 			empty, empty, empty,

@@ -5,7 +5,7 @@ import java.util.Arrays;
 public class SolidNode
 {
 	public static final byte[] EMPTY_SUBNODE_LIST = new byte[0];
-	public static final SolidNode EMPTY = new SolidNode( Material.SPACE );
+	public static final SolidNode EMPTY = new SolidNode( VolumetricMaterial.SPACE );
 	private static final byte[] INC = new byte[256];
 	static {
 		for( int i=0; i<256; ++i ) INC[i] = (byte)i;
@@ -14,9 +14,9 @@ public class SolidNode
 	public final int divX, divY, divZ;
 	public final SolidNodePalette palette;
 	private final byte[] subNodes;
-	public final Material material; 
+	public final VolumetricMaterial material; 
 	
-	public SolidNode( Material material, int divX, int divY, int divZ, SolidNodePalette palette, byte[] subNodes ) {
+	public SolidNode( VolumetricMaterial material, int divX, int divY, int divZ, SolidNodePalette palette, byte[] subNodes ) {
 		assert subNodes.length >= divX * divY * divZ;
 		assert palette.containsAll(subNodes, divX*divY*divZ); 
 		this.material = material;
@@ -27,11 +27,11 @@ public class SolidNode
 		this.subNodes = (subNodes.length == 0 || subNodes == INC) ? subNodes : Arrays.copyOf(subNodes, subNodes.length);
 	}
 	
-	public SolidNode( Material material, int divX, int divY, int divZ, SolidNode[] subNodes ) {
+	public SolidNode( VolumetricMaterial material, int divX, int divY, int divZ, SolidNode[] subNodes ) {
 		this( material, divX, divY, divZ, new SolidNodePalette(subNodes), INC );
 	}
 	
-	public SolidNode( Material m ) {
+	public SolidNode( VolumetricMaterial m ) {
 		this( m, 0, 0, 0, SolidNodePalette.EMPTY, EMPTY_SUBNODE_LIST );
 	}
 	

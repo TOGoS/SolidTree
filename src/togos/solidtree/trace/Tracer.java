@@ -2,7 +2,8 @@ package togos.solidtree.trace;
 
 import java.util.Random;
 
-import togos.solidtree.Material;
+import togos.solidtree.SurfaceMaterial;
+import togos.solidtree.VolumetricMaterial;
 import togos.solidtree.SimplexNoise;
 import togos.solidtree.SolidNode;
 
@@ -233,6 +234,63 @@ public class Tracer
 		fixCursor();
 	}
 	
+	private final Vector3D zeroVector = new Vector3D();
+	
+	private final Vector3D mirrorVector = new Vector3D();
+	protected Vector3D mirrorVector( Vector3D incoming, Vector3D normal, double factor ) {
+		if( factor == 0 ) return zeroVector;
+		
+		VectorMath.reflect( incoming, normal, mirrorVector );
+		mirrorVector.normalize(factor);
+		return mirrorVector;
+	}
+	
+	private final Vector3D randomVector = new Vector3D();
+	protected Vector3D randomVector( double factor ) {
+		if( factor == 0 ) return zeroVector;
+		
+		do {
+			randomVector.x = random.nextGaussian();
+			randomVector.y = random.nextGaussian();
+			randomVector.z = random.nextGaussian();
+		} while( randomVector.isZero() );
+		randomVector.normalize(factor);
+		return randomVector;
+	}
+	
+	private void applyMaterialColor( SurfaceMaterial material ) {
+		red   += filterRed   * material.emissionColor.r;
+		green += filterGreen * material.emissionColor.g;
+		blue  += filterBlue  * material.emissionColor.b;
+		
+		filterRed   *= material.filterColor.r;
+		filterGreen *= material.filterColor.g;
+		filterBlue  *= material.filterColor.b;
+    }
+	
+	/**
+	 * Redirect ray and apply material color
+	 * according to the given normal and material properties.
+	 */
+	protected void onHit( Vector3D ray, Vector3D normal, SurfaceMaterial sm ) {
+		Vector3D rand = randomVector(sm.randomRedirectFactor);
+		Vector3D mirror = mirrorVector(ray, normal, sm.mirrorRedirectFactor);
+		normal.normalize( sm.normalRedirectFactor );
+		ray.normalize( sm.straightRedirectFactor );
+		VectorMath.add( ray, normal, ray );
+		VectorMath.add( ray, mirror, ray );
+		VectorMath.add( ray, rand  , ray );
+		
+		applyMaterialColor( sm );
+	}
+	
+	protected boolean filterIsBlack() {
+		return filterRed == 0 && filterGreen == 0 && filterBlue == 0;
+	}
+	
+	public int maxSteps = 24;
+	public int maxBounces = 5;
+	
 	public void trace( double x, double y, double z, double dx, double dy, double dz ) {
 		setPosition( x, y, z );
 		setDirection( dx, dy, dz );
@@ -240,77 +298,67 @@ public class Tracer
 		filterRed = filterGreen = filterBlue = (double)1.0;
 		red = green = blue = (double)0.0;
 		
-		process: for( int i=0; i<24; ++i ) {
-			Material material = cursors[cursorIdx].node.material;
+		step: for( int steps=0, bounces=0; steps<maxSteps && bounces<maxBounces && !filterIsBlack(); ++steps ) {
+			final VolumetricMaterial material = cursors[cursorIdx].node.material;
 			boolean scattered = false;
+			
 			if( !findNextIntersection( pos, direction, newPos ) ) {
+				System.err.println("Void space! "+bounces+"/"+steps);
 				return;
 			}
 			
 			double dist = VectorMath.dist( pos, newPos );
 			
-			if( material.scattering > 0 && material.scattering < 1 ) {
+			if( material.particleInteractionChance > 0 ) {
+				System.err.println("Scattering?");
 				// Could run this even when scat = 0 but it would be pointless.
 				
 				// probability(distance) = 1 - (1 - probability(1)) ** distance  
 				// distance(rand(0..1)) = inverse of probability(distance) or of 1 - probability(distance)
-				double scatterDist = -Math.log(random.nextDouble()) / Math.log( 1 / (1-material.scattering) );
+				double scatterDist = -Math.log(random.nextDouble()) / Math.log( 1 / (1-material.particleInteractionChance) );
 				if( scatterDist < dist ) {
 					// Scattered!
 					// Let's say for now it's at some random point (which is terribly wrong).
 					direction.normalize(scatterDist);
 					VectorMath.add( pos, direction, newPos );
-					
-					direction.x = random.nextDouble()-(double)0.5;
-					direction.y = random.nextDouble()-(double)0.5;
-					direction.z = random.nextDouble()-(double)0.5;
-					
-					filterRed   *= material.scatterColor.r;
-					filterGreen *= material.scatterColor.g;
-					filterBlue  *= material.scatterColor.b;
+					onHit( direction, normal, material.particleMaterial );
+					++bounces;
 					
 					scattered = true;
 				}
 			}
 			
 			// TODO: Figure out how to mix ambient and filter colors 
-			red   += filterRed   * material.ambientColor.r * material.filterColor.r * dist;
-			green += filterGreen * material.ambientColor.g * material.filterColor.g * dist;
-			blue  += filterBlue  * material.ambientColor.b * material.filterColor.b * dist;
+			red   += filterRed   * material.internalEmissionColor.r * material.internalFilterColor.r * dist;
+			green += filterGreen * material.internalEmissionColor.g * material.internalFilterColor.g * dist;
+			blue  += filterBlue  * material.internalEmissionColor.b * material.internalFilterColor.b * dist;
 			
-			filterRed   *= Math.pow(material.filterColor.r, dist);
-			filterGreen *= Math.pow(material.filterColor.g, dist);
-			filterBlue  *= Math.pow(material.filterColor.b, dist);
+			filterRed   *= Math.pow(material.internalFilterColor.r, dist);
+			filterGreen *= Math.pow(material.internalFilterColor.g, dist);
+			filterBlue  *= Math.pow(material.internalFilterColor.b, dist);
 			
 			// Otherwise it just passes through!
 			
 			setPosition(newPos);
-			// Eventually want to decide based on IoR of old and new materials
-			// rather than just skipping surface effects if scattering
-			if( scattered ) continue process;
+			// If scattered can skip surface check since we know newSurface = surface 
+			if( scattered ) continue step;
 			
-			material = cursors[cursorIdx].node.material;
+			VolumetricMaterial newMaterial = cursors[cursorIdx].node.material;
 			
 			calculateNormal();
 			
-			if( random.nextDouble() < material.mirrosity ) {
-				VectorMath.reflect(direction, normal, direction);
-			} else if( material.scattering == 1 ) {
-				// Special case for opaque things since
-				// our position is never precisely at the surface
-				direction.x = normal.x + (double)(random.nextGaussian()*0.5);
-				direction.y = normal.y + (double)(random.nextGaussian()*0.5);
-				direction.z = normal.z + (double)(random.nextGaussian()*0.5);
-				
-				// To compensate for only sending rays outward rather than
-				// both in and out as full scattering does, divide light by 2:
-				filterRed   *= material.scatterColor.r / 2;
-				filterGreen *= material.scatterColor.g / 2;
-				filterBlue  *= material.scatterColor.b / 2;
-				
-				red   += material.ambientColor.r * filterRed;
-				green += material.ambientColor.g * filterGreen;
-				blue  += material.ambientColor.b * filterBlue;
+			if( newMaterial != material ) {
+				if( newMaterial.surfaceInteractionChance >= 1 || random.nextDouble() < newMaterial.surfaceInteractionChance ) {
+					onHit( direction, normal, newMaterial.surfaceMaterial );
+					/*
+					if( material.surfaceMaterial.emissionColor.r > 0 ) {
+						System.err.println("Hit a light!");
+					}
+					*/
+					++bounces;
+				} else {
+					// TODO: IoR redirection
+				}
 			}
 		}
 	}
@@ -326,15 +374,17 @@ public class Tracer
 				return;
 			}
 			setPosition(newPos);
-			Material material = cursors[cursorIdx].node.material;
-			if( material.scattering > 0.9 ) {
+			final VolumetricMaterial newMaterial = cursors[cursorIdx].node.material;
+			if( newMaterial.surfaceInteractionChance > 0.5 ) {
 				calculateNormal();
 				
 				double adjust = normal.x*0.1 + normal.y*0.2 + normal.z*0.3;
 				
-				red   = material.ambientColor.r + material.scatterColor.r * (0.5 + adjust);
-				green = material.ambientColor.g + material.scatterColor.g * (0.5 + adjust);
-				blue  = material.ambientColor.b + material.scatterColor.b * (0.5 + adjust);
+				final SurfaceMaterial surfaceMaterial = newMaterial.surfaceMaterial; 
+				
+				red   = surfaceMaterial.emissionColor.r + surfaceMaterial.filterColor.r * (0.5 + adjust);
+				green = surfaceMaterial.emissionColor.g + surfaceMaterial.filterColor.g * (0.5 + adjust);
+				blue  = surfaceMaterial.emissionColor.b + surfaceMaterial.filterColor.b * (0.5 + adjust);
 				return;
 			}
 		}
