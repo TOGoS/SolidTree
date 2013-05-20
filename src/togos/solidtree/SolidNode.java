@@ -45,4 +45,8 @@ public class SolidNode
 	public SolidNode subNode( int x, int y, int z ) {
 		return palette.get(subNodes[subNodeIndex(x,y,z)]&0xFF); 
 	}
+	
+	public boolean isSubdivided() {
+		return divX * divY * divZ > 1;
+	}
 }

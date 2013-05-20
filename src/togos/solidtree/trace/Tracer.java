@@ -74,7 +74,7 @@ public class Tracer
 		}
 		
 		// As long as it's subdividible, subdivide!
-		treeTraversal: while( cursors[cursorIdx].node.divX != 0 ) {
+		treeTraversal: while( cursors[cursorIdx].node.isSubdivided() ) {
 			Cursor c = cursors[cursorIdx];
 			SolidNode n = c.node;
 			
