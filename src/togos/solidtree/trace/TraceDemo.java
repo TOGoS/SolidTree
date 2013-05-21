@@ -7,6 +7,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.Random;
 
 import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.ChunkyDump;
@@ -16,6 +17,9 @@ import togos.solidtree.SurfaceMaterial;
 import togos.solidtree.SurfaceMaterialLayer;
 import togos.solidtree.VolumetricMaterial;
 import togos.solidtree.SolidNode;
+import togos.solidtree.shape.Difference;
+import togos.solidtree.shape.NodeShaper;
+import togos.solidtree.shape.Sphere;
 
 public class TraceDemo
 {
@@ -75,8 +79,8 @@ public class TraceDemo
 	}
 	
 	public static void main( String[] args ) {
-		final int imageWidth  = 128;//512;
-		final int imageHeight = 128;//384;
+		final int imageWidth  = 128;
+		final int imageHeight = 128;
 		final String sceneName = "test"; 
 		SampleMethod sampleMethod = SampleMethod.LINE;
 		
@@ -85,296 +89,33 @@ public class TraceDemo
 		
 		VolumetricMaterial gray = opaqueVolumetricMaterial( new DColor(0.3, 0.3, 0.3) );
 		
-		SolidNode light = new SolidNode( opaqueVolumetricMaterial(DColor.WHITE /*should be black!*/, new DColor(2,2,2) ));
+		SolidNode wlite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(2,2,2) ));
+		SolidNode rlite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(1.0,0.1,0.1) ));
 		SolidNode mirrr = new SolidNode( mirrorVolumetricMaterial(0.1, new DColor(0.1,0.5,0.1)) );
-		SolidNode rlite = new SolidNode( gray );
-		SolidNode glite = new SolidNode( gray );
-		SolidNode blite = new SolidNode( gray );
-		SolidNode sblue = new SolidNode( opaqueVolumetricMaterial(new DColor(0.1,0.1,0.4)) );
-		SolidNode green = new SolidNode( opaqueVolumetricMaterial(new DColor(0.1,0.4,0.1)) );
-		SolidNode red   = new SolidNode( opaqueVolumetricMaterial(new DColor(0.4,0.1,0.1)) );
+		SolidNode sgray = new SolidNode( gray );
+		
 		SolidNode empty = new SolidNode( VolumetricMaterial.SPACE );
 		
-		SolidNode glass = new SolidNode( new VolumetricMaterial(
-			SurfaceMaterial.TRANSPARENT,
-			1.5, DColor.WHITE, DColor.BLACK,
-			0, SurfaceMaterial.TRANSPARENT
-		) );
-		SolidNode fglas = mkNode( 3, 3, 3,
-			empty, empty, empty,
-			empty, empty, empty,
-			empty, empty, empty,
-			
-			empty, empty, empty,
-			empty, glass, empty,
-			empty, empty, empty,
-			
-			empty, empty, empty,
-			empty, empty, empty,
-			empty, empty, empty
-		);
-		
-		SolidNode walll  = mkNode( 4, 4, 4,
-			sblue, sblue, sblue, sblue,
-			empty, sblue, empty, empty,
-			empty, sblue, empty, empty,
-			sblue, sblue, sblue, sblue,
-			
-			sblue, sblue, sblue, sblue,
-			empty, sblue, sblue, sblue,
-			empty, sblue, sblue, sblue,
-			sblue, sblue, sblue, sblue,
-
-			sblue, sblue, sblue, sblue,
-			sblue, sblue, sblue, empty,
-			sblue, sblue, sblue, empty,
-			sblue, sblue, sblue, sblue,
-
-			sblue, sblue, sblue, sblue,
-			empty, empty, sblue, empty,
-			empty, empty, sblue, empty,
-			sblue, sblue, sblue, sblue
-		);
-		
-		SolidNode whiteTile = new SolidNode( mirrorVolumetricMaterial(0.5, new DColor(0.90, 0.90, 0.90)) );
-		SolidNode blackTile = new SolidNode( mirrorVolumetricMaterial(0.5, new DColor(0.01, 0.01, 0.01)) );
-		SolidNode dirtyWhiteTile = mkNode( 2, 1, 2,
-			mkNode( 2, 1, 2, whiteTile, whiteTile, whiteTile, blackTile ),
-			mkNode( 2, 1, 2, whiteTile, whiteTile, blackTile, whiteTile ),
-			mkNode( 2, 1, 2, whiteTile, whiteTile, whiteTile, whiteTile ),
-			mkNode( 2, 1, 2, blackTile, whiteTile, whiteTile, blackTile )
-		);
-		SolidNode dirtyBlackTile = mkNode( 2, 1, 2,
-			mkNode( 2, 1, 2, blackTile, blackTile, blackTile, dirtyWhiteTile ),
-			mkNode( 2, 1, 2, dirtyWhiteTile, blackTile, blackTile, blackTile ),
-			mkNode( 2, 1, 2, blackTile, blackTile, dirtyWhiteTile, blackTile ),
-			mkNode( 2, 1, 2, blackTile, dirtyWhiteTile, blackTile, blackTile )
-		);
-		dirtyBlackTile = mkNode( 2, 1, 2,
-			mkNode( 2, 1, 2, dirtyBlackTile, dirtyBlackTile, dirtyBlackTile, dirtyWhiteTile ),
-			mkNode( 2, 1, 2, dirtyWhiteTile, dirtyBlackTile, dirtyBlackTile, dirtyBlackTile ),
-			mkNode( 2, 1, 2, dirtyBlackTile, dirtyBlackTile, dirtyWhiteTile, dirtyBlackTile ),
-			mkNode( 2, 1, 2, dirtyBlackTile, dirtyWhiteTile, dirtyBlackTile, dirtyBlackTile )
-		);
-		
-		SolidNode floor = mkNode( 2, 1, 2, dirtyBlackTile, dirtyWhiteTile, dirtyWhiteTile, dirtyBlackTile );
-		floor = mkNode( 2, 1, 2, floor, floor, floor, floor );
-		floor = mkNode( 2, 1, 2, floor, floor, floor, floor );
-		floor = mkNode( 2, 1, 2, floor, floor, floor, floor );
-		SolidNode clite = mkNode( 4, 4, 4,
-			green, green, green, green,
-			green, green, green, green,
-			green, green, green, green,
-			green, green, green, green,
-			
-			green, empty, empty, green,
-			green, light, light, green,
-			green, light, light, green,
-			green, light, light, green,
-			
-			green, empty, empty, green,
-			green, light, light, green,
-			green, light, light, green,
-			green, light, light, green,
-			
-			green, green, green, green,
-			green, green, green, green,
-			green, green, green, green,
-			green, green, green, green
-		);
-		SolidNode ceiling = mkNode( 2, 1, 2, green, clite, clite, green );
-		ceiling = mkNode( 2, 1, 2, ceiling, ceiling, ceiling, ceiling );
-		ceiling = mkNode( 2, 1, 2, ceiling, ceiling, ceiling, ceiling );
-		ceiling = mkNode( 2, 1, 2, ceiling, ceiling, ceiling, ceiling );
-		
-		SolidNode maze = mkNode( 16, 1, 16,
-			walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
-			walll, empty, empty, empty, empty, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, empty, empty, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, empty, walll, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, empty, empty, empty, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, empty, empty, mirrr, fglas, red  , walll, walll, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, empty, empty, empty, empty, fglas, walll, walll, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, walll, empty, glass, empty, empty, empty, empty, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, empty, empty, walll, empty, empty, empty, empty, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, walll, empty, walll, empty, empty, walll, mirrr, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, walll, empty, walll, walll, empty, empty, empty, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, empty, empty, walll, walll, empty, empty, empty, walll, walll, walll, walll, walll, walll,
-			walll, empty, walll, empty, walll, walll, walll, empty, red  , empty, walll, walll, walll, walll, walll, walll,
-			walll, empty, empty, empty, walll, red  , mirrr, empty, empty, empty, walll, walll, walll, walll, walll, walll,
-			walll, empty, empty, empty, empty, empty, empty, empty, empty, empty, walll, walll, walll, walll, walll, walll,
-			walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll, walll
-		);
-		
-		SolidNode m = mkNode( 1, 3, 1, floor, maze, ceiling );
-		
-		SolidNode grating = new SolidNode( VolumetricMaterial.SPACE, 2, 1, 2, new SolidNode[] {
-			empty, green, green, green
-		});
-		
-		//SolidNode empty = new SolidNode( new Material(new DColor(0.95,0.95,0.95), new DColor(0.01,0.01,0.01), 0.0, 0, new DColor(1.0,1.0,1.0)) );
-		
+		NodeShaper s = new NodeShaper();
+		s.setRoot(empty, -100, -100, -100, 100, 100, 100 );
+		s.add( new Sphere(40, 10, 0, 10), wlite, 6 );
 		/*
-		SolidNode fencing = new SolidNode( Material.SPACE, 1, 7, 1, new SolidNode[] {
-			empty, green, empty, green, empty, green, empty
-		});
-		
-		SolidNode nsFence = new SolidNode( Material.SPACE, 3, 1, 1, new SolidNode[] {
-			empty, fencing, empty
-		});
-		SolidNode ewFence = new SolidNode( Material.SPACE, 1, 1, 3, new SolidNode[] {
-			empty, fencing, empty
-		});
-		
-		SolidNode ewPillar = new SolidNode( Material.SPACE, 3, 3, 3, new SolidNode[] {
-			green, green, green,
-			green, empty, green,
-			green, green, green,
-			
-			green, green, green,
-			green, light, green,
-			green, green, green,
-			
-			green, green, green,
-			green, empty, green,
-			green, green, green,
-		});
-		
-		SolidNode nsPillar = new SolidNode( Material.SPACE, 3, 3, 3, new SolidNode[] {
-			green, green, green,
-			green, green, green,
-			green, green, green,
-			
-			green, green, green,
-			empty, light, empty,
-			green, green, green,
-			
-			green, green, green,
-			green, green, green,
-			green, green, green,
-		});
-		
-		SolidNode nsPillarSpace = new SolidNode( Material.SPACE, 3, 1, 3, new SolidNode[] {
-			empty, nsFence, empty,
-			empty, nsPillar, empty,
-			empty, nsFence, empty
-		});
-
-		SolidNode ewPillarSpace = new SolidNode( Material.SPACE, 3, 1, 3, new SolidNode[] {
-			empty, empty, empty,
-			ewFence, ewPillar, ewFence,
-			empty, empty, empty
-		});
-		
-		SolidNode cornerPillarSpace = new SolidNode( Material.SPACE, 3, 1, 3, new SolidNode[] {
-			empty, nsFence, empty,
-			ewFence, green, ewFence,
-			empty, nsFence, empty
-		});
-
-		SolidNode cornerLightFixture = new SolidNode( Material.SPACE, 1, 3, 1, new SolidNode[] {
-			red, light, empty	
-		});
-		
-		SolidNode overpoolLights = new SolidNode( Material.SPACE, 8, 1, 8, new SolidNode[] {
-			cornerLightFixture, empty, empty, empty, empty, empty, empty, empty,
-			 empty, empty, empty, empty, empty, empty, empty, empty,
-			 empty, empty, empty, empty, empty, empty, empty, empty,
-			 empty, empty, empty, empty, empty, empty, empty, cornerLightFixture,
-			 cornerLightFixture, empty, empty, empty, empty, empty, empty, empty,
-			 empty, empty, empty, empty, empty, empty, empty, empty,
-			 empty, empty, empty, empty, empty, empty, empty, empty,
-			 empty, empty, empty, empty, empty, empty, empty, cornerLightFixture
-		});
-		
-		SolidNode floorMirror = new SolidNode( Material.SPACE, 1, 4, 1, new SolidNode[] {
-			empty, mirror, empty, empty
-		});
-		
-		SolidNode ceilingLightFixture = new SolidNode( Material.SPACE, 3, 3, 3, new SolidNode[] {
-			empty, empty, empty,
-			empty, empty, empty,
-			empty, empty, empty,
-			
-			empty, empty, empty,
-			red  , light, red  ,
-			empty, empty, empty,
-			
-			empty, empty, empty,
-			empty, empty, empty,
-			empty, empty, empty,
-		});
-		
-		SolidNode n = new SolidNode( Material.SPACE, 3, 3, 3, new SolidNode[] {
-			red, floorMirror, red,
-			cornerPillarSpace, empty, cornerPillarSpace,
-			blue , blue , blue ,
-			
-			red , floorMirror, red,
-			nsPillarSpace, empty, nsPillarSpace,
-			blue , empty, blue,
-			
-			red  , red  , red,
-			cornerPillarSpace, ewPillarSpace, cornerPillarSpace,
-			blue , blue , blue
-		});
+		s.add( new Sphere(40, 30, 0, 10), rlite, 6 );
+		s.add( new Sphere(40, 20, 15, 10), mirrr, 6 );
+		s.add( new Sphere(40, 20, -15, 10), sgray, 6 );
+		s.add( new Sphere(40, 20, 0, 10), sgray, 6 );
 		*/
+		s.add( new Difference( new Sphere(0, 0, 0, 100), new Sphere(0, 0, 0, 75) ), sgray, 6 );
+		Random rand = new Random();
+		for( int i=0; i<50; ++i ) {
+			s.add(
+				new Sphere(rand.nextDouble() * 80 - 40, rand.nextDouble() * 20 - 60, rand.nextDouble() * 80 - 40, rand.nextDouble()*10+5),
+				rand.nextBoolean() ? mirrr : sgray,
+				6
+			);
+		}
 		
-		SolidNode sgren = new SolidNode( VolumetricMaterial.SPACE, 1, 3, 1, new SolidNode[] {
-			green, empty, empty
-		});
-		
-		SolidNode mgren = new SolidNode( VolumetricMaterial.SPACE, 1, 3, 1, new SolidNode[] {
-			mirrr, green, empty
-		});
- 
-		SolidNode field = new SolidNode( VolumetricMaterial.SPACE, 5, 1, 5, new SolidNode[] {
-			empty, empty, green, empty, empty,
-			mgren, sgren, empty, red  , empty,
-			empty, empty, empty, empty, empty,
-			empty, sgren, empty, empty, mgren,
-			green, empty, empty, sgren, empty,
-		});
-		
-		SolidNode pcol = new SolidNode( VolumetricMaterial.SPACE, 1,3,1, new SolidNode[] {
-			rlite, glite, blite
-		});
-		pcol = new SolidNode( VolumetricMaterial.SPACE, 1,3,1, new SolidNode[] {
-			pcol, sblue, red
-		});
-
-		
-		SolidNode pcell = new SolidNode( VolumetricMaterial.SPACE, 3,1,3, new SolidNode[] {
-			empty, empty, empty,
-			empty, pcol , empty,
-			empty, empty, empty,
-		});
-		
-		SolidNode flite = new SolidNode( VolumetricMaterial.SPACE, 1,3,1, new SolidNode[] {
-			green,
-			light,
-			new SolidNode( VolumetricMaterial.SPACE, 1,3,1, new SolidNode[] {
-				empty, empty, new SolidNode( VolumetricMaterial.SPACE, 3,1,3, new SolidNode[] {
-					grating,grating,grating,
-					grating,grating,grating,
-					grating,grating,grating
-				})
-			})
-		});
-		
-		SolidNode n = new SolidNode( VolumetricMaterial.SPACE, 3, 3, 3, new SolidNode[] {
-			green, green, green,
-			field, field, field,
-			empty, empty, empty,
-			green, flite, green,
-			field, empty, field,
-			empty, empty, empty,
-			green, green, green,
-			field, field, field,
-			empty, empty, empty,
-		});
-		
-		t.setRoot( m, 160, 30, 160 );
+		t.setRoot( s.root, s.rootMinX, s.rootMinY, s.rootMinZ, s.rootMaxX, s.rootMaxY, s.rootMaxZ );
 		
 		final Camera cam = new Camera();
 		cam.yaw = 0;//Math.PI/8;

@@ -18,7 +18,7 @@ public class SolidNode
 	
 	public SolidNode( VolumetricMaterial material, int divX, int divY, int divZ, SolidNodePalette palette, byte[] subNodes ) {
 		assert subNodes.length >= divX * divY * divZ;
-		assert palette.containsAll(subNodes, divX*divY*divZ); 
+		assert palette.containsAll(subNodes, divX*divY*divZ);
 		this.material = material;
 		this.divX = divX;
 		this.divY = divY;
@@ -40,6 +40,10 @@ public class SolidNode
 		assert y >= 0; assert y < divY;
 		assert z >= 0; assert z < divZ;
 		return z * divX * divY + y * divX + x;
+	}
+	
+	public SolidNode subNode( int idx ) {
+		return palette.get(subNodes[idx]&0xFF); 
 	}
 	
 	public SolidNode subNode( int x, int y, int z ) {

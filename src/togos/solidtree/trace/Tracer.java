@@ -58,11 +58,11 @@ public class Tracer
 			Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY,
 			Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY
 		);
-		setRoot( SolidNode.EMPTY, 0, 0, 0 );
+		setRoot( SolidNode.EMPTY, 0, 0, 0, 0, 0, 0 );
 	}
 	
-	public void setRoot( SolidNode root, double width, double height, double depth ) {
-		cursors[1].set( root, -width/2, -height/2, -depth/2, width/2, height/2, depth/2 );
+	public void setRoot( SolidNode root, double minX, double minY, double minZ, double maxX, double maxY, double maxZ ) {
+		cursors[1].set( root, minX, minY, minZ, maxX, maxY, maxZ );
 	}
 	
 	protected Cursor fixCursor() {
@@ -313,7 +313,7 @@ public class Tracer
 		return filterRed == 0 && filterGreen == 0 && filterBlue == 0;
 	}
 	
-	public int maxSteps = 24;
+	public int maxSteps = 256;
 	public int maxBounces = 10;
 	
 	final Vector3D scratch = new Vector3D();
@@ -433,7 +433,7 @@ public class Tracer
 		
 		red = green = blue = (double)0.0;
 
-		for( int i=0; i<24; ++i ) {
+		for( int i=0; i<maxSteps; ++i ) {
 			if( !findNextIntersection( pos, direction, newPos ) ) {
 				return;
 			}
