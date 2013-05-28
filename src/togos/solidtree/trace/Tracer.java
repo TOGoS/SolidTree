@@ -116,12 +116,7 @@ public class Tracer
 		fixCursor();
 	}
 	
-	/**
-	 * Find a point just past the next intersection and place in dest
-	 * @param p position
-	 * @param d direction
-	 */
-	protected boolean findNextIntersection( Vector3D p, Vector3D d, Vector3D dest ) {
+	protected boolean findNextIntersectionOld( Vector3D p, Vector3D d, Vector3D dest ) {
 		if( cursorIdx == 0 ) {
 			// Outside the tree; we'll never hit anything
 			return false;
@@ -175,9 +170,98 @@ public class Tracer
 		}
 		
 		dest.set( p.x+d.x, p.y+d.y, p.z+d.z );
+		
+		calculateNormal();
+		
 		return true;
 	}
 	
+	protected static final double SMALL_VALUE = Math.pow(2, -10);
+	
+	protected boolean findNextIntersectionNew( Vector3D p, Vector3D d, Vector3D dest ) {
+		if( cursorIdx == 0 ) {
+			// Outside the tree; we'll never hit anything
+			return false;
+		}
+		
+		Cursor c = cursors[cursorIdx];
+		
+		// Not important to the calculation, but
+		// makes d a non-ridiculously-small value,
+		// which helps prevent underflows
+		d.manhattanNormalizeInPlace(1);
+		
+		assert !d.isZero();
+		assert c.contains(p);
+		
+		double scale = Double.POSITIVE_INFINITY;
+		int side = -1;
+		// Shrink or grow the vector to fit just within the current cube
+		if( d.x != 0 ) {
+			double xDist = d.x < 0 ? c.x0 - p.x : c.x1 - p.x;
+			double xScale = xDist / d.x;
+			if( xScale < scale ) {
+				scale = xScale;
+				side = d.x > 0 ? SIDE_POS_X : SIDE_NEG_X;
+			} 
+		}
+		if( d.y != 0 ) {
+			double yDist = d.y < 0 ? c.y0 - p.y : c.y1 - p.y;
+			double yScale = yDist / d.y;
+			if( yScale < scale ) {
+				scale = yScale;
+				side = d.y > 0 ? SIDE_POS_Y : SIDE_NEG_Y;				
+			}
+		}
+		if( d.z != 0 ) {
+			double zDist = d.z < 0 ? c.z0 - p.z : c.z1 - p.z;
+			double zScale = zDist / d.z;
+			if( zScale < scale ) {
+				scale = zScale;
+				side = d.z > 0 ? SIDE_POS_Z : SIDE_NEG_Z;				
+			}
+		}
+		
+		if( Double.isInfinite(scale) ) {
+			System.err.println( d );
+			System.err.println( scale );
+		}
+		assert !Double.isInfinite(scale); 
+		
+		// To put it just past the edge:
+		scale = scale == 0 ? SMALL_VALUE : scale * (1+SMALL_VALUE);
+		
+		assert !d.isZero();
+		assert scale != 0;
+		
+		d.scaleInPlace(scale);
+		setNormalForSide( side );
+		
+		assert !d.isZero();
+		assert d.isFinite();
+		
+		dest.set( p.x+d.x, p.y+d.y, p.z+d.z );
+		return true;
+	}
+	
+	/**
+	 * Find a point just past the next intersection and place in dest.
+	 * Also populates normal vector.
+	 * @param p position
+	 * @param d direction
+	 */
+	protected boolean findNextIntersection( Vector3D p, Vector3D d, Vector3D dest ) {
+		return findNextIntersectionNew( p, d, dest );
+	}
+	
+	public static final int SIDE_POS_X = 0;
+	public static final int SIDE_NEG_X = 1;
+	public static final int SIDE_POS_Y = 2;
+	public static final int SIDE_NEG_Y = 3;
+	public static final int SIDE_POS_Z = 4;
+	public static final int SIDE_NEG_Z = 5;
+	
+	// Note that normals are opposite sides (side +x has normal -x)
 	final Vector3D normal = new Vector3D(); 
 	private double[] distances = new double[6];
 	private static double[] normals = {
@@ -188,6 +272,14 @@ public class Tracer
 		 0,  0, -1,
 		 0,  0, +1,
 	};
+	
+	protected void setNormalForSide( int side ) {
+		normal.set(
+			normals[side*3+0],
+			normals[side*3+1],
+			normals[side*3+2]
+		);
+	}
 	
 	/**
 	 * Sets the normal vector based on which side of
@@ -204,17 +296,18 @@ public class Tracer
 		distances[5] = c.z1 - pos.z;
 		
 		double min = Double.POSITIVE_INFINITY;
+		int side = -1;
 		for( int i=0; i<6; ++i ) {
 			assert distances[i] > 0;
 			if( distances[i] < min ) {
-				normal.set(
-					normals[i*3+0],
-					normals[i*3+1],
-					normals[i*3+2]
-				);
+				side = i;
 				min = distances[i];
 			}
 		}
+		
+		assert side != -1;
+		
+		setNormalForSide(side);
 		
 		/*
 		// Fake some waviness for now
@@ -414,8 +507,6 @@ public class Tracer
 			
 			VolumetricMaterial newMaterial = cursors[cursorIdx].node.material;
 			
-			calculateNormal();
-			
 			if( newMaterial != material ) {
 				assert direction.isRegular();
 				if( processSurfaceInteraction( direction, normal, newMaterial.surfaceMaterial ) && newMaterial.indexOfRefraction != material.indexOfRefraction ) {
@@ -439,9 +530,7 @@ public class Tracer
 			}
 			setPosition(newPos);
 			final VolumetricMaterial newMaterial = cursors[cursorIdx].node.material;
-			if( newMaterial.surfaceMaterial.layers.length > 0 ) {
-				calculateNormal();
-				
+			if( newMaterial.surfaceMaterial.layers.length > 0 ) {				
 				double adjust = normal.x*0.1 + normal.y*0.2 + normal.z*0.3;
 				
 				for( SurfaceMaterialLayer l : newMaterial.surfaceMaterial.layers ) { 

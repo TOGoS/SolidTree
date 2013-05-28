@@ -33,6 +33,10 @@ final class Vector3D {
 		return (double)Math.sqrt( x*x + y*y + z*z );
 	}
 	
+	public double manhattanMagnitude() {
+		return Math.abs(this.x) + Math.abs(this.y) + Math.abs(this.z);
+	}
+	
 	public void normalizeInPlace( double scale ) {
 		double m = magnitude();
 		
@@ -42,6 +46,16 @@ final class Vector3D {
 		y *= scale / m;
 		z *= scale / m;
 	}
+	
+	public void manhattanNormalizeInPlace( double scale ) {
+		double m = manhattanMagnitude();
+		
+		assert m != 0;
+		
+		x *= scale / m;
+		y *= scale / m;
+		z *= scale / m;
+    }
 	
 	////
 	
