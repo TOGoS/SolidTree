@@ -178,7 +178,8 @@ public class Tracer
 	
 	protected static final double SMALL_VALUE = Math.pow(2, -10);
 	
-	protected boolean findNextIntersectionNew( Vector3D p, Vector3D d, Vector3D dest ) {
+	Vector3D scaledDirection = new Vector3D();
+	protected boolean findNextIntersectionNew( Vector3D p, Vector3D d, Vector3D justInsideDest, Vector3D justOutsideDest ) {
 		if( cursorIdx == 0 ) {
 			// Outside the tree; we'll never hit anything
 			return false;
@@ -222,25 +223,22 @@ public class Tracer
 			}
 		}
 		
-		if( Double.isInfinite(scale) ) {
-			System.err.println( d );
-			System.err.println( scale );
-		}
-		assert !Double.isInfinite(scale); 
+		setNormalForSide( side );		
+		
+		assert !Double.isInfinite(scale);
 		
 		// To put it just past the edge:
-		scale = scale == 0 ? SMALL_VALUE : scale * (1+SMALL_VALUE);
+		double outsideScale = scale == 0 ?  SMALL_VALUE : scale * (1+SMALL_VALUE);
+		double insideScale  = scale == 0 ? -SMALL_VALUE : scale * (1-SMALL_VALUE);
 		
 		assert !d.isZero();
 		assert scale != 0;
 		
-		d.scaleInPlace(scale);
-		setNormalForSide( side );
+		VectorMath.scale( d, outsideScale, scaledDirection );
+		justOutsideDest.set( p.x+scaledDirection.x, p.y+scaledDirection.y, p.z+scaledDirection.z );
+		VectorMath.scale( d, insideScale, scaledDirection );
+		justInsideDest.set( p.x+scaledDirection.x, p.y+scaledDirection.y, p.z+scaledDirection.z );
 		
-		assert !d.isZero();
-		assert d.isFinite();
-		
-		dest.set( p.x+d.x, p.y+d.y, p.z+d.z );
 		return true;
 	}
 	
@@ -250,8 +248,8 @@ public class Tracer
 	 * @param p position
 	 * @param d direction
 	 */
-	protected boolean findNextIntersection( Vector3D p, Vector3D d, Vector3D dest ) {
-		return findNextIntersectionNew( p, d, dest );
+	protected boolean findNextIntersection( Vector3D p, Vector3D d, Vector3D justInsideDest, Vector3D justOutsideDest ) {
+		return findNextIntersectionNew( p, d, justInsideDest, justOutsideDest );
 	}
 	
 	public static final int SIDE_POS_X = 0;
@@ -318,7 +316,8 @@ public class Tracer
 	}
 	
 	SimplexNoise sn = new SimplexNoise();
-	final Vector3D newPos = new Vector3D();
+	final Vector3D preIntersect = new Vector3D();
+	final Vector3D postIntersect = new Vector3D();
 	final Vector3D direction = new Vector3D();
 	private double filterRed, filterGreen, filterBlue;
 	double red, green, blue;
@@ -411,15 +410,19 @@ public class Tracer
 	
 	final Vector3D scratch = new Vector3D();
 	
-	//TODO: Fix this, because it doesn't work!
-	private void refract( double ni, double nr ) {
+	/**
+	 * @param ni index of refraction of source (incident ray) material
+	 * @param nr index of refraction in destination (refracted ray) material
+	 * @return true if the ray passes through the surface, false if it bounces off
+	 */
+	private boolean refract( double ni, double nr ) {
 		direction.normalizeInPlace(1);
 		
 		double dotProduct = -normal.normalize().dot(direction);
 		if( dotProduct < 0 ) {
 			// Happens when we get near edges
 			red += filterRed;
-			return;
+			return true;
 		}
 		assert dotProduct >= 0;
 		assert dotProduct <= 1;
@@ -429,21 +432,22 @@ public class Tracer
 		if( sinAngleOfIncidence >= 1 ) {
 			System.err.println("Sin = "+sinAngleOfIncidence);
 			green += filterGreen;
-			return;
+			return true;
 		}
 		assert sinAngleOfIncidence > 0;
 		assert sinAngleOfIncidence < 1;
 		
 		double sinAngleOfRefraction = sinAngleOfIncidence * ni / nr;
+		assert sinAngleOfRefraction >= 0;
 		
 		if( random.nextDouble() < sinAngleOfRefraction ) {
-			// This may not be physically accurate.
 			// In the 'total internal reflection' case, sinAngleOfRefraction will be >= 1
+			// Otherwise, this is probably not be physically accurate.
+			// I suspect it reflects more often than it should.
 			VectorMath.reflect( direction, normal, direction );
-			return;
+			return false;
 		}
-		
-		assert sinAngleOfRefraction >= 0;
+				
 		assert sinAngleOfRefraction < 1;
 		
 		double angleOfRefraction = Math.asin( sinAngleOfRefraction );
@@ -452,6 +456,8 @@ public class Tracer
 		double cosAngleOfRefraction = Math.cos(angleOfRefraction);
 		
 		direction.set( s.normalize( sinAngleOfRefraction ).subtract(normal.normalize(cosAngleOfRefraction)) );
+		
+		return true;
 	}
 	
 	public void trace( double x, double y, double z, double dx, double dy, double dz ) {
@@ -465,11 +471,11 @@ public class Tracer
 			final VolumetricMaterial material = cursors[cursorIdx].node.material;
 			boolean scattered = false;
 			
-			if( !findNextIntersection( pos, direction, newPos ) ) {
+			if( !findNextIntersection( pos, direction, preIntersect, postIntersect ) ) {
 				return;
 			}
 			
-			double dist = VectorMath.dist( pos, newPos );
+			double dist = VectorMath.dist( pos, postIntersect );
 			
 			if( material.particleInteractionChance > 0 ) {
 				// Could run this even when scat = 0 but it would be pointless.
@@ -481,7 +487,7 @@ public class Tracer
 					// Scattered!
 					// Let's say for now it's at some random point (which is terribly wrong).
 					direction.normalizeInPlace(scatterDist);
-					VectorMath.add( pos, direction, newPos );
+					VectorMath.add( pos, direction, postIntersect );
 					processSurfaceInteraction( direction, randomVector(1), material.particleMaterial );
 					++bounces;
 					
@@ -500,7 +506,7 @@ public class Tracer
 			
 			// Otherwise it just passes through!
 			
-			setPosition(newPos);
+			setPosition(postIntersect);
 			// If scattered can skip surface check since we know newSurface = surface 
 			if( scattered ) {
 				continue step;
@@ -510,8 +516,15 @@ public class Tracer
 			
 			if( newMaterial != material ) {
 				assert direction.isRegular();
-				if( processSurfaceInteraction( direction, normal, newMaterial.surfaceMaterial ) && newMaterial.indexOfRefraction != material.indexOfRefraction ) {
-					refract( material.indexOfRefraction, newMaterial.indexOfRefraction );
+				if(
+					processSurfaceInteraction( direction, normal, newMaterial.surfaceMaterial )
+					&& newMaterial.indexOfRefraction != material.indexOfRefraction &&
+					refract( material.indexOfRefraction, newMaterial.indexOfRefraction )
+				) {
+					// Move to new position
+				} else {
+					// Move back to old node
+					setPosition(preIntersect);
 				}
 				++bounces;
 				assert direction.isRegular();
@@ -526,10 +539,10 @@ public class Tracer
 		red = green = blue = (double)0.0;
 
 		for( int i=0; i<maxSteps; ++i ) {
-			if( !findNextIntersection( pos, direction, newPos ) ) {
+			if( !findNextIntersection( pos, direction, preIntersect, postIntersect ) ) {
 				return;
 			}
-			setPosition(newPos);
+			setPosition(postIntersect);
 			final VolumetricMaterial newMaterial = cursors[cursorIdx].node.material;
 			if( newMaterial.surfaceMaterial.layers.length > 0 ) {				
 				double adjust = normal.x*0.1 + normal.y*0.2 + normal.z*0.3;

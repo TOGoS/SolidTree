@@ -13,11 +13,11 @@ import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.ChunkyDump;
 import togos.hdrutil.HDRExposure;
 import togos.solidtree.DColor;
+import togos.solidtree.SolidNode;
 import togos.solidtree.SurfaceMaterial;
 import togos.solidtree.SurfaceMaterialLayer;
 import togos.solidtree.VolumetricMaterial;
-import togos.solidtree.SolidNode;
-import togos.solidtree.shape.Difference;
+import togos.solidtree.shape.AACube;
 import togos.solidtree.shape.NodeShaper;
 import togos.solidtree.shape.Sphere;
 
@@ -78,48 +78,89 @@ public class TraceDemo
 		);
 	}
 	
+	static VolumetricMaterial glas1 = new VolumetricMaterial(
+		SurfaceMaterial.TRANSPARENT, 1.5,
+		DColor.WHITE, DColor.BLACK,
+		0, SurfaceMaterial.TRANSPARENT
+	);
+	static VolumetricMaterial glas9 = new VolumetricMaterial(
+		SurfaceMaterial.TRANSPARENT, 9,
+		DColor.WHITE, DColor.BLACK,
+		0, SurfaceMaterial.TRANSPARENT
+	);
+	
+	static VolumetricMaterial brown = opaqueVolumetricMaterial( new DColor(0.3, 0.2, 0.1) );
+	static Random rand = new Random(11443);
+	static VolumetricMaterial brown2 = opaqueVolumetricMaterial( new DColor(0.1, 0.04, 0.01) );
+	static VolumetricMaterial green = opaqueVolumetricMaterial( new DColor(0.2, 0.4, 0.05) );
+	static VolumetricMaterial black = opaqueVolumetricMaterial( DColor.BLACK );
+	
+	static SolidNode blite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(1,1,2) ));
+	static SolidNode wlite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(2,2,2) ));
+	static SolidNode rlite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(1.0,0.1,0.1) ));
+	static SolidNode sbrn1 = new SolidNode( brown );
+	static SolidNode sgrn1 = new SolidNode( green );
+	static SolidNode sbrn2 = new SolidNode( brown2 );
+	static SolidNode sblk1 = new SolidNode( black );
+	static SolidNode sgla1 = new SolidNode( glas1 );
+	static SolidNode sgla9 = new SolidNode( glas9 );
+	
 	public static void main( String[] args ) {
-		final int imageWidth  = 128;
-		final int imageHeight = 128;
-		final String sceneName = "test"; 
-		SampleMethod sampleMethod = SampleMethod.LINE;
+		final int imageWidth  = 512;
+		final int imageHeight = 256;
+		final String sceneName = "GBall1c"; 
+		SampleMethod sampleMethod = SampleMethod.RANDOM;
 		
 		Tracer t = new Tracer();
 		final Interrupt<TracerInstruction> tii = new Interrupt<TracerInstruction>();
 		
-		VolumetricMaterial gray = opaqueVolumetricMaterial( new DColor(0.3, 0.3, 0.3) );
-		
-		SolidNode wlite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(2,2,2) ));
-		SolidNode rlite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(1.0,0.1,0.1) ));
-		SolidNode mirrr = new SolidNode( mirrorVolumetricMaterial(0.1, new DColor(0.1,0.5,0.1)) );
-		SolidNode sgray = new SolidNode( gray );
+		System.err.println("Building world...");
 		
 		SolidNode empty = new SolidNode( VolumetricMaterial.SPACE );
 		
 		NodeShaper s = new NodeShaper();
 		s.setRoot(empty, -100, -100, -100, 100, 100, 100 );
-		s.add( new Sphere(40, 10, 0, 10), wlite, 6 );
-		/*
-		s.add( new Sphere(40, 30, 0, 10), rlite, 6 );
-		s.add( new Sphere(40, 20, 15, 10), mirrr, 6 );
-		s.add( new Sphere(40, 20, -15, 10), sgray, 6 );
-		s.add( new Sphere(40, 20, 0, 10), sgray, 6 );
-		*/
-		s.add( new Difference( new Sphere(0, 0, 0, 100), new Sphere(0, 0, 0, 75) ), sgray, 6 );
-		Random rand = new Random();
-		for( int i=0; i<50; ++i ) {
-			s.add(
-				new Sphere(rand.nextDouble() * 80 - 40, rand.nextDouble() * 20 - 60, rand.nextDouble() * 80 - 40, rand.nextDouble()*10+5),
-				rand.nextBoolean() ? mirrr : sgray,
-				6
-			);
+		//s.add( new AACube(-50, 50, 0, 20), wlite, 5 );
+		//s.add( new Sphere(0, -200, 0, 140), sbrn2, 6 );
+		//s.add( new AACube(0, 100, -100, 10), blite, 5 );
+		s.add( new AACube( 0, 0, 60, 15), sgla1, 4 );
+		// s.add( new AACube( 0, 0, 60, 13), sblk1, 4 );
+		s.add( new Sphere( 0, 0, 60, 10), sbrn2, 6 );
+		s.add( new Sphere( 0, 0, 80, 10), sgrn1, 6 );
+		s.add( new Sphere(20, 0, 80, 10), sgrn1, 6 );
+		s.add( new Sphere(20, 0, 60, 10), sgrn1, 6 );
+		for( int i=0; i<200; ++i ) {
+			s.add( new Sphere(rand.nextInt(40)-10, rand.nextInt(30)-15, rand.nextInt(30)+55, 5), sgrn1, 5 );
 		}
+		// Sky lights
+		for( int i=0; i<1000; ++i ) {
+			double lx, ly, lz;
+			do {
+				lx = rand.nextDouble() * 180 - 90;
+				ly = rand.nextDouble() * 90;
+				lz = rand.nextDouble() * 180 - 90;
+			} while( Math.sqrt(lx*lx + ly*ly + lz*lz) < 80 );
+			
+			s.add( new AACube(lx, ly, lz, 10), rand.nextBoolean() ? blite : sbrn2, 5 );
+		}
+		
+		/*
+		// Ring lights
+		for( int i=0; i<30; ++i ) {
+			double ang = i * Math.PI * 2 / 30;
+			s.add( new AACube(Math.sin(ang) * 30 + 10, Math.cos(ang) * 10, Math.cos(ang) * 30 + 70, 2), wlite, 5 );
+		}
+		*/
+		
+		System.err.println("World built!");
 		
 		t.setRoot( s.root, s.rootMinX, s.rootMinY, s.rootMinZ, s.rootMaxX, s.rootMaxY, s.rootMaxZ );
 		
 		final Camera cam = new Camera();
+		cam.x = 10;
+		cam.z = 30;
 		cam.yaw = 0;//Math.PI/8;
-		final double fovY = (double)(Math.PI*0.5); 
+		final double fovY = (double)(Math.PI*0.3); 
 		Projection projection = new FisheyeProjection(fovY*imageWidth/imageHeight, fovY);
 		
 		final HDRExposure exp = new HDRExposure(imageWidth, imageHeight);
@@ -201,12 +242,17 @@ public class TraceDemo
 		double[] camPosX = new double[1024], camPosY = new double[1024], camPosZ = new double[1024];
 		double[] camDirX = new double[1024], camDirY = new double[1024], camDirZ = new double[1024];
 		
-		int r = 0;
+		long startTime = System.currentTimeMillis();
+		long samplesTaken = 0;
+		long prevSamplesTaken = 0;
+		long prevTime = startTime;
+		double samplesPerSecond = 0;
 		int sx = 0, sy = 0;
 		while( true ) {
 			TracerInstruction ti = tii.set( TracerInstruction.CONTINUE );
 			if( ti == TracerInstruction.RESET ) {
-				r = 0;
+				startTime = System.currentTimeMillis();
+				samplesTaken = 0;
 				exp.clear();
 				/*
 				for( int i=exp.width*exp.height-1; i>=0; --i ) {
@@ -222,6 +268,8 @@ public class TraceDemo
 			}
 			
 			for( int j=0; j<vectorSize; ++j ) {
+				sampleMethod = cam.preview ? SampleMethod.RANDOM : SampleMethod.LINE;
+				
 				switch( sampleMethod ) {
 				case RANDOM:
 					screenX[j] = (double)(t.random.nextDouble()-0.5);
@@ -281,12 +329,24 @@ public class TraceDemo
 				exp.r.data[pixelI] += t.red;
 				exp.g.data[pixelI] += t.green;
 				exp.b.data[pixelI] += t.blue;
+				
+				if( samplesTaken % 4096 == 0 ) {
+					String baseName = sceneName+"-"+(int)exp.getAverageExposure();
+					adj.exportFilenamePrefix = baseName;
+					adj.exposureUpdated();
+				}
+				if( samplesTaken % 16384 == 0 ) {
+					long time = System.currentTimeMillis();
+					samplesPerSecond =
+						0.8 * samplesPerSecond +
+						0.2 * (samplesTaken - prevSamplesTaken) * 1000 / (time - prevTime);
+					System.err.println( samplesPerSecond + " samples/s");
+					
+					prevSamplesTaken = samplesTaken;
+					prevTime = System.currentTimeMillis();
+				}
+				++samplesTaken;
 			}
-			
-			if( r % 10 == 0 ) {
-				adj.exposureUpdated();
-			}
-			++r;
 		}
 	}
 }

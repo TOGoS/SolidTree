@@ -9,6 +9,12 @@ public class VectorMath
 		return a.x * b.x + a.y * b.y + a.z * b.z;
 	}
 	
+	public static void scale( Vector3D a, double s, Vector3D dest ) {
+		dest.x = a.x * s;
+		dest.y = a.y * s;
+		dest.z = a.z * s;
+	}
+	
 	public static void add( Vector3D a, Vector3D b, Vector3D dest ) {
 		dest.x = a.x + b.x;
 		dest.y = a.y + b.y;
