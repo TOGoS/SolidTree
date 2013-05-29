@@ -24,7 +24,7 @@ public class AdjusterUI extends Canvas
 	private static final long serialVersionUID = 1L;
 	
 	protected int overlayTextMode = 1; 
-	String exportFilenamePrefix;
+	public String exportFilenamePrefix;
 	HDRExposure hdrExposure;
 	HDRImage hdrImage;
 	int[] argbBuf;
