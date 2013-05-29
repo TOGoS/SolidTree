@@ -435,9 +435,10 @@ public class Tracer
 		assert sinAngleOfIncidence < 1;
 		
 		double sinAngleOfRefraction = sinAngleOfIncidence * ni / nr;
-		if( sinAngleOfRefraction > 1 ) {
-			// Total internal reflection?
-			// Or a bug.  Because it seems to happen too often.
+		
+		if( random.nextDouble() < sinAngleOfRefraction ) {
+			// This may not be physically accurate.
+			// In the 'total internal reflection' case, sinAngleOfRefraction will be >= 1
 			VectorMath.reflect( direction, normal, direction );
 			return;
 		}
