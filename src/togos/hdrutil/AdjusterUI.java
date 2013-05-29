@@ -139,18 +139,18 @@ public class AdjusterUI extends Canvas
 			}
 			--scale;
 			
-			int right = (getWidth()  - hdrImage.getWidth() *scale) / 2;
+			int left  = (getWidth()  - hdrImage.getWidth() *scale) / 2;
 			int top   = (getHeight() - hdrImage.getHeight()*scale) / 2;
-			int left  = hdrImage.getWidth() *scale + right;
-			int bottom= hdrImage.getHeight()*scale - top  ;
+			int right = hdrImage.getWidth() *scale + left;
+			int bottom= hdrImage.getHeight()*scale + top  ;
 			
 			g.setColor(Color.BLACK);
-			g.fillRect(0, 0, right, getHeight());
-			g.fillRect(left, 0, getWidth()-left, getHeight());
-			g.fillRect(left, 0, right-left, top);
-			g.fillRect(left, bottom, right-left, getHeight()-bottom);
+			g.fillRect(0, 0, left, getHeight());
+			g.fillRect(right, 0, getWidth()-right, getHeight());
+			g.fillRect(left, 0, right - left, top);
+			g.fillRect(left, bottom, right - left, getHeight() - bottom);
 			
-			g.drawImage(bImg, right, top, right+hdrImage.getWidth()*scale, top+hdrImage.getHeight()*scale, 0, 0, hdrImage.getWidth(), hdrImage.getHeight(), null);
+			g.drawImage(bImg, left, top, left+hdrImage.getWidth()*scale, top+hdrImage.getHeight()*scale, 0, 0, hdrImage.getWidth(), hdrImage.getHeight(), null);
 		}
 
 		int line = 1;
