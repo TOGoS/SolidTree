@@ -2,9 +2,10 @@ package togos.solidtree.trace;
 
 import java.util.Random;
 
+import togos.solidtree.DColor;
+import togos.solidtree.PathTraceMaterial;
 import togos.solidtree.SurfaceMaterial;
 import togos.solidtree.SurfaceMaterialLayer;
-import togos.solidtree.VolumetricMaterial;
 import togos.solidtree.SimplexNoise;
 import togos.solidtree.SolidNode;
 
@@ -473,7 +474,7 @@ public class Tracer
 		red = green = blue = (double)0.0;
 		
 		step: for( int steps=0, bounces=0; steps<maxSteps && bounces<maxBounces && !filterIsBlack(); ++steps ) {
-			final VolumetricMaterial material = cursors[cursorIdx].node.material;
+			final PathTraceMaterial material = cursors[cursorIdx].node.material;
 			boolean scattered = false;
 			
 			if( !findNextIntersection( pos, direction, preIntersect, postIntersect ) ) {
@@ -482,32 +483,35 @@ public class Tracer
 			
 			double dist = VectorMath.dist( pos, postIntersect );
 			
-			if( material.particleInteractionChance > 0 ) {
+			if( material.getParticleInteractionChance() > 0 ) {
 				// Could run this even when scat = 0 but it would be pointless.
 				
 				// probability(distance) = 1 - (1 - probability(1)) ** distance  
 				// distance(rand(0..1)) = inverse of probability(distance) or of 1 - probability(distance)
-				double scatterDist = -Math.log(random.nextDouble()) / Math.log( 1 / (1-material.particleInteractionChance) );
+				double scatterDist = -Math.log(random.nextDouble()) / Math.log( 1 / (1-material.getParticleInteractionChance()) );
 				if( scatterDist < dist ) {
 					// Scattered!
 					// Let's say for now it's at some random point (which is terribly wrong).
 					direction.normalizeInPlace(scatterDist);
 					VectorMath.add( pos, direction, postIntersect );
-					processSurfaceInteraction( direction, randomVector(1), material.particleMaterial );
+					processSurfaceInteraction( direction, randomVector(1), material.getParticleSurfaceMaterial() );
 					++bounces;
 					
 					scattered = true;
 				}
 			}
 			
-			// TODO: Figure out how to mix ambient and filter colors 
-			red   += filterRed   * material.internalEmissionColor.r * material.internalFilterColor.r * dist;
-			green += filterGreen * material.internalEmissionColor.g * material.internalFilterColor.g * dist;
-			blue  += filterBlue  * material.internalEmissionColor.b * material.internalFilterColor.b * dist;
+			DColor internalEmissionColor = material.getInternalEmissionColor();
+			DColor internalFilterColor = material.getInternalFilterColor();
 			
-			filterRed   *= Math.pow(material.internalFilterColor.r, dist);
-			filterGreen *= Math.pow(material.internalFilterColor.g, dist);
-			filterBlue  *= Math.pow(material.internalFilterColor.b, dist);
+			// TODO: Figure out how to mix ambient and filter colors 
+			red   += filterRed   * internalEmissionColor.r * internalFilterColor.r * dist;
+			green += filterGreen * internalEmissionColor.g * internalFilterColor.g * dist;
+			blue  += filterBlue  * internalEmissionColor.b * internalFilterColor.b * dist;
+			
+			filterRed   *= Math.pow(internalFilterColor.r, dist);
+			filterGreen *= Math.pow(internalFilterColor.g, dist);
+			filterBlue  *= Math.pow(internalFilterColor.b, dist);
 			
 			// Otherwise it just passes through!
 			
@@ -517,14 +521,16 @@ public class Tracer
 				continue step;
 			}
 			
-			VolumetricMaterial newMaterial = cursors[cursorIdx].node.material;
+			PathTraceMaterial newMaterial = cursors[cursorIdx].node.material;
 			
 			if( newMaterial != material ) {
+				double ni = material.getIndexOfRefraction();
+				double nr = newMaterial.getIndexOfRefraction();
+				
 				assert direction.isRegular();
 				if(
-					processSurfaceInteraction( direction, normal, newMaterial.surfaceMaterial )
-					&& newMaterial.indexOfRefraction != material.indexOfRefraction &&
-					refract( material.indexOfRefraction, newMaterial.indexOfRefraction )
+					processSurfaceInteraction( direction, normal, newMaterial.getSurfaceMaterial() )
+					&& nr != ni && refract( ni, nr )
 				) {
 					// Move to new position
 				} else {
@@ -548,11 +554,12 @@ public class Tracer
 				return;
 			}
 			setPosition(postIntersect);
-			final VolumetricMaterial newMaterial = cursors[cursorIdx].node.material;
-			if( newMaterial.surfaceMaterial.layers.length > 0 ) {				
+			final PathTraceMaterial newMaterial = cursors[cursorIdx].node.material;
+			final SurfaceMaterial surfaceMaterial = newMaterial.getSurfaceMaterial();
+			if( surfaceMaterial.layers.length > 0 ) {				
 				double adjust = normal.x*0.1 + normal.y*0.2 + normal.z*0.3;
 				
-				for( SurfaceMaterialLayer l : newMaterial.surfaceMaterial.layers ) { 
+				for( SurfaceMaterialLayer l : surfaceMaterial.layers ) { 
 					red   = l.emissionColor.r + l.filterColor.r * (0.5 + adjust);
 					green = l.emissionColor.g + l.filterColor.g * (0.5 + adjust);
 					blue  = l.emissionColor.b + l.filterColor.b * (0.5 + adjust);

@@ -1,6 +1,6 @@
 package togos.solidtree;
 
-public class VolumetricMaterial
+public class VolumetricMaterial implements GeneralMaterial
 {
 	public static VolumetricMaterial SPACE = new VolumetricMaterial(
 		SurfaceMaterial.TRANSPARENT,
@@ -39,4 +39,11 @@ public class VolumetricMaterial
 		this.particleInteractionChance = particleInteractionChance;
 		this.particleMaterial = particleMaterial;
 	}
+
+	@Override public SurfaceMaterial getSurfaceMaterial() { return surfaceMaterial; }
+	@Override public double getParticleInteractionChance() { return particleInteractionChance; }
+	@Override public SurfaceMaterial getParticleSurfaceMaterial() { return particleMaterial; }
+	@Override public DColor getInternalEmissionColor() { return internalEmissionColor; }
+	@Override public DColor getInternalFilterColor() { return internalFilterColor; }
+	@Override public double getIndexOfRefraction() { return indexOfRefraction; }
 }
