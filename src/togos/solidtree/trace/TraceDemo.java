@@ -95,7 +95,7 @@ public class TraceDemo
 	static VolumetricMaterial green = opaqueVolumetricMaterial( new DColor(0.2, 0.4, 0.05) );
 	static VolumetricMaterial black = opaqueVolumetricMaterial( DColor.BLACK );
 	
-	static SolidNode blite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(1,1,2) ));
+	static SolidNode blite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(0.5,0.5,1) ));
 	static SolidNode wlite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(2,2,2) ));
 	static SolidNode rlite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(1.0,0.1,0.1) ));
 	static SolidNode sbrn1 = new SolidNode( brown );
@@ -123,34 +123,35 @@ public class TraceDemo
 		//s.add( new AACube(-50, 50, 0, 20), wlite, 5 );
 		//s.add( new Sphere(0, -200, 0, 140), sbrn2, 6 );
 		//s.add( new AACube(0, 100, -100, 10), blite, 5 );
-		s.add( new AACube( 0, 0, 60, 15), sgla1, 4 );
+		//s.add( new AACube(-10, 0, -10, 15), sgla1, 4 );
 		// s.add( new AACube( 0, 0, 60, 13), sblk1, 4 );
-		s.add( new Sphere( 0, 0, 60, 10), sbrn2, 6 );
-		s.add( new Sphere( 0, 0, 80, 10), sgrn1, 6 );
-		s.add( new Sphere(20, 0, 80, 10), sgrn1, 6 );
-		s.add( new Sphere(20, 0, 60, 10), sgrn1, 6 );
+		s.add( new Sphere(-10, 0, -10, 10), sbrn2, 6 );
+		s.add( new Sphere(-10, 0,  10, 10), sgrn1, 6 );
+		s.add( new Sphere( 10, 0,  10, 10), sgrn1, 6 );
+		s.add( new Sphere( 10, 0, -10, 10), sgrn1, 6 );
 		for( int i=0; i<200; ++i ) {
-			s.add( new Sphere(rand.nextInt(40)-10, rand.nextInt(30)-15, rand.nextInt(30)+55, 5), sgrn1, 5 );
+			s.add( new Sphere(rand.nextInt(40)-20, rand.nextInt(30)-15, rand.nextInt(40)-20, 5), sgrn1, 5 );
 		}
 		// Sky lights
 		for( int i=0; i<1000; ++i ) {
 			double lx, ly, lz;
 			do {
 				lx = rand.nextDouble() * 180 - 90;
-				ly = rand.nextDouble() * 90;
+				ly = rand.nextDouble() * 180 - 90;
 				lz = rand.nextDouble() * 180 - 90;
 			} while( Math.sqrt(lx*lx + ly*ly + lz*lz) < 80 );
 			
-			s.add( new AACube(lx, ly, lz, 10), rand.nextBoolean() ? blite : sbrn2, 5 );
+			boolean isLight = ly / 90 > rand.nextDouble();
+			
+			s.add( new AACube(lx, ly, lz, 10), isLight ? blite : sbrn2, 5 );
 		}
 		
-		/*
 		// Ring lights
-		for( int i=0; i<30; ++i ) {
-			double ang = i * Math.PI * 2 / 30;
-			s.add( new AACube(Math.sin(ang) * 30 + 10, Math.cos(ang) * 10, Math.cos(ang) * 30 + 70, 2), wlite, 5 );
+		for( int i=0; i<20; ++i ) {
+			double ang = i * Math.PI * 2 / 20;
+			s.add( new AACube(Math.sin(ang) * 30, Math.cos(ang) * 10, Math.cos(ang) * 30, 4), sgla1, 5 );
+			s.add( new AACube(Math.sin(ang) * 30, Math.cos(ang) * 10, Math.cos(ang) * 30, 2), wlite, 5 );
 		}
-		*/
 		
 		System.err.println("World built!");
 		
@@ -158,7 +159,7 @@ public class TraceDemo
 		
 		final Camera cam = new Camera();
 		cam.x = 10;
-		cam.z = 30;
+		cam.z = -40;
 		cam.yaw = 0;//Math.PI/8;
 		final double fovY = (double)(Math.PI*0.3); 
 		Projection projection = new FisheyeProjection(fovY*imageWidth/imageHeight, fovY);
