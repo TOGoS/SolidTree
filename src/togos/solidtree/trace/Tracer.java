@@ -440,10 +440,15 @@ public class Tracer
 		double sinAngleOfRefraction = sinAngleOfIncidence * ni / nr;
 		assert sinAngleOfRefraction >= 0;
 		
-		if( random.nextDouble() < sinAngleOfRefraction ) {
-			// In the 'total internal reflection' case, sinAngleOfRefraction will be >= 1
-			// Otherwise, this is probably not be physically accurate.
-			// I suspect it reflects more often than it should.
+		/*
+		 * Note: Squaring of sinAngleOfRefraction is arbitrarily chosen;
+		 * I don't yet know what the realistic method would be to determine
+		 * the chance of reflection.
+		 *
+		 * It is important that reflection always occurs when sinAngleOfRefraction >= 1
+		 * (This case is known as 'total internal reflection')
+		 */
+		if( random.nextDouble() < sinAngleOfRefraction*sinAngleOfRefraction ) {
 			VectorMath.reflect( direction, normal, direction );
 			return false;
 		}
