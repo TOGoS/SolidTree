@@ -44,7 +44,7 @@ public class NodeFunctions
 				surfMat = SurfaceMaterial.combine( surfMat, new SurfaceMaterialLayer(opacity, filter, emission, 0, 1, 1, 0) );
 			}
 			if( mirrosity > 0 ) {
-				surfMat = SurfaceMaterial.combine( surfMat, new SurfaceMaterialLayer(mirrosity, filter, emission, 1, 0, 0, 0) );
+				surfMat = SurfaceMaterial.combine( surfMat, new SurfaceMaterialLayer(mirrosity, DColor.WHITE, DColor.BLACK, 1, 0, 0, 0) );
 			}
 			
 			interp.stackPush( new StandardMaterial(surfMat, ior, filter, emission, 0, SurfaceMaterial.TRANSPARENT) );

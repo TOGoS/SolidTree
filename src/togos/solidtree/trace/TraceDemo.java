@@ -110,9 +110,9 @@ public class TraceDemo
 	static SolidNode sgla9 = new SolidNode( glas9 );
 	
 	public static void main( String[] args ) throws Exception {
-		final int imageWidth  = 512;
-		final int imageHeight = 256;
-		final String sceneName = "GBall1c"; 
+		final int imageWidth  = 128;
+		final int imageHeight = 128;
+		final String sceneName = "GBall1d"; 
 		SampleMethod sampleMethod = SampleMethod.RANDOM;
 		
 		Tracer t = new Tracer();
@@ -123,7 +123,7 @@ public class TraceDemo
 		Interpreter interp = new Interpreter();
 		NodeFunctions.register(interp.wordDefinitions);
 		Tokenizer tokenizer = new Tokenizer("text", 1, 1, 4, interp.delegatingTokenHandler);
-		tokenizer.handle( "1 1 1 make-color 0 0 0 make-color 0.1 0.9 2 make-simple-visual-material make-solid-material-node" );
+		tokenizer.handle( "0.5 0.5 0.5 make-color 0 0 0 make-color 0.1 0.9 2 make-simple-visual-material make-solid-material-node" );
 		tokenizer.flush();
 		SolidNode sgrn1 = interp.stackPop( SolidNode.class, BaseSourceLocation.NONE );
 		
