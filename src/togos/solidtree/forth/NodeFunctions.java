@@ -13,6 +13,18 @@ import togos.solidtree.SurfaceMaterialLayer;
 
 public class NodeFunctions
 {
+	static class Constant extends StandardWordDefinition {
+		final Object value;
+		public Constant( Object v ) {
+			this.value = v;
+		}
+		
+		@Override
+        public void run( Interpreter interp, SourceLocation sLoc ) {
+			interp.stackPush(value);
+        }
+	}
+	
 	static final StandardWordDefinition MAKE_COLOR = new StandardWordDefinition() {
 		// red, green, blue -> DColor
 		
@@ -59,9 +71,45 @@ public class NodeFunctions
         }
 	};
 	
+	static final StandardWordDefinition MAKE_COMPOSITE_NODE = new StandardWordDefinition() {
+		// subnode0 subnode1 ... subnodeN divX divY divZ -> SolidNode
+		
+		@Override public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
+			int divZ = interp.stackPop( Number.class, sLoc ).intValue();
+			int divY = interp.stackPop( Number.class, sLoc ).intValue();
+			int divX = interp.stackPop( Number.class, sLoc ).intValue();
+			SolidNode[] subNodes = new SolidNode[divX*divY*divZ];
+			for( int i=divX*divY*divZ-1; i>=0; --i ) {
+				subNodes[i] = interp.stackPop( SolidNode.class, sLoc );
+			}
+			
+			interp.stackPush( new SolidNode(StandardMaterial.SPACE, divX, divY, divZ, subNodes) );
+        }		
+	};
+	
 	public static void register( Map<String,WordDefinition> ctx ) {
+		ctx.put("empty-node", new Constant(SolidNode.EMPTY) );
 		ctx.put("make-solid-material-node", MAKE_SOLID_MATERIAL_NODE);
+		ctx.put("make-composite-node", MAKE_COMPOSITE_NODE);
 		ctx.put("make-simple-visual-material", MAKE_SIMPLE_VISUAL_MATERIAL);
 		ctx.put("make-color", MAKE_COLOR);
+		
+		// These should be defined in a more generic function library
+		ctx.put("def-value", new StandardWordDefinition() {
+			@Override
+            public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
+				String name = interp.stackPop( String.class, sLoc );
+				Object value = interp.stackPop( Object.class, sLoc );
+				interp.wordDefinitions.put( name, new Constant(value) ); 
+            }
+		});
+		ctx.put("dup", new StandardWordDefinition() {
+			@Override
+            public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
+				Object o = interp.stackPop(Object.class, sLoc);
+				interp.stackPush(o);
+				interp.stackPush(o);
+            }
+		});
 	}
 }

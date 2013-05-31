@@ -123,50 +123,29 @@ public class TraceDemo
 		Interpreter interp = new Interpreter();
 		NodeFunctions.register(interp.wordDefinitions);
 		Tokenizer tokenizer = new Tokenizer("text", 1, 1, 4, interp.delegatingTokenHandler);
-		tokenizer.handle( "0.5 0.5 0.5 make-color 0 0 0 make-color 0.1 0.9 2 make-simple-visual-material make-solid-material-node" );
+		tokenizer.handle( "1 1 1 make-color 2 2 2 make-color 0 0.5 2 make-simple-visual-material make-solid-material-node \"light-node\" def-value\n" );
+		tokenizer.handle( "0.5 0.5 0.5 make-color 0 0 0 make-color 0.1 0.9 2 make-simple-visual-material make-solid-material-node \"white-node\" def-value\n" );
+		tokenizer.handle( "light-node empty-node empty-node white-node empty-node white-node white-node empty-node 2 2 2 make-composite-node");
 		tokenizer.flush();
-		SolidNode sgrn1 = interp.stackPop( SolidNode.class, BaseSourceLocation.NONE );
-		
-		SolidNode empty = new SolidNode( StandardMaterial.SPACE );
-		
-		NodeShaper s = new NodeShaper();
-		s.setRoot(empty, -100, -100, -100, 100, 100, 100 );
-		//s.add( new AACube(-50, 50, 0, 20), wlite, 5 );
-		//s.add( new Sphere(0, -200, 0, 140), sbrn2, 6 );
-		//s.add( new AACube(0, 100, -100, 10), blite, 5 );
-		//s.add( new AACube(-10, 0, -10, 15), sgla1, 4 );
-		// s.add( new AACube( 0, 0, 60, 13), sblk1, 4 );
-		s.add( new Sphere(-10, 0, -10, 10), sbrn2, 6 );
-		s.add( new Sphere(-10, 0,  10, 10), sgrn1, 6 );
-		s.add( new Sphere( 10, 0,  10, 10), sgrn1, 6 );
-		s.add( new Sphere( 10, 0, -10, 10), sgrn1, 6 );
-		for( int i=0; i<200; ++i ) {
-			s.add( new Sphere(rand.nextInt(40)-20, rand.nextInt(30)-15, rand.nextInt(40)-20, 5), sgrn1, 5 );
-		}
-		// Sky lights
-		for( int i=0; i<1000; ++i ) {
-			double lx, ly, lz;
-			do {
-				lx = rand.nextDouble() * 180 - 90;
-				ly = rand.nextDouble() * 180 - 90;
-				lz = rand.nextDouble() * 180 - 90;
-			} while( Math.sqrt(lx*lx + ly*ly + lz*lz) < 80 );
-			
-			boolean isLight = ly / 90 > rand.nextDouble();
-			
-			s.add( new AACube(lx, ly, lz, 10), isLight ? blite : sbrn2, 5 );
-		}
-		
-		// Ring lights
-		for( int i=0; i<20; ++i ) {
-			double ang = i * Math.PI * 2 / 20;
-			s.add( new AACube(Math.sin(ang) * 30, Math.cos(ang) * 10, Math.cos(ang) * 30, 4), sgla1, 5 );
-			s.add( new AACube(Math.sin(ang) * 30, Math.cos(ang) * 10, Math.cos(ang) * 30, 2), wlite, 5 );
-		}
+		SolidNode node = interp.stackPop( SolidNode.class, BaseSourceLocation.NONE );
 		
 		System.err.println("World built!");
 		
-		t.setRoot( s.root, s.rootMinX, s.rootMinY, s.rootMinZ, s.rootMaxX, s.rootMaxY, s.rootMaxZ );
+		node = new SolidNode( StandardMaterial.SPACE, 3, 3, 3, new SolidNode[] {
+			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
+			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
+			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
+			
+			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
+			SolidNode.EMPTY, node, SolidNode.EMPTY,
+			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
+			
+			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
+			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
+			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
+		});
+		
+		t.setRoot( node, -128, -128, -128, 128, 128, 128 );
 		
 		final Camera cam = new Camera();
 		cam.x = 10;
