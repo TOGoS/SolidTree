@@ -316,8 +316,8 @@ public class TraceDemo
 					);
 				}
 				
-				int pixelX = (int)Math.round((screenX[j]+0.5)*imageWidth);
-				int pixelY = (int)Math.round((screenY[j]+0.5)*imageHeight);
+				int pixelX = (int)((screenX[j]+0.5)*imageWidth);
+				int pixelY = (int)((screenY[j]+0.5)*imageHeight);
 				pixelX = pixelX < 0 ? 0 : pixelX >= imageWidth  ? imageWidth  - 1 : pixelX;
 				pixelY = pixelY < 0 ? 0 : pixelY >= imageHeight ? imageHeight - 1 : pixelY;
 				
