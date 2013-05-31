@@ -12,11 +12,15 @@ import java.util.Random;
 import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.ChunkyDump;
 import togos.hdrutil.HDRExposure;
+import togos.lang.BaseSourceLocation;
 import togos.solidtree.DColor;
 import togos.solidtree.SolidNode;
 import togos.solidtree.SurfaceMaterial;
 import togos.solidtree.SurfaceMaterialLayer;
-import togos.solidtree.VolumetricMaterial;
+import togos.solidtree.StandardMaterial;
+import togos.solidtree.forth.Interpreter;
+import togos.solidtree.forth.NodeFunctions;
+import togos.solidtree.forth.Tokenizer;
 import togos.solidtree.shape.AACube;
 import togos.solidtree.shape.NodeShaper;
 import togos.solidtree.shape.Sphere;
@@ -50,7 +54,7 @@ public class TraceDemo
 	}
 	
 	protected static SolidNode mkNode( int w, int h, int d, SolidNode...parts ) {
-		return new SolidNode( VolumetricMaterial.SPACE, w, h, d, parts );
+		return new SolidNode( StandardMaterial.SPACE, w, h, d, parts );
 	}
 	
 	protected static File getNewOutputFile( String prefix, String suffix ) {
@@ -59,18 +63,18 @@ public class TraceDemo
 		return f;
 	}
 	
-	public static final VolumetricMaterial opaqueVolumetricMaterial( DColor filterColor, DColor emissionColor ) {
-		return VolumetricMaterial.opaque(
+	public static final StandardMaterial opaqueVolumetricMaterial( DColor filterColor, DColor emissionColor ) {
+		return StandardMaterial.opaque(
 			new SurfaceMaterial(new SurfaceMaterialLayer( 1, filterColor, emissionColor, 0, 1, 1, 0 ))
 		);
 	}
 	
-	public static final VolumetricMaterial opaqueVolumetricMaterial( DColor filterColor ) {
+	public static final StandardMaterial opaqueVolumetricMaterial( DColor filterColor ) {
 		return opaqueVolumetricMaterial( filterColor, DColor.BLACK );
 	}
 	
-	public static final VolumetricMaterial mirrorVolumetricMaterial( double scattering, DColor filterColor ) {
-		return VolumetricMaterial.opaque(
+	public static final StandardMaterial mirrorVolumetricMaterial( double scattering, DColor filterColor ) {
+		return StandardMaterial.opaque(
 			new SurfaceMaterial(
 				new SurfaceMaterialLayer( scattering, filterColor, DColor.BLACK, 0, 1, 1, 0 ),
 				new SurfaceMaterialLayer( 1, filterColor, DColor.BLACK, 1, 0, 0, 0 )
@@ -78,22 +82,22 @@ public class TraceDemo
 		);
 	}
 	
-	static VolumetricMaterial glas1 = new VolumetricMaterial(
+	static StandardMaterial glas1 = new StandardMaterial(
 		SurfaceMaterial.TRANSPARENT, 1.5,
 		DColor.WHITE, DColor.BLACK,
 		0, SurfaceMaterial.TRANSPARENT
 	);
-	static VolumetricMaterial glas9 = new VolumetricMaterial(
+	static StandardMaterial glas9 = new StandardMaterial(
 		SurfaceMaterial.TRANSPARENT, 9,
 		DColor.WHITE, DColor.BLACK,
 		0, SurfaceMaterial.TRANSPARENT
 	);
 	
-	static VolumetricMaterial brown = opaqueVolumetricMaterial( new DColor(0.3, 0.2, 0.1) );
+	static StandardMaterial brown = opaqueVolumetricMaterial( new DColor(0.3, 0.2, 0.1) );
 	static Random rand = new Random(11443);
-	static VolumetricMaterial brown2 = opaqueVolumetricMaterial( new DColor(0.1, 0.04, 0.01) );
-	static VolumetricMaterial green = opaqueVolumetricMaterial( new DColor(0.2, 0.4, 0.05) );
-	static VolumetricMaterial black = opaqueVolumetricMaterial( DColor.BLACK );
+	static StandardMaterial brown2 = opaqueVolumetricMaterial( new DColor(0.1, 0.04, 0.01) );
+	static StandardMaterial green = opaqueVolumetricMaterial( new DColor(0.2, 0.4, 0.05) );
+	static StandardMaterial black = opaqueVolumetricMaterial( DColor.BLACK );
 	
 	static SolidNode blite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(0.5,0.5,1) ));
 	static SolidNode wlite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(2,2,2) ));
@@ -105,7 +109,7 @@ public class TraceDemo
 	static SolidNode sgla1 = new SolidNode( glas1 );
 	static SolidNode sgla9 = new SolidNode( glas9 );
 	
-	public static void main( String[] args ) {
+	public static void main( String[] args ) throws Exception {
 		final int imageWidth  = 512;
 		final int imageHeight = 256;
 		final String sceneName = "GBall1c"; 
@@ -116,7 +120,14 @@ public class TraceDemo
 		
 		System.err.println("Building world...");
 		
-		SolidNode empty = new SolidNode( VolumetricMaterial.SPACE );
+		Interpreter interp = new Interpreter();
+		NodeFunctions.register(interp.wordDefinitions);
+		Tokenizer tokenizer = new Tokenizer("text", 1, 1, 4, interp.delegatingTokenHandler);
+		tokenizer.handle( "1 1 1 make-color 0 0 0 make-color 0.1 0.9 2 make-simple-visual-material make-solid-material-node" );
+		tokenizer.flush();
+		SolidNode sgrn1 = interp.stackPop( SolidNode.class, BaseSourceLocation.NONE );
+		
+		SolidNode empty = new SolidNode( StandardMaterial.SPACE );
 		
 		NodeShaper s = new NodeShaper();
 		s.setRoot(empty, -100, -100, -100, 100, 100, 100 );

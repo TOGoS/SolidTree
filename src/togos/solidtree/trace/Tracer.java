@@ -394,7 +394,8 @@ public class Tracer
 	 * @return false if the ray bounces away from the surface, true if it passes through
 	 */
 	protected boolean processSurfaceInteraction( Vector3D ray, Vector3D normal, SurfaceMaterial sm ) {
-		for( SurfaceMaterialLayer l : sm.layers ) {
+		for( int li=sm.layers.length-1; li>=0; --li ) {
+			SurfaceMaterialLayer l = sm.layers[li];
 			if( onHit(ray, normal, l) && VectorMath.dotProduct(ray, normal) > 0 ) {
 				return false;
 			}
@@ -559,7 +560,8 @@ public class Tracer
 			if( surfaceMaterial.layers.length > 0 ) {				
 				double adjust = normal.x*0.1 + normal.y*0.2 + normal.z*0.3;
 				
-				for( SurfaceMaterialLayer l : surfaceMaterial.layers ) { 
+				for( int li=surfaceMaterial.layers.length-1; li>=0; --li ) {
+					SurfaceMaterialLayer l = surfaceMaterial.layers[li];
 					red   = l.emissionColor.r + l.filterColor.r * (0.5 + adjust);
 					green = l.emissionColor.g + l.filterColor.g * (0.5 + adjust);
 					blue  = l.emissionColor.b + l.filterColor.b * (0.5 + adjust);

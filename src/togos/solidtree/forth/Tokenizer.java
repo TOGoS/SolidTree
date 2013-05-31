@@ -215,4 +215,7 @@ public class Tokenizer
     public void handle( String data ) throws Exception {
     	handle( data.toCharArray() );
     }
+    public void flush() throws Exception {
+    	flushToken();
+    }
 }

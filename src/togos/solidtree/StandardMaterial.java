@@ -1,15 +1,15 @@
 package togos.solidtree;
 
-public class VolumetricMaterial implements GeneralMaterial
+public class StandardMaterial implements GeneralMaterial
 {
-	public static VolumetricMaterial SPACE = new VolumetricMaterial(
+	public static StandardMaterial SPACE = new StandardMaterial(
 		SurfaceMaterial.TRANSPARENT,
 		1, DColor.WHITE, DColor.BLACK,
 		0, SurfaceMaterial.TRANSPARENT
 	);
 	
-	public static VolumetricMaterial opaque( SurfaceMaterial surface ) {
-		return new VolumetricMaterial(
+	public static StandardMaterial opaque( SurfaceMaterial surface ) {
+		return new StandardMaterial(
 			surface,
 			1, DColor.WHITE, DColor.BLACK,
 			0, SurfaceMaterial.TRANSPARENT
@@ -27,7 +27,7 @@ public class VolumetricMaterial implements GeneralMaterial
 	public final double particleInteractionChance;
 	public final SurfaceMaterial particleMaterial;
 	
-	public VolumetricMaterial(
+	public StandardMaterial(
 		SurfaceMaterial surfaceMaterial,
 		double indexOfRefraction, DColor internalFilterColor, DColor internalEmissionColor,
 		double particleInteractionChance, SurfaceMaterial particleMaterial

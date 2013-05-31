@@ -12,10 +12,10 @@ import togos.lang.SourceLocation;
 public class Interpreter
 {
 	ArrayList<Object> stack = new ArrayList<Object>();
-	HashMap<String, WordDef> wordDefinitions = new HashMap<String, WordDef>();
+	public HashMap<String, WordDefinition> wordDefinitions = new HashMap<String, WordDefinition>();
 	
-	protected WordDef getWordOrError( String word, SourceLocation sLoc ) throws CompileError {
-		WordDef d = wordDefinitions.get(word);
+	protected WordDefinition getWordOrError( String word, SourceLocation sLoc ) throws CompileError {
+		WordDefinition d = wordDefinitions.get(word);
 		if( d == null ) {
 			throw new CompileError("Undefined word '"+word+"'", sLoc );
 		}
@@ -24,6 +24,7 @@ public class Interpreter
 	
 	Handler<Token,ScriptError> interpretModeTokenHandler = new Handler<Token,ScriptError>() {
 		Pattern DEC_INT_PATTERN = Pattern.compile("([+-])?(\\d+)");
+		Pattern DEC_FLOAT_PATTERN = Pattern.compile("([+-])?(\\d+\\.\\d+)");
 		
 		public void handle( Token t ) throws ScriptError {
 			switch( t.type ) {
@@ -31,11 +32,13 @@ public class Interpreter
 				stack.add(t.text);
 				break;
 			default:
-				Matcher m = DEC_INT_PATTERN.matcher(t.text);
-				if( m.matches() ) {
-					stack.add( Integer.valueOf( ("-".equals(m.group(1)) ? -1 : 1) * Integer.parseInt(m.group(2)) ));
+				Matcher m;
+				if( (m = DEC_INT_PATTERN.matcher(t.text)).matches() ) {
+					stack.add( Long.valueOf( ("-".equals(m.group(1)) ? -1 : 1) * Long.parseLong(m.group(2)) ));
+				} else if( (m = DEC_FLOAT_PATTERN.matcher(t.text)).matches() ) {
+					stack.add( Double.valueOf( ("-".equals(m.group(1)) ? -1 : 1) * Double.parseDouble(m.group(2)) ));
 				} else {
-					getWordOrError(t.text, t).run(Interpreter.this);
+					getWordOrError(t.text, t).run(Interpreter.this, t);
 				}
 			}
 		}
@@ -48,4 +51,46 @@ public class Interpreter
 			tokenHandler.handle(t);
 		}
 	};
+	
+	////
+	
+	public void addToInstructionList( WordDefinition word, SourceLocation sLoc ) {
+		throw new UnsupportedOperationException("Compiling not yet worky");
+    }
+	
+	static class ScriptRuntimeError extends ScriptError
+	{
+		private static final long serialVersionUID = 1L;
+		public ScriptRuntimeError( String msg, SourceLocation sLoc ) {
+			super( msg, sLoc );
+		}
+	}
+	
+	static class StackUnderflowError extends ScriptRuntimeError
+	{
+		private static final long serialVersionUID = 1L;
+		public StackUnderflowError( SourceLocation sLoc ) {
+			super("Stack underflow", sLoc);
+		}
+	}
+	
+	public Object stackRemove( int fromTop, SourceLocation sLoc ) throws StackUnderflowError {
+		int index = stack.size()-fromTop-1;
+		if( index < 0 ) {
+			throw new StackUnderflowError(sLoc);
+		}
+		return stack.remove(index);
+	}
+	
+	public <V> V stackPop( Class<V> requiredType, SourceLocation sLoc ) throws ScriptError {
+		Object v = stackRemove(0, sLoc);
+		if( !requiredType.isAssignableFrom(v.getClass()) ) {
+			throw new ScriptError("Required type "+requiredType+" on top of stack, but found a "+v, sLoc);
+		}
+		return requiredType.cast(v);
+    }
+	
+	public void stackPush( Object o ) {
+		stack.add(o);
+	}
 }

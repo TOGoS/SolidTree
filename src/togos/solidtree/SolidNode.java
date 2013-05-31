@@ -5,7 +5,7 @@ import java.util.Arrays;
 public class SolidNode
 {
 	public static final byte[] EMPTY_SUBNODE_LIST = new byte[0];
-	public static final SolidNode EMPTY = new SolidNode( VolumetricMaterial.SPACE );
+	public static final SolidNode EMPTY = new SolidNode( StandardMaterial.SPACE );
 	private static final byte[] INC = new byte[256];
 	static {
 		for( int i=0; i<256; ++i ) INC[i] = (byte)i;
