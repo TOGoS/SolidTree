@@ -19,9 +19,13 @@ public class REPL
 		Interpreter interp = new Interpreter();
 		NodeProcedures.register(interp.wordDefinitions);
 		ArithmeticProcedures.register(interp.wordDefinitions);
+		interp.wordDefinitions.put("print", new StandardWordDefinition() {
+			@Override public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
+				System.out.print( interp.stackPop(Object.class, sLoc ) );
+			}
+		});
 		interp.wordDefinitions.put("exit", new StandardWordDefinition() {
-			@Override
-			public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
+			@Override public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
 				System.exit(0);
 			}
 		});
