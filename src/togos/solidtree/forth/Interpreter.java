@@ -2,12 +2,15 @@ package togos.solidtree.forth;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import togos.lang.CompileError;
 import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
+import togos.solidtree.forth.error.StackUnderflowError;
+import togos.solidtree.forth.procedure.ConstantValue;
 
 public class Interpreter
 {
@@ -22,29 +25,38 @@ public class Interpreter
 		return d;
 	}
 	
-	Handler<Token,ScriptError> interpretModeTokenHandler = new Handler<Token,ScriptError>() {
-		Pattern DEC_INT_PATTERN = Pattern.compile("([+-])?(\\d+)");
-		Pattern DEC_FLOAT_PATTERN = Pattern.compile("([+-])?(\\d+\\.\\d+)");
-		
-		public void handle( Token t ) throws ScriptError {
-			switch( t.type ) {
-			case DOUBLE_QUOTED_STRING:
-				stack.add(t.text);
-				break;
-			default:
-				Matcher m;
-				if( (m = DEC_INT_PATTERN.matcher(t.text)).matches() ) {
-					stack.add( Long.valueOf( ("-".equals(m.group(1)) ? -1 : 1) * Long.parseLong(m.group(2)) ));
-				} else if( (m = DEC_FLOAT_PATTERN.matcher(t.text)).matches() ) {
-					stack.add( Double.valueOf( ("-".equals(m.group(1)) ? -1 : 1) * Double.parseDouble(m.group(2)) ));
-				} else {
-					getWordOrError(t.text, t).run(Interpreter.this, t);
-				}
+	Pattern DEC_INT_PATTERN = Pattern.compile("([+-])?(\\d+)");
+	Pattern DEC_FLOAT_PATTERN = Pattern.compile("([+-])?(\\d+\\.\\d+)");
+	
+	WordDefinition getWord(Token t) throws CompileError {
+		switch( t.type ) {
+		case DOUBLE_QUOTED_STRING:
+			return new ConstantValue(t.text);
+		default:
+			Matcher m;
+			if( (m = DEC_INT_PATTERN.matcher(t.text)).matches() ) {
+				return new ConstantValue(Long.valueOf(("-".equals(m.group(1)) ? -1 : 1) * Long.parseLong(m.group(2)))); 
+			} else if( (m = DEC_FLOAT_PATTERN.matcher(t.text)).matches() ) {
+				return new ConstantValue( Double.valueOf( ("-".equals(m.group(1)) ? -1 : 1) * Double.parseDouble(m.group(2)) ));
+			} else {
+				return getWordOrError(t.text, t);
 			}
+		}
+	}
+	
+	public final Handler<Token,ScriptError> compileModeTokenHandler = new Handler<Token,ScriptError>() {
+		public void handle( Token t ) throws ScriptError {
+			getWord(t).compile(Interpreter.this, t);
 		}
 	};
 	
-	Handler<Token,ScriptError> tokenHandler = interpretModeTokenHandler;
+	public final Handler<Token,ScriptError> interpretModeTokenHandler = new Handler<Token,ScriptError>() {
+		public void handle( Token t ) throws ScriptError {
+			getWord(t).run(Interpreter.this, t);
+		}
+	};
+	
+	public Handler<Token,ScriptError> tokenHandler = interpretModeTokenHandler;
 	
 	public final Handler<Token,ScriptError> delegatingTokenHandler = new Handler<Token,ScriptError>() {
 		public void handle( Token t ) throws ScriptError {
@@ -52,27 +64,21 @@ public class Interpreter
 		}
 	};
 	
-	////
+	//// Compiling functions
 	
-	public void addToInstructionList( WordDefinition word, SourceLocation sLoc ) {
-		throw new UnsupportedOperationException("Compiling not yet worky");
+	List<Procedure> procList = new ArrayList<Procedure>();
+	
+	public List<Procedure> flushCompiledProcedure() {
+		List<Procedure> procList = this.procList;
+		this.procList = new ArrayList<Procedure>();
+		return procList;
+	}
+	
+	public void addToInstructionList( Procedure proc, SourceLocation sLoc ) {
+		procList.add(proc);
     }
 	
-	static class ScriptRuntimeError extends ScriptError
-	{
-		private static final long serialVersionUID = 1L;
-		public ScriptRuntimeError( String msg, SourceLocation sLoc ) {
-			super( msg, sLoc );
-		}
-	}
-	
-	static class StackUnderflowError extends ScriptRuntimeError
-	{
-		private static final long serialVersionUID = 1L;
-		public StackUnderflowError( SourceLocation sLoc ) {
-			super("Stack underflow", sLoc);
-		}
-	}
+	//// Stack functions
 	
 	public Object stackRemove( int fromTop, SourceLocation sLoc ) throws StackUnderflowError {
 		int index = stack.size()-fromTop-1;
@@ -92,5 +98,9 @@ public class Interpreter
 	
 	public void stackPush( Object o ) {
 		stack.add(o);
+	}
+
+	public Object stackPeek() {
+		return stack.size() > 0 ? stack.get(stack.size()-1) : null;
 	}
 }

@@ -7,7 +7,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
 
 import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.ChunkyDump;
@@ -19,8 +18,9 @@ import togos.solidtree.StandardMaterial;
 import togos.solidtree.SurfaceMaterial;
 import togos.solidtree.SurfaceMaterialLayer;
 import togos.solidtree.forth.Interpreter;
-import togos.solidtree.forth.NodeFunctions;
 import togos.solidtree.forth.Tokenizer;
+import togos.solidtree.forth.procedure.ConstantValue;
+import togos.solidtree.forth.procedure.NodeProcedures;
 import togos.solidtree.shape.NodeShaper;
 import togos.solidtree.shape.Sphere;
 
@@ -88,8 +88,8 @@ public class TraceDemo
 		ns.add( new Sphere(0,0,0,1), new SolidNode(StandardMaterial.opaque(new SurfaceMaterial(new SurfaceMaterialLayer(1, DColor.WHITE, DColor.BLACK, 1, 1, 0, 0)))), 7 );
 		
 		Interpreter interp = new Interpreter();
-		interp.wordDefinitions.put("sphere-center-node", new NodeFunctions.Constant(ns.root));
-		NodeFunctions.register(interp.wordDefinitions);
+		interp.wordDefinitions.put("sphere-center-node", new ConstantValue(ns.root));
+		NodeProcedures.register(interp.wordDefinitions);
 		Tokenizer tokenizer = new Tokenizer("text", 1, 1, 4, interp.delegatingTokenHandler);
 		tokenizer.handle( "1 1 1 make-color 2 2 2 make-color 0 0.5 2 make-simple-visual-material make-solid-material-node \"light-node\" def-value\n" );
 		tokenizer.handle( "0.6 0.5 0.4 make-color 0 0 0 make-color 0.1 0.9 2 make-simple-visual-material make-solid-material-node \"white-node\" def-value\n" );
@@ -308,20 +308,26 @@ public class TraceDemo
 				exp.g.data[pixelI] += t.green;
 				exp.b.data[pixelI] += t.blue;
 				
-				if( samplesTaken % 4096 == 0 ) {
-					String baseName = sceneName+"-"+(int)exp.getAverageExposure();
-					adj.exportFilenamePrefix = baseName;
-					adj.exposureUpdated();
-				}
 				if( samplesTaken % 16384 == 0 ) {
 					long time = System.currentTimeMillis();
 					samplesPerSecond =
 						0.8 * samplesPerSecond +
 						0.2 * (samplesTaken - prevSamplesTaken) * 1000 / (time - prevTime);
-					System.err.println( samplesPerSecond + " samples/s");
 					
 					prevSamplesTaken = samplesTaken;
 					prevTime = System.currentTimeMillis();
+				}
+				if( samplesTaken % 4096 == 0 ) {
+					String baseName = sceneName+"-"+(int)exp.getAverageExposure();
+					
+					adj.extraStatusLines = new String[] {
+						"Total samples taken: " + samplesTaken,
+						"Samples per second: " + samplesPerSecond,
+						"Average samples per pixel: " + exp.getAverageExposure()
+					};
+					
+					adj.exportFilenamePrefix = baseName;
+					adj.exposureUpdated();
 				}
 				++samplesTaken;
 			}
