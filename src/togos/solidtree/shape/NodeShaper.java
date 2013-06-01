@@ -5,7 +5,7 @@ import togos.solidtree.shape.Shape.Containment;
 
 public class NodeShaper
 {
-	int divX = 3, divY = 3, divZ = 3;
+	public int divX = 3, divY = 3, divZ = 3;
 	
 	public SolidNode add( SolidNode original, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, Shape s, SolidNode leaf, int maxRecursion ) {
 		switch( s.contains(minX, minY, minZ, maxX, maxY, maxZ) ) {
@@ -63,8 +63,8 @@ public class NodeShaper
 	
 	////
 	
-	public SolidNode root;
-	public double rootMinX, rootMinY, rootMinZ, rootMaxX, rootMaxY, rootMaxZ;
+	public SolidNode root = SolidNode.EMPTY;
+	public double rootMinX = -1, rootMinY = -1, rootMinZ = -1, rootMaxX = 1, rootMaxY = 1, rootMaxZ = 1;
 	
 	public void setRoot( SolidNode r, double minX, double minY, double minZ, double maxX, double maxY, double maxZ ) {
 		root = r;

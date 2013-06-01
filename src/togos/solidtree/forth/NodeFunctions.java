@@ -13,7 +13,7 @@ import togos.solidtree.SurfaceMaterialLayer;
 
 public class NodeFunctions
 {
-	static class Constant extends StandardWordDefinition {
+	public static class Constant extends StandardWordDefinition {
 		final Object value;
 		public Constant( Object v ) {
 			this.value = v;

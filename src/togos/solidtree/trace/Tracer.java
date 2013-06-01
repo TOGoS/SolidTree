@@ -233,6 +233,7 @@ public class Tracer
 		double insideScale  = scale == 0 ? -SMALL_VALUE : scale * (1-SMALL_VALUE);
 		
 		assert !d.isZero();
+		if( scale == 0 ) return false; // It happens sometimes
 		assert scale != 0;
 		
 		VectorMath.scale( d, outsideScale, scaledDirection );

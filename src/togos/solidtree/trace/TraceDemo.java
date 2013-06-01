@@ -15,13 +15,12 @@ import togos.hdrutil.HDRExposure;
 import togos.lang.BaseSourceLocation;
 import togos.solidtree.DColor;
 import togos.solidtree.SolidNode;
+import togos.solidtree.StandardMaterial;
 import togos.solidtree.SurfaceMaterial;
 import togos.solidtree.SurfaceMaterialLayer;
-import togos.solidtree.StandardMaterial;
 import togos.solidtree.forth.Interpreter;
 import togos.solidtree.forth.NodeFunctions;
 import togos.solidtree.forth.Tokenizer;
-import togos.solidtree.shape.AACube;
 import togos.solidtree.shape.NodeShaper;
 import togos.solidtree.shape.Sphere;
 
@@ -33,10 +32,21 @@ public class TraceDemo
 	}
 	
 	static class Camera {
-		boolean preview = true;
+		public boolean preview = true;
+		public int imageWidth, imageHeight;
 		// TOOD: May eventually want to use quaternions instead of pitch/yaw/etc
-		double x, y, z;
-		double yaw, pitch, roll;
+		public double x, y, z;
+		public double yaw, pitch, roll;
+		public Projection projection;
+		public HDRExposure exp;
+		
+		HDRExposure getExposure() {
+			if( exp == null || exp.width != imageWidth && exp.height != imageHeight ) {
+				exp = new HDRExposure(imageWidth, imageHeight);
+			}
+			return exp;
+		}
+
 	}
 	
 	static class Interrupt<V> {
@@ -63,55 +73,7 @@ public class TraceDemo
 		return f;
 	}
 	
-	public static final StandardMaterial opaqueVolumetricMaterial( DColor filterColor, DColor emissionColor ) {
-		return StandardMaterial.opaque(
-			new SurfaceMaterial(new SurfaceMaterialLayer( 1, filterColor, emissionColor, 0, 1, 1, 0 ))
-		);
-	}
-	
-	public static final StandardMaterial opaqueVolumetricMaterial( DColor filterColor ) {
-		return opaqueVolumetricMaterial( filterColor, DColor.BLACK );
-	}
-	
-	public static final StandardMaterial mirrorVolumetricMaterial( double scattering, DColor filterColor ) {
-		return StandardMaterial.opaque(
-			new SurfaceMaterial(
-				new SurfaceMaterialLayer( scattering, filterColor, DColor.BLACK, 0, 1, 1, 0 ),
-				new SurfaceMaterialLayer( 1, filterColor, DColor.BLACK, 1, 0, 0, 0 )
-			)
-		);
-	}
-	
-	static StandardMaterial glas1 = new StandardMaterial(
-		SurfaceMaterial.TRANSPARENT, 1.5,
-		DColor.WHITE, DColor.BLACK,
-		0, SurfaceMaterial.TRANSPARENT
-	);
-	static StandardMaterial glas9 = new StandardMaterial(
-		SurfaceMaterial.TRANSPARENT, 9,
-		DColor.WHITE, DColor.BLACK,
-		0, SurfaceMaterial.TRANSPARENT
-	);
-	
-	static StandardMaterial brown = opaqueVolumetricMaterial( new DColor(0.3, 0.2, 0.1) );
-	static Random rand = new Random(11443);
-	static StandardMaterial brown2 = opaqueVolumetricMaterial( new DColor(0.1, 0.04, 0.01) );
-	static StandardMaterial green = opaqueVolumetricMaterial( new DColor(0.2, 0.4, 0.05) );
-	static StandardMaterial black = opaqueVolumetricMaterial( DColor.BLACK );
-	
-	static SolidNode blite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(0.5,0.5,1) ));
-	static SolidNode wlite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(2,2,2) ));
-	static SolidNode rlite = new SolidNode( opaqueVolumetricMaterial(DColor.BLACK, new DColor(1.0,0.1,0.1) ));
-	static SolidNode sbrn1 = new SolidNode( brown );
-	static SolidNode sgrn1 = new SolidNode( green );
-	static SolidNode sbrn2 = new SolidNode( brown2 );
-	static SolidNode sblk1 = new SolidNode( black );
-	static SolidNode sgla1 = new SolidNode( glas1 );
-	static SolidNode sgla9 = new SolidNode( glas9 );
-	
 	public static void main( String[] args ) throws Exception {
-		final int imageWidth  = 128;
-		final int imageHeight = 128;
 		final String sceneName = "GBall1d"; 
 		SampleMethod sampleMethod = SampleMethod.RANDOM;
 		
@@ -120,12 +82,32 @@ public class TraceDemo
 		
 		System.err.println("Building world...");
 		
+		NodeShaper ns = new NodeShaper();
+		ns.divX = 2; ns.divY = 2; ns.divZ = 2;
+		ns.setRoot( SolidNode.EMPTY, 2 );
+		ns.add( new Sphere(0,0,0,1), new SolidNode(StandardMaterial.opaque(new SurfaceMaterial(new SurfaceMaterialLayer(1, DColor.WHITE, DColor.BLACK, 1, 1, 0, 0)))), 7 );
+		
 		Interpreter interp = new Interpreter();
+		interp.wordDefinitions.put("sphere-center-node", new NodeFunctions.Constant(ns.root));
 		NodeFunctions.register(interp.wordDefinitions);
 		Tokenizer tokenizer = new Tokenizer("text", 1, 1, 4, interp.delegatingTokenHandler);
 		tokenizer.handle( "1 1 1 make-color 2 2 2 make-color 0 0.5 2 make-simple-visual-material make-solid-material-node \"light-node\" def-value\n" );
-		tokenizer.handle( "0.5 0.5 0.5 make-color 0 0 0 make-color 0.1 0.9 2 make-simple-visual-material make-solid-material-node \"white-node\" def-value\n" );
-		tokenizer.handle( "light-node empty-node empty-node white-node empty-node white-node white-node empty-node 2 2 2 make-composite-node");
+		tokenizer.handle( "0.6 0.5 0.4 make-color 0 0 0 make-color 0.1 0.9 2 make-simple-visual-material make-solid-material-node \"white-node\" def-value\n" );
+		tokenizer.handle( "white-node empty-node empty-node white-node empty-node white-node white-node empty-node 2 2 2 make-composite-node \"checker-node\" def-value\n");
+		
+		for( int i=0; i<16; ++i ) tokenizer.handle( "empty-node\n");
+		tokenizer.handle( "empty-node empty-node empty-node empty-node\n");
+		tokenizer.handle( "empty-node white-node sphere-center-node empty-node\n");
+		tokenizer.handle( "empty-node sphere-center-node white-node empty-node\n");
+		tokenizer.handle( "empty-node empty-node empty-node empty-node\n");
+		tokenizer.handle( "empty-node empty-node empty-node empty-node\n");
+		tokenizer.handle( "empty-node sphere-center-node white-node empty-node\n");
+		tokenizer.handle( "empty-node white-node sphere-center-node empty-node\n");
+		tokenizer.handle( "empty-node empty-node empty-node empty-node\n");
+		for( int i=0; i<16; ++i ) tokenizer.handle( "empty-node\n");
+		tokenizer.handle( "4 4 4 make-composite-node \"checker-center-node\" def-value\n");
+		
+		tokenizer.handle( "light-node checker-center-node empty-node white-node checker-center-node white-node checker-center-node empty-node 2 2 2 make-composite-node\n");
 		tokenizer.flush();
 		SolidNode node = interp.stackPop( SolidNode.class, BaseSourceLocation.NONE );
 		
@@ -148,26 +130,26 @@ public class TraceDemo
 		t.setRoot( node, -128, -128, -128, 128, 128, 128 );
 		
 		final Camera cam = new Camera();
+		cam.imageWidth = 128;
+		cam.imageHeight = 128;
 		cam.x = 10;
 		cam.z = -40;
 		cam.yaw = 0;//Math.PI/8;
 		final double fovY = (double)(Math.PI*0.3); 
-		Projection projection = new FisheyeProjection(fovY*imageWidth/imageHeight, fovY);
+		cam.projection = new FisheyeProjection(fovY*cam.imageWidth/cam.imageHeight, fovY);
 		
-		final HDRExposure exp = new HDRExposure(imageWidth, imageHeight);
 		final AdjusterUI adj = new AdjusterUI();
-		adj.setExposure(exp);
 		adj.addKeyListener(new KeyAdapter() {
 			@Override public void keyPressed( KeyEvent kevt ) {
 				double dir = 1;
 				
 				switch( kevt.getKeyCode() ) {
 				case KeyEvent.VK_D:
-					String baseName = sceneName+"-"+(int)exp.getAverageExposure();
+					String baseName = sceneName+"-"+(int)cam.getExposure().getAverageExposure();
 					File saveFile = getNewOutputFile(baseName+"-", ".dump");
 					try {
 						System.err.println("Saving as "+saveFile);
-						ChunkyDump.saveExposure(exp, saveFile);
+						ChunkyDump.saveExposure(cam.getExposure(), saveFile);
 						System.err.println("Saved!");
 					} catch( IOException e ) {
 						System.err.println("ERROR SAVING DUMP!");
@@ -239,12 +221,17 @@ public class TraceDemo
 		long prevTime = startTime;
 		double samplesPerSecond = 0;
 		int sx = 0, sy = 0;
+		HDRExposure exp = null;
+		tii.set( TracerInstruction.RESET );
 		while( true ) {
 			TracerInstruction ti = tii.set( TracerInstruction.CONTINUE );
 			if( ti == TracerInstruction.RESET ) {
 				startTime = System.currentTimeMillis();
 				samplesTaken = 0;
+				exp = cam.getExposure();
 				exp.clear();
+				adj.setExposure(exp);
+
 				/*
 				for( int i=exp.width*exp.height-1; i>=0; --i ) {
 					double e = exp.e.data[i];
@@ -267,19 +254,19 @@ public class TraceDemo
 					screenY[j] = (double)(t.random.nextDouble()-0.5);
 					break;
 				default:
-					screenX[j] = (double)(sx+t.random.nextDouble()- imageWidth/2.0)/imageWidth;
-					screenY[j] = (double)(sy+t.random.nextDouble()-imageHeight/2.0)/imageHeight;
+					screenX[j] = (double)(sx+t.random.nextDouble()- cam.imageWidth/2.0)/cam.imageWidth;
+					screenY[j] = (double)(sy+t.random.nextDouble()-cam.imageHeight/2.0)/cam.imageHeight;
 				}
 				
 				++sx;
-				if( sx > imageWidth ) {
+				if( sx > exp.width ) {
 					sx = 0;
 					++sy;
 				}
-				if( sy >= imageHeight ) sy = 0;
+				if( sy >= exp.height ) sy = 0;
 			}
 			
-			projection.project(vectorSize, screenX, screenY, camPosX, camPosY, camPosZ, camDirX, camDirY, camDirZ);
+			cam.projection.project(vectorSize, screenX, screenY, camPosX, camPosY, camPosZ, camDirX, camDirY, camDirZ);
 			
 			for( int j=0; j<vectorSize; ++j ) {
 				camPosX[j] += cam.x;
@@ -306,16 +293,16 @@ public class TraceDemo
 					);
 				}
 				
-				int pixelX = (int)((screenX[j]+0.5)*imageWidth);
-				int pixelY = (int)((screenY[j]+0.5)*imageHeight);
-				pixelX = pixelX < 0 ? 0 : pixelX >= imageWidth  ? imageWidth  - 1 : pixelX;
-				pixelY = pixelY < 0 ? 0 : pixelY >= imageHeight ? imageHeight - 1 : pixelY;
+				int pixelX = (int)((screenX[j]+0.5)*exp.width);
+				int pixelY = (int)((screenY[j]+0.5)*exp.height);
+				pixelX = pixelX < 0 ? 0 : pixelX >= exp.width  ? exp.width  - 1 : pixelX;
+				pixelY = pixelY < 0 ? 0 : pixelY >= exp.height ? exp.height - 1 : pixelY;
 				
 				// Since z = forward, y = up, x = left, need to invert some things:
-				pixelX = imageWidth - pixelX - 1;
-				pixelY = imageHeight - pixelY - 1;
+				pixelX = exp.width - pixelX - 1;
+				pixelY = exp.height - pixelY - 1;
 				
-				int pixelI = pixelY * imageWidth + pixelX;
+				int pixelI = pixelY * exp.width + pixelX;
 				exp.e.data[pixelI] += 1;
 				exp.r.data[pixelI] += t.red;
 				exp.g.data[pixelI] += t.green;
