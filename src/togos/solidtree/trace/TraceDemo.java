@@ -6,23 +6,18 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 
 import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.ChunkyDump;
 import togos.hdrutil.HDRExposure;
 import togos.lang.BaseSourceLocation;
-import togos.solidtree.DColor;
 import togos.solidtree.SolidNode;
 import togos.solidtree.StandardMaterial;
-import togos.solidtree.SurfaceMaterial;
-import togos.solidtree.SurfaceMaterialLayer;
 import togos.solidtree.forth.Interpreter;
 import togos.solidtree.forth.Tokenizer;
-import togos.solidtree.forth.procedure.ConstantValue;
 import togos.solidtree.forth.procedure.NodeProcedures;
-import togos.solidtree.shape.NodeShaper;
-import togos.solidtree.shape.Sphere;
 
 public class TraceDemo
 {
@@ -46,7 +41,6 @@ public class TraceDemo
 			}
 			return exp;
 		}
-
 	}
 	
 	static class Interrupt<V> {
@@ -82,52 +76,25 @@ public class TraceDemo
 		
 		System.err.println("Building world...");
 		
-		NodeShaper ns = new NodeShaper();
-		ns.divX = 2; ns.divY = 2; ns.divZ = 2;
-		ns.setRoot( SolidNode.EMPTY, 2 );
-		ns.add( new Sphere(0,0,0,1), new SolidNode(StandardMaterial.opaque(new SurfaceMaterial(new SurfaceMaterialLayer(1, DColor.WHITE, DColor.BLACK, 1, 1, 0, 0)))), 7 );
+		File scriptFile = new File("world.fs");
 		
 		Interpreter interp = new Interpreter();
-		interp.wordDefinitions.put("sphere-center-node", new ConstantValue(ns.root));
 		NodeProcedures.register(interp.wordDefinitions);
-		Tokenizer tokenizer = new Tokenizer("text", 1, 1, 4, interp.delegatingTokenHandler);
-		tokenizer.handle( "1 1 1 make-color 2 2 2 make-color 0 0.5 2 make-simple-visual-material make-solid-material-node \"light-node\" def-value\n" );
-		tokenizer.handle( "0.6 0.5 0.4 make-color 0 0 0 make-color 0.1 0.9 2 make-simple-visual-material make-solid-material-node \"white-node\" def-value\n" );
-		tokenizer.handle( "white-node empty-node empty-node white-node empty-node white-node white-node empty-node 2 2 2 make-composite-node \"checker-node\" def-value\n");
+		Tokenizer tokenizer = new Tokenizer(scriptFile.getName(), 1, 1, 4, interp.delegatingTokenHandler);
+
+		{
+			FileReader scriptReader = new FileReader(new File("world.fs"));
+			char[] buf = new char[1024];
+			int i;
+			while( (i = scriptReader.read(buf)) > 0 ) {
+				tokenizer.handle(buf, i);
+			}
+			tokenizer.flush();
+		}
 		
-		for( int i=0; i<16; ++i ) tokenizer.handle( "empty-node\n");
-		tokenizer.handle( "empty-node empty-node empty-node empty-node\n");
-		tokenizer.handle( "empty-node white-node sphere-center-node empty-node\n");
-		tokenizer.handle( "empty-node sphere-center-node white-node empty-node\n");
-		tokenizer.handle( "empty-node empty-node empty-node empty-node\n");
-		tokenizer.handle( "empty-node empty-node empty-node empty-node\n");
-		tokenizer.handle( "empty-node sphere-center-node white-node empty-node\n");
-		tokenizer.handle( "empty-node white-node sphere-center-node empty-node\n");
-		tokenizer.handle( "empty-node empty-node empty-node empty-node\n");
-		for( int i=0; i<16; ++i ) tokenizer.handle( "empty-node\n");
-		tokenizer.handle( "4 4 4 make-composite-node \"checker-center-node\" def-value\n");
+		SolidNode root = interp.stackPop( SolidNode.class, BaseSourceLocation.NONE );
 		
-		tokenizer.handle( "light-node checker-center-node empty-node white-node checker-center-node white-node checker-center-node empty-node 2 2 2 make-composite-node\n");
-		tokenizer.flush();
-		SolidNode node = interp.stackPop( SolidNode.class, BaseSourceLocation.NONE );
-		
-		System.err.println("World built!");
-		
-		node = new SolidNode( StandardMaterial.SPACE, 3, 3, 3, new SolidNode[] {
-			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
-			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
-			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
-			
-			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
-			SolidNode.EMPTY, node, SolidNode.EMPTY,
-			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
-			
-			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
-			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
-			SolidNode.EMPTY, SolidNode.EMPTY, SolidNode.EMPTY,
-		});
-		
-		t.setRoot( node, -128, -128, -128, 128, 128, 128 );
+		t.setRoot( root, -128, -128, -128, 128, 128, 128 );
 		
 		final Camera cam = new Camera();
 		cam.imageWidth = 128;

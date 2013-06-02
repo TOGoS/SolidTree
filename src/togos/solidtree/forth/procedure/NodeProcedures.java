@@ -41,9 +41,9 @@ public class NodeProcedures
 		// -> GenericMaterial
 		
 		@Override public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
-			double ior       = interp.stackPop( Number.class, sLoc ).doubleValue();
-			double opacity   = interp.stackPop( Number.class, sLoc ).doubleValue();
-			double mirrosity = interp.stackPop( Number.class, sLoc ).doubleValue();
+			double ior        = interp.stackPop( Number.class, sLoc ).doubleValue();
+			double opacity    = interp.stackPop( Number.class, sLoc ).doubleValue();
+			double mirrosity  = interp.stackPop( Number.class, sLoc ).doubleValue();
 			DColor emission   = interp.stackPop( DColor.class, sLoc );
 			DColor filter     = interp.stackPop( DColor.class, sLoc );
 			

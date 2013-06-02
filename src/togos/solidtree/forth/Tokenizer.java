@@ -94,7 +94,7 @@ public class Tokenizer
 		return !isWhitespace(c) && !isQuote(c) && !isComment(c);
 	}
 	
-	protected void data( char c ) throws Exception {
+	protected void handle( char c ) throws Exception {
 		switch( state ) {
 		case SINGLE_QUOTED_STRING_ESCAPE:
 		case DOUBLE_QUOTED_STRING_ESCAPE:
@@ -208,8 +208,12 @@ public class Tokenizer
 		}
 	}
 	
+    public void handle( char[] value, int len ) throws Exception {
+    	for( int i=0; i<len; ++i ) handle(value[i]);
+    }
+    
     public void handle( char[] value ) throws Exception {
-		for( char c : value ) data(c);
+    	handle( value, value.length );
     }
     
     public void handle( String data ) throws Exception {
