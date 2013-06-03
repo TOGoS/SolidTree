@@ -90,14 +90,15 @@ public class TraceDemo
 				tokenizer.handle(buf, i);
 			}
 			tokenizer.flush();
+			scriptReader.close();
 		}
 		
 		SolidNode root = interp.stackPop( SolidNode.class, BaseSourceLocation.NONE );
 		
-		t.setRoot( root, -128, -128, -128, 128, 128, 128 );
+		t.setRoot( root, -1024, -1024, -1024, 1024, 1024, 1024 );
 		
 		final Camera cam = new Camera();
-		cam.imageWidth = 128;
+		cam.imageWidth = 256;
 		cam.imageHeight = 128;
 		cam.x = 10;
 		cam.z = -40;
@@ -287,11 +288,11 @@ public class TraceDemo
 				if( samplesTaken % 4096 == 0 ) {
 					String baseName = sceneName+"-"+(int)exp.getAverageExposure();
 					
-					adj.extraStatusLines = new String[] {
+					/* adj.extraStatusLines = new String[] {
 						"Total samples taken: " + samplesTaken,
 						"Samples per second: " + samplesPerSecond,
 						"Average samples per pixel: " + exp.getAverageExposure()
-					};
+					}; */
 					
 					adj.exportFilenamePrefix = baseName;
 					adj.exposureUpdated();

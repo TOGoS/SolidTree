@@ -32,6 +32,49 @@ public class NodeProcedures
 		}
 	};
 	
+	static final StandardWordDefinition MAKE_SURFACE_MATERIAL_LAYER = new StandardWordDefinition() {
+		@Override public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
+			double forwardRF = interp.stackPop( Number.class, sLoc ).doubleValue();
+			double normalRF  = interp.stackPop( Number.class, sLoc ).doubleValue();
+			double randomRF  = interp.stackPop( Number.class, sLoc ).doubleValue();
+			double mirrorRF  = interp.stackPop( Number.class, sLoc ).doubleValue();
+			DColor emissionColor = interp.stackPop( DColor.class, sLoc );
+			DColor filterColor = interp.stackPop( DColor.class, sLoc );
+			double opacity   = interp.stackPop( Number.class, sLoc ).doubleValue();
+			interp.stackPush( new SurfaceMaterialLayer(
+				opacity, filterColor, emissionColor,
+				mirrorRF, randomRF, normalRF, forwardRF
+			));
+		}
+	};
+	
+	static final StandardWordDefinition MAKE_SURFACE_MATERIAL = new StandardWordDefinition() {
+		@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+			int layerCount = interp.stackPop( Number.class, sLoc ).intValue();
+			SurfaceMaterialLayer[] layers = new SurfaceMaterialLayer[layerCount];
+			for( int i=layerCount-1; i>=0; --i ) {
+				layers[i] = interp.stackPop( SurfaceMaterialLayer.class, sLoc );
+			}
+			interp.stackPush( new SurfaceMaterial(layers) );
+		}
+	};
+	
+	static final StandardWordDefinition MAKE_VISUAL_MATERIAL = new StandardWordDefinition() {
+		@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+			SurfaceMaterial particleMaterial = interp.stackPop( SurfaceMaterial.class, sLoc );
+			double particleInteractionChance = interp.stackPop( Number.class, sLoc ).doubleValue();
+			DColor internalEmissionColor = interp.stackPop( DColor.class, sLoc );
+			DColor internalFilterColor = interp.stackPop( DColor.class, sLoc );
+			double indexOfRefraction = interp.stackPop( Number.class, sLoc ).doubleValue();
+			SurfaceMaterial surfaceMaterial = interp.stackPop( SurfaceMaterial.class, sLoc );
+			interp.stackPush( new StandardMaterial(
+				surfaceMaterial, indexOfRefraction,
+				internalFilterColor, internalEmissionColor,
+				particleInteractionChance, particleMaterial
+			) );
+		}
+	};
+	
 	static final StandardWordDefinition MAKE_SIMPLE_VISUAL_MATERIAL = new StandardWordDefinition() {
 		// filter color
 		// emission color
@@ -87,7 +130,10 @@ public class NodeProcedures
 		ctx.put("empty-node", new ConstantValue(SolidNode.EMPTY) );
 		ctx.put("make-solid-material-node", MAKE_SOLID_MATERIAL_NODE);
 		ctx.put("make-composite-node", MAKE_COMPOSITE_NODE);
-		ctx.put("make-simple-visual-material", MAKE_SIMPLE_VISUAL_MATERIAL);
+		ctx.put("make-simple-volumetric-material", MAKE_SIMPLE_VISUAL_MATERIAL);
+		ctx.put("make-surface-material", MAKE_SURFACE_MATERIAL);
+		ctx.put("make-surface-material-layer", MAKE_SURFACE_MATERIAL_LAYER);
+		ctx.put("make-volumetric-material", MAKE_VISUAL_MATERIAL);
 		ctx.put("make-color", MAKE_COLOR);
 		
 		// These should be defined in a more generic function library
