@@ -322,6 +322,8 @@ public class Tracer
 		*/
 	}
 	
+	SkySphere skySphere = new GradientSkySphere();
+	
 	SimplexNoise sn = new SimplexNoise();
 	final Vector3D preIntersect = new Vector3D();
 	final Vector3D postIntersect = new Vector3D();
@@ -485,6 +487,10 @@ public class Tracer
 			boolean scattered = false;
 			
 			if( !findNextIntersection( pos, direction, preIntersect, postIntersect ) ) {
+				skySphere.getSkyColor(direction, scratch);
+				red   += filterRed   * scratch.x;
+				green += filterGreen * scratch.y;
+				blue  += filterBlue  * scratch.z;
 				return;
 			}
 			
@@ -558,6 +564,10 @@ public class Tracer
 
 		for( int i=0; i<maxSteps; ++i ) {
 			if( !findNextIntersection( pos, direction, preIntersect, postIntersect ) ) {
+				skySphere.getSkyColor(direction, scratch);
+				red   = scratch.x;
+				green = scratch.y;
+				blue  = scratch.z;
 				return;
 			}
 			setPosition(postIntersect);

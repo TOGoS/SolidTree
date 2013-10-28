@@ -70,7 +70,7 @@ public class TraceDemo
 	}
 	
 	public static void main( String[] args ) throws Exception {
-		final String sceneName = "GBall1d"; 
+		final String sceneName = "testrender"; 
 		SampleMethod sampleMethod = SampleMethod.RANDOM;
 		
 		Tracer t = new Tracer();
@@ -83,7 +83,7 @@ public class TraceDemo
 		Interpreter interp = new Interpreter();
 		NodeProcedures.register(interp.wordDefinitions);
 		Tokenizer tokenizer = new Tokenizer(scriptFile.getName(), 1, 1, 4, interp.delegatingTokenHandler);
-
+		
 		{
 			FileReader scriptReader = new FileReader(new File("world.fs"));
 			char[] buf = new char[1024];
@@ -109,7 +109,7 @@ public class TraceDemo
 		
 		final Camera cam = new Camera();
 		cam.imageWidth = 256;
-		cam.imageHeight = 128;
+		cam.imageHeight = 256;
 		cam.x = 10;
 		cam.z = -40;
 		cam.yaw = 0;//Math.PI/8;
