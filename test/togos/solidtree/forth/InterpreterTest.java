@@ -10,7 +10,7 @@ public class InterpreterTest extends TestCase
 	
 	protected void eval( String s ) throws Exception {
 		tokenizer.handle(s);
-		tokenizer.flush();
+		tokenizer.end();
 	}
 	
 	@Override public void setUp() {

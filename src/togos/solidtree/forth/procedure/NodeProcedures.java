@@ -8,6 +8,7 @@ import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
 import togos.solidtree.DColor;
 import togos.solidtree.GeneralMaterial;
+import togos.solidtree.NodeRoot;
 import togos.solidtree.SolidNode;
 import togos.solidtree.StandardMaterial;
 import togos.solidtree.SurfaceMaterial;
@@ -126,6 +127,55 @@ public class NodeProcedures
         }		
 	};
 	
+	static final StandardWordDefinition PAD = new StandardWordDefinition() {
+		// core:SolidNode, pad:SolidNode, divisions:int, iterations:int
+		
+		public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+			int spaceIterations = interp.stackPop( Number.class, sLoc).intValue();
+			int spaceDivisions  = interp.stackPop( Number.class, sLoc).intValue();
+			SolidNode pad  = interp.stackPop( SolidNode.class, sLoc );
+			SolidNode core = interp.stackPop( SolidNode.class, sLoc );
+			
+			if( spaceDivisions < 1 ) {
+				throw new ScriptError("padding divisions must be >= 1; "+spaceDivisions+" given", sLoc);
+			}
+			if( spaceDivisions > 16 ) {
+				throw new ScriptError("padding divisions must be <= 16; "+spaceDivisions+" given", sLoc);
+			}
+			
+			final int spaceDivisions3 = spaceDivisions*spaceDivisions*spaceDivisions;
+			
+			SolidNode space = core;
+			for( int i=0; i<spaceIterations; ++i ) {
+				SolidNode[] spaceSubNodes = new SolidNode[spaceDivisions3];
+				for( int j=0; j<spaceDivisions3; ++j ) {
+					spaceSubNodes[j] = pad;
+				}
+				
+				spaceSubNodes[
+				   spaceDivisions*spaceDivisions*(spaceDivisions/2) +
+				   spaceDivisions*(spaceDivisions/2) +
+				   (spaceDivisions/2)
+				] = space;
+				space = new SolidNode( StandardMaterial.SPACE, spaceDivisions, spaceDivisions, spaceDivisions, spaceSubNodes );
+			}
+			
+			interp.stackPush( space );
+		}
+	};
+	
+	static final StandardWordDefinition MAKE_ROOT = new StandardWordDefinition() {
+		// SolidNode, w, h, d -> NodeRoot
+		
+		@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+			double d = interp.stackPop( Number.class, sLoc ).doubleValue();
+			double h = interp.stackPop( Number.class, sLoc ).doubleValue();
+			double w = interp.stackPop( Number.class, sLoc ).doubleValue();
+			SolidNode core = interp.stackPop( SolidNode.class, sLoc );
+			interp.stackPush( new NodeRoot(core, w, h, d) );
+		}
+	};
+	
 	public static void register( Map<String,? super WordDefinition> ctx ) {
 		ctx.put("empty-node", new ConstantValue(SolidNode.EMPTY) );
 		ctx.put("make-solid-material-node", MAKE_SOLID_MATERIAL_NODE);
@@ -135,6 +185,8 @@ public class NodeProcedures
 		ctx.put("make-surface-material-layer", MAKE_SURFACE_MATERIAL_LAYER);
 		ctx.put("make-volumetric-material", MAKE_VISUAL_MATERIAL);
 		ctx.put("make-color", MAKE_COLOR);
+		ctx.put("pad", PAD);
+		ctx.put("make-root", MAKE_ROOT);
 		
 		// These should be defined in a more generic function library
 		ctx.put(":", new StandardWordDefinition() {

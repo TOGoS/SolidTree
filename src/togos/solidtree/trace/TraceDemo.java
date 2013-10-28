@@ -13,6 +13,8 @@ import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.ChunkyDump;
 import togos.hdrutil.HDRExposure;
 import togos.lang.BaseSourceLocation;
+import togos.lang.ScriptError;
+import togos.solidtree.NodeRoot;
 import togos.solidtree.SolidNode;
 import togos.solidtree.StandardMaterial;
 import togos.solidtree.forth.Interpreter;
@@ -89,13 +91,21 @@ public class TraceDemo
 			while( (i = scriptReader.read(buf)) > 0 ) {
 				tokenizer.handle(buf, i);
 			}
-			tokenizer.flush();
+			tokenizer.end();
 			scriptReader.close();
 		}
 		
-		SolidNode root = interp.stackPop( SolidNode.class, BaseSourceLocation.NONE );
+		Object _root = interp.stackPop( Object.class, BaseSourceLocation.NONE );
+		NodeRoot root;
+		if( _root instanceof NodeRoot ) {
+			root = (NodeRoot)_root;
+		} else if( _root instanceof SolidNode ) {
+			root = new NodeRoot( (SolidNode)_root, 1024, 1024, 1024 );
+		} else {
+			throw new ScriptError("Script returned neither a SolidNode nor a NodeRoot, but a "+_root.getClass().getName(), BaseSourceLocation.NONE);
+		}
 		
-		t.setRoot( root, -1024, -1024, -1024, 1024, 1024, 1024 );
+		t.setRoot( root );
 		
 		final Camera cam = new Camera();
 		cam.imageWidth = 256;
@@ -105,11 +115,17 @@ public class TraceDemo
 		cam.yaw = 0;//Math.PI/8;
 		final double fovY = (double)(Math.PI*0.3); 
 		cam.projection = new FisheyeProjection(fovY*cam.imageWidth/cam.imageHeight, fovY);
+		// cam.projection = new ApertureProjection( cam.projection, 0.05, 4 );
 		
 		final AdjusterUI adj = new AdjusterUI();
 		adj.addKeyListener(new KeyAdapter() {
 			@Override public void keyPressed( KeyEvent kevt ) {
 				double dir = 1;
+				
+				boolean shifted = kevt.isShiftDown();
+				boolean controlled = kevt.isControlDown();
+				
+				double movedist = controlled ? 0.2 : shifted ? 5 : 1; 
 				
 				switch( kevt.getKeyCode() ) {
 				case KeyEvent.VK_D:
@@ -129,36 +145,36 @@ public class TraceDemo
 					tii.set( TracerInstruction.RESET );
 					break;
 				case KeyEvent.VK_HOME:
-					cam.x += dir * Math.cos(cam.yaw);
-					cam.z -= dir * Math.sin(cam.yaw);
+					cam.x += dir * movedist * Math.cos(cam.yaw);
+					cam.z -= dir * movedist * Math.sin(cam.yaw);
 					tii.set( TracerInstruction.RESET );
 					break;
 				case KeyEvent.VK_END:
-					cam.x -= dir * Math.cos(cam.yaw);
-					cam.z += dir * Math.sin(cam.yaw);
+					cam.x -= dir * movedist * Math.cos(cam.yaw);
+					cam.z += dir * movedist * Math.sin(cam.yaw);
 					tii.set( TracerInstruction.RESET );
 					break;
 				case KeyEvent.VK_DOWN:
 					dir = -1;
 				case KeyEvent.VK_UP:
-					cam.x += dir * Math.sin(cam.yaw);
-					cam.z += dir * Math.cos(cam.yaw);
+					cam.x += dir * movedist * Math.sin(cam.yaw);
+					cam.z += dir * movedist * Math.cos(cam.yaw);
 					tii.set( TracerInstruction.RESET );
 					break;
 				case KeyEvent.VK_PAGE_UP:
-					cam.y += dir;
+					cam.y += movedist * dir;
 					tii.set( TracerInstruction.RESET );
 					break;
 				case KeyEvent.VK_PAGE_DOWN:
-					cam.y -= dir;
+					cam.y -= movedist * dir;
 					tii.set( TracerInstruction.RESET );
 					break;
 				case KeyEvent.VK_LEFT:
-					cam.yaw += Math.PI / 16;
+					cam.yaw += movedist * Math.PI / 16;
 					tii.set( TracerInstruction.RESET );
 					break;
 				case KeyEvent.VK_RIGHT:
-					cam.yaw -= Math.PI / 16;
+					cam.yaw -= movedist * Math.PI / 16;
 					tii.set( TracerInstruction.RESET );
 					break;
 				}

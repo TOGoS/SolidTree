@@ -3,6 +3,7 @@ package togos.solidtree.trace;
 import java.util.Random;
 
 import togos.solidtree.DColor;
+import togos.solidtree.NodeRoot;
 import togos.solidtree.PathTraceMaterial;
 import togos.solidtree.SurfaceMaterial;
 import togos.solidtree.SurfaceMaterialLayer;
@@ -64,6 +65,10 @@ public class Tracer
 	
 	public void setRoot( SolidNode root, double minX, double minY, double minZ, double maxX, double maxY, double maxZ ) {
 		cursors[1].set( root, minX, minY, minZ, maxX, maxY, maxZ );
+	}
+	
+	public void setRoot( NodeRoot root ) {
+		setRoot( root.node, root.x0, root.y0, root.z0, root.x1, root.y1, root.z1 );
 	}
 	
 	protected Cursor fixCursor() {

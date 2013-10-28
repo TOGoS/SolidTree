@@ -105,6 +105,7 @@ wally-node wally-node wally-node lampy-node
 
 : cn64 multiply64 4 4 4 make-composite-node ;
 
-place-node cn64 cn64 cn64 cn64
+# place-node cn64 cn64 cn64 cn64
 
-
+place-node empty-node 3 3 pad
+1024 1024 1024 make-root
