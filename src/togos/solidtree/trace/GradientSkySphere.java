@@ -17,8 +17,8 @@ public class GradientSkySphere
 			r = g = 0.1;
 			b = 0.4;
 		} else {
-			r = g = clamp( 0, 0.1 / direction.y, 1 );
-			b = 0.2 / direction.y;
+			r = g = Math.max( 0, 0.1 * (direction.x+1) / direction.y );
+			b = 0.2 * (direction.x+1) / direction.y;
 		}
 		color.set(r*intensity, g*intensity, b*intensity);
 	}

@@ -8,6 +8,8 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.Time;
+import java.util.Date;
 
 import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.ChunkyDump;
@@ -70,7 +72,7 @@ public class TraceDemo
 	}
 	
 	public static void main( String[] args ) throws Exception {
-		final String sceneName = "testrender"; 
+		final String sceneName = "testrender"+System.currentTimeMillis(); 
 		SampleMethod sampleMethod = SampleMethod.RANDOM;
 		
 		Tracer t = new Tracer();
@@ -108,8 +110,8 @@ public class TraceDemo
 		t.setRoot( root );
 		
 		final Camera cam = new Camera();
-		cam.imageWidth = 256;
-		cam.imageHeight = 256;
+		cam.imageWidth = 768;
+		cam.imageHeight = 384;
 		cam.x = 10;
 		cam.z = -40;
 		cam.yaw = 0;//Math.PI/8;

@@ -30,6 +30,9 @@ make-surface-material make-opaque-material make-solid-material-node "grass-node"
 
 rough-mirror-surface make-opaque-material make-solid-material-node "wally-node" def-value
 
+
+
+
 # 0.6 0.5 0.4 make-color 0 0 0 make-color 0 1 2
 # make-simple-visual-material
 
@@ -107,5 +110,121 @@ wally-node wally-node wally-node lampy-node
 
 # place-node cn64 cn64 cn64 cn64
 
+wally-node wally-node wally-node empty-node
+empty-node empty-node wally-node empty-node
+wally-node empty-node empty-node wally-node
+wally-node wally-node wally-node empty-node
+4 1 4 make-composite-node "maze0-node" def-value
+
+empty-node empty-node empty-node empty-node
+empty-node empty-node wally-node empty-node
+empty-node empty-node empty-node empty-node
+wally-node empty-node empty-node empty-node
+4 1 4 make-composite-node "maze1-node" def-value
+
+empty-node empty-node empty-node empty-node
+empty-node empty-node wally-node empty-node
+empty-node empty-node empty-node empty-node
+wally-node empty-node empty-node empty-node
+4 1 4 make-composite-node "maze2-node" def-value
+
+empty-node empty-node empty-node empty-node
+empty-node empty-node empty-node empty-node
+empty-node empty-node empty-node empty-node
+light-node empty-node empty-node empty-node
+4 1 4 make-composite-node "mazel-node" def-value
+
+maze0-node
+maze1-node
+maze2-node
+empty-node
+1 4 1 make-composite-node "mazex-node" def-value
+
+maze0-node
+maze1-node
+maze2-node
+mazel-node
+1 4 1 make-composite-node "mazey-node" def-value
+
+mazex-node mazex-node mazex-node mazex-node
+mazex-node mazex-node mazex-node mazex-node
+mazex-node mazex-node mazex-node mazex-node
+mazex-node mazex-node mazex-node mazey-node
+4 1 4 make-composite-node "place-node" def-value
+
+grass-node
+place-node
+empty-node
+empty-node
+1 4 1 make-composite-node "place-node" def-value
+
+empty-node "-" def-value
+wally-node "X" def-value
+
+X X X - X X
+- X X - X X
+- - - - - X
+X X X X - X
+X X X X - X
+X - - - - X
+
+X X X - - -
+X X X X X X
+- - X X X X
+X - - - X X
+X X X - X -
+X X X - X -
+
+X - X X X X
+X - X - - -
+X X X - X X
+X X X - X X
+- - X - X -
+X - X - X X
+
+X X X - X X
+X - X - X -
+X X X X X -
+- X X X X -
+- X X X X X
+- - X - X X
+
+X X X X - -
+X - - - X X
+X X X - X X
+- - X - X -
+X X X - X X
+X X X - X X
+
+X X X - - -
+- X X X X -
+X X X X X X
+X - X X X -
+X - X X X -
+X - X - - -
+
+6 6 6 make-composite-node "zame-node" def-value
+
+zame-node multiply64
+4 4 4 make-composite-node "zame-node" def-value
+
+zame-node
+zame-node
+zame-node
+zame-node
+1 4 1 make-composite-node "zames-node" def-value
+
+place-node place-node place-node place-node
+wally-node place-node place-node place-node
+place-node place-node zames-node place-node
+place-node place-node place-node place-node
+4 1 4 make-composite-node "place-node" def-value
+
+place-node multiply64
+8 1 8 make-composite-node "place-node" def-value
+
+place-node multiply16
+4 1 4 make-composite-node "place-node" def-value
+
 place-node empty-node 3 3 pad
-1024 1024 1024 make-root
+16384 256 16384 make-root
