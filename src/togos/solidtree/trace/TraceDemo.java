@@ -1,5 +1,6 @@
 package togos.solidtree.trace;
 
+import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -8,8 +9,6 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.Time;
-import java.util.Date;
 
 import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.ChunkyDump;
@@ -110,8 +109,8 @@ public class TraceDemo
 		t.setRoot( root );
 		
 		final Camera cam = new Camera();
-		cam.imageWidth = 768;
-		cam.imageHeight = 384;
+		cam.imageWidth = 128;
+		cam.imageHeight = 128;
 		cam.x = 10;
 		cam.z = -40;
 		cam.yaw = 0;//Math.PI/8;
@@ -120,6 +119,7 @@ public class TraceDemo
 		// cam.projection = new ApertureProjection( cam.projection, 0.05, 4 );
 		
 		final AdjusterUI adj = new AdjusterUI();
+		adj.setPreferredSize( new Dimension(cam.imageWidth, cam.imageHeight) );
 		adj.addKeyListener(new KeyAdapter() {
 			@Override public void keyPressed( KeyEvent kevt ) {
 				double dir = 1;
@@ -217,22 +217,11 @@ public class TraceDemo
 				exp = cam.getExposure();
 				exp.clear();
 				adj.setExposure(exp);
-
-				/*
-				for( int i=exp.width*exp.height-1; i>=0; --i ) {
-					double e = exp.e.data[i];
-					if( e != 0 ) {
-						exp.r.data[i] /= e;
-						exp.g.data[i] /= e;
-						exp.b.data[i] /= e;
-					}
-					exp.e.data[i] = 1;
-				}
-				*/
 			}
 			
 			for( int j=0; j<vectorSize; ++j ) {
-				sampleMethod = cam.preview ? SampleMethod.RANDOM : SampleMethod.LINE;
+				sampleMethod = cam.preview && cam.imageWidth * cam.imageHeight > vectorSize ?
+					SampleMethod.RANDOM : SampleMethod.LINE;
 				
 				switch( sampleMethod ) {
 				case RANDOM:
