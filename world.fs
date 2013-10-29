@@ -110,6 +110,19 @@ wally-node wally-node wally-node lampy-node
 
 # place-node cn64 cn64 cn64 cn64
 
+#### Different
+
+  transparent-surface
+  1.0
+  white
+  0.0001 0.0001 0.0003 make-color
+  0.015
+  rough-mirror-surface
+make-volumetric-material "fog-material" def-value
+fog-material make-solid-material-node "fog-node" def-value
+
+fog-node "empty-node" def-value 
+
 wally-node wally-node wally-node empty-node
 empty-node empty-node wally-node empty-node
 wally-node empty-node empty-node wally-node
