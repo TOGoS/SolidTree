@@ -1,7 +1,9 @@
-package togos.solidtree.trace;
+package togos.solidtree.trace.sky;
+
+import togos.solidtree.trace.Vector3D;
 
 
-public class GradientSkySphere
+public class CrappySkySphere
 	implements SkySphere
 {
 	double intensity = 0.1;

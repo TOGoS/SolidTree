@@ -1,4 +1,6 @@
-package togos.solidtree.trace;
+package togos.solidtree.trace.sky;
+
+import togos.solidtree.trace.Vector3D;
 
 public interface SkySphere
 {

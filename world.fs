@@ -115,8 +115,8 @@ wally-node wally-node wally-node lampy-node
   transparent-surface
   1.0
   white
-  0.0001 0.0001 0.0003 make-color
-  0.015
+  0.0003 0.0002 0.0001 make-color
+  0.001
   rough-mirror-surface
 make-volumetric-material "fog-material" def-value
 fog-material make-solid-material-node "fog-node" def-value
@@ -224,10 +224,47 @@ zame-node multiply64
 zame-node
 zame-node
 zame-node
-zame-node
-1 4 1 make-composite-node "zames-node" def-value
+1 3 1 make-composite-node "zames-node" def-value
 
-place-node place-node place-node place-node
+- - -
+- light-node -
+- - -
+3 1 3 make-composite-node "light-column-node" def-value
+
+light-column-node - -
+- zame-node -
+- - light-column-node
+3 1 3 make-composite-node "zame-column+lights-node" def-value
+
+- - -
+- zame-node -
+- - -
+3 1 3 make-composite-node "zame-column-node" def-value
+
+
+wally-node
+wally-node
+wally-node
+wally-node
+wally-node
+wally-node
+wally-node
+wally-node
+wally-node
+wally-node
+wally-node
+wally-node
+grass-node
+zame-column-node
+zame-column+lights-node
+wally-node
+wally-node
+wally-node
+wally-node
+grass-node
+1 20 1 make-composite-node "garden-tower-node" def-value
+
+place-node place-node place-node garden-tower-node
 wally-node place-node place-node place-node
 place-node place-node zames-node place-node
 place-node place-node place-node place-node

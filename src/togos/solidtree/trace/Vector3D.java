@@ -1,7 +1,7 @@
 package togos.solidtree.trace;
 
 public final class Vector3D {
-	double x, y, z;
+	public double x, y, z;
 	
 	public Vector3D() { }
 	

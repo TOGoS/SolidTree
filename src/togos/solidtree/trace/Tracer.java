@@ -9,6 +9,8 @@ import togos.solidtree.SurfaceMaterial;
 import togos.solidtree.SurfaceMaterialLayer;
 import togos.solidtree.SimplexNoise;
 import togos.solidtree.SolidNode;
+import togos.solidtree.trace.sky.CrappySkySphere;
+import togos.solidtree.trace.sky.SkySphere;
 
 public class Tracer
 {
@@ -322,7 +324,7 @@ public class Tracer
 		*/
 	}
 	
-	SkySphere skySphere = new GradientSkySphere();
+	SkySphere skySphere = new CrappySkySphere();
 	
 	SimplexNoise sn = new SimplexNoise();
 	final Vector3D preIntersect = new Vector3D();

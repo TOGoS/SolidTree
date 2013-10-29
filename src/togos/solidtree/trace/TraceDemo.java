@@ -21,6 +21,9 @@ import togos.solidtree.StandardMaterial;
 import togos.solidtree.forth.Interpreter;
 import togos.solidtree.forth.Tokenizer;
 import togos.solidtree.forth.procedure.NodeProcedures;
+import togos.solidtree.trace.sky.AdditiveSkySphere;
+import togos.solidtree.trace.sky.CrappySkySphere;
+import togos.solidtree.trace.sky.RadialSkySphere;
 
 public class TraceDemo
 {
@@ -107,9 +110,15 @@ public class TraceDemo
 		}
 		
 		t.setRoot( root );
+		t.skySphere = new AdditiveSkySphere(
+			new RadialSkySphere(0, Math.sin(Math.PI/4), Math.cos(Math.PI/4), 8, 2.0, 1.5, 1.0)
+			// new RadialSkySphere(0, Math.sin(Math.PI/4)*0.8, Math.cos(Math.PI/4)*0.8, 1, 0.2, 0.2, 0.5),
+			// new RadialSkySphere(0, Math.sin(Math.PI/4)*0.8, Math.cos(Math.PI/4)*0.8, 5, 2.0, 2.0, 2.0),
+			// new CrappySkySphere()
+		);
 		
 		final Camera cam = new Camera();
-		cam.imageWidth = 128;
+		cam.imageWidth = 256;
 		cam.imageHeight = 128;
 		cam.x = 10;
 		cam.z = -40;
@@ -119,7 +128,16 @@ public class TraceDemo
 		// cam.projection = new ApertureProjection( cam.projection, 0.05, 4 );
 		
 		final AdjusterUI adj = new AdjusterUI();
-		adj.setPreferredSize( new Dimension(cam.imageWidth, cam.imageHeight) );
+		
+		// Figure a nice default window size:
+		int scaledWidth = cam.imageWidth;
+		int scaledHeight = cam.imageHeight;
+		if( scaledHeight <= 192 && scaledHeight <= 384 ) {
+			scaledWidth *= 2;
+			scaledHeight *= 2;
+		}
+		adj.setPreferredSize( new Dimension(scaledWidth + 32, scaledHeight + 32) );
+		
 		adj.addKeyListener(new KeyAdapter() {
 			@Override public void keyPressed( KeyEvent kevt ) {
 				double dir = 1;
