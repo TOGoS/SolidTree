@@ -477,6 +477,32 @@ public class Tracer
 		return true;
 	}
 	
+	/*
+	 * Assuming that light added by passing through a material that both glows and filters
+	 * = glow (per meter) * integral from x=0 to distance of filter**x
+	 * 
+	 * which, according to Wolfram Alpha
+	 * http://www.wolframalpha.com/input/?i=Integrate%5Bf%5Ex%2C+%7Bx%2C+0%2C+d%7D%5D
+	 * 
+	 * means it = glow * (f**d - 1) / ln(f) 
+	 */
+	protected final double filterGlow( double glow, double filter, double filterExpDistance, double distance ) {
+		if( glow == 0 ) return 0;
+		if( filter == 1 ) return glow * distance;
+		
+		assert glow >= 0;
+		double add = glow * (filterExpDistance - 1) / Math.log(filter);
+		if( add < 0 || Double.isNaN(add) || Double.isInfinite(add) ) {
+			System.err.println("glow="+glow);
+			System.err.println("filter="+filter);
+			System.err.println("distance="+distance);
+			System.err.println("filter**dist="+filterExpDistance);
+			System.err.println("ln(filter)="+Math.log(filter));
+			throw new RuntimeException("Bad value for filterGlow result: "+add);
+		}
+		return add;
+	}
+	
 	public void trace( double x, double y, double z, double dx, double dy, double dz ) {
 		setPosition( x, y, z );
 		setDirection( dx, dy, dz );
@@ -520,14 +546,23 @@ public class Tracer
 			DColor internalEmissionColor = material.getInternalEmissionColor();
 			DColor internalFilterColor = material.getInternalFilterColor();
 			
-			// TODO: Figure out how to mix ambient and filter colors 
-			red   += filterRed   * internalEmissionColor.r * internalFilterColor.r * dist;
-			green += filterGreen * internalEmissionColor.g * internalFilterColor.g * dist;
-			blue  += filterBlue  * internalEmissionColor.b * internalFilterColor.b * dist;
+			double fExpDistRed   = Math.pow(internalFilterColor.r, dist);
+			double fExpDistGreen = Math.pow(internalFilterColor.g, dist);
+			double fExpDistBlue  = Math.pow(internalFilterColor.b, dist);
 			
-			filterRed   *= Math.pow(internalFilterColor.r, dist);
-			filterGreen *= Math.pow(internalFilterColor.g, dist);
-			filterBlue  *= Math.pow(internalFilterColor.b, dist);
+			red   += filterRed * filterGlow(internalEmissionColor.r, internalFilterColor.r, fExpDistRed  , dist);
+			green += filterRed * filterGlow(internalEmissionColor.g, internalFilterColor.g, fExpDistGreen, dist);
+			blue  += filterRed * filterGlow(internalEmissionColor.b, internalFilterColor.b, fExpDistBlue , dist);
+			
+			/*
+			red   += filterRed   * (internalEmissionColor.r * (fExpDistRed  -1)/Math.log(internalFilterColor.r));
+			green += filterGreen * (internalEmissionColor.g * (fExpDistGreen-1)/Math.log(internalFilterColor.g));
+			blue  += filterBlue  * (internalEmissionColor.b * (fExpDistBlue -1)/Math.log(internalFilterColor.b));
+			*/
+			
+			filterRed   *= fExpDistRed;
+			filterGreen *= fExpDistGreen;
+			filterBlue  *= fExpDistBlue;
 			
 			// Otherwise it just passes through!
 			

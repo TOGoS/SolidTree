@@ -114,9 +114,9 @@ wally-node wally-node wally-node lampy-node
 
   transparent-surface
   1.0
-  white
-  0.0003 0.0002 0.0001 make-color
-  0.001
+  0.999 0.998 0.997 make-color
+  0.0001 0.0001 0.0002 make-color
+  0.0
   rough-mirror-surface
 make-volumetric-material "fog-material" def-value
 fog-material make-solid-material-node "fog-node" def-value

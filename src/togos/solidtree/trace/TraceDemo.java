@@ -111,7 +111,7 @@ public class TraceDemo
 		
 		t.setRoot( root );
 		t.skySphere = new AdditiveSkySphere(
-			new RadialSkySphere(0, Math.sin(Math.PI/4), Math.cos(Math.PI/4), 8, 2.0, 1.5, 1.0)
+			new RadialSkySphere(0, Math.sin(Math.PI/8), Math.cos(Math.PI/8), 8, 2.0, 1.5, 1.0)
 			// new RadialSkySphere(0, Math.sin(Math.PI/4)*0.8, Math.cos(Math.PI/4)*0.8, 1, 0.2, 0.2, 0.5),
 			// new RadialSkySphere(0, Math.sin(Math.PI/4)*0.8, Math.cos(Math.PI/4)*0.8, 5, 2.0, 2.0, 2.0),
 			// new CrappySkySphere()
