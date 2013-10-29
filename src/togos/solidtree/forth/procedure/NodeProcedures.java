@@ -61,6 +61,14 @@ public class NodeProcedures
 	};
 	
 	static final StandardWordDefinition MAKE_VISUAL_MATERIAL = new StandardWordDefinition() {
+		// surface material : SurfaceMaterial
+		// index of refraction : double,
+		// internal filter color : DClor
+		// internal emission color : DColor
+		// particle interaction chance : double
+		// particle surface material : SurfaceMaterial
+		// -> PathTraceMaterial
+		
 		@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
 			SurfaceMaterial particleMaterial = interp.stackPop( SurfaceMaterial.class, sLoc );
 			double particleInteractionChance = interp.stackPop( Number.class, sLoc ).doubleValue();
