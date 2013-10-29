@@ -487,6 +487,7 @@ public class Tracer
 			boolean scattered = false;
 			
 			if( !findNextIntersection( pos, direction, preIntersect, postIntersect ) ) {
+				direction.normalizeInPlace(1);
 				skySphere.getSkyColor(direction, scratch);
 				red   += filterRed   * scratch.x;
 				green += filterGreen * scratch.y;
@@ -564,6 +565,7 @@ public class Tracer
 
 		for( int i=0; i<maxSteps; ++i ) {
 			if( !findNextIntersection( pos, direction, preIntersect, postIntersect ) ) {
+				direction.normalizeInPlace(1);
 				skySphere.getSkyColor(direction, scratch);
 				red   = scratch.x;
 				green = scratch.y;
