@@ -7,7 +7,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 
 import togos.hdrutil.AdjusterUI;
@@ -15,14 +14,13 @@ import togos.hdrutil.ChunkyDump;
 import togos.hdrutil.HDRExposure;
 import togos.lang.BaseSourceLocation;
 import togos.lang.ScriptError;
+import togos.solidtree.NodeLoader;
+import togos.solidtree.NodeLoader.HashMapLoadContext;
+import togos.solidtree.NodeLoader.LoadContext;
 import togos.solidtree.NodeRoot;
 import togos.solidtree.SolidNode;
 import togos.solidtree.StandardMaterial;
-import togos.solidtree.forth.Interpreter;
-import togos.solidtree.forth.Tokenizer;
-import togos.solidtree.forth.procedure.NodeProcedures;
 import togos.solidtree.trace.sky.AdditiveSkySphere;
-import togos.solidtree.trace.sky.CrappySkySphere;
 import togos.solidtree.trace.sky.RadialSkySphere;
 
 public class TraceDemo
@@ -82,24 +80,13 @@ public class TraceDemo
 		
 		System.err.println("Building world...");
 		
-		File scriptFile = new File("world.fs");
+		LoadContext<SolidNode> loadCtx = new HashMapLoadContext<SolidNode>();
 		
-		Interpreter interp = new Interpreter();
-		NodeProcedures.register(interp.wordDefinitions);
-		Tokenizer tokenizer = new Tokenizer(scriptFile.getName(), 1, 1, 4, interp.delegatingTokenHandler);
+		//File scriptFile = new File("world.fs");
+		NodeLoader nl = new NodeLoader();
+		nl.includePath.add(new File("."));
+		Object _root = nl.get("world", loadCtx);
 		
-		{
-			FileReader scriptReader = new FileReader(new File("world.fs"));
-			char[] buf = new char[1024];
-			int i;
-			while( (i = scriptReader.read(buf)) > 0 ) {
-				tokenizer.handle(buf, i);
-			}
-			tokenizer.end();
-			scriptReader.close();
-		}
-		
-		Object _root = interp.stackPop( Object.class, BaseSourceLocation.NONE );
 		NodeRoot root;
 		if( _root instanceof NodeRoot ) {
 			root = (NodeRoot)_root;
@@ -111,19 +98,19 @@ public class TraceDemo
 		
 		t.setRoot( root );
 		t.skySphere = new AdditiveSkySphere(
-			new RadialSkySphere(0, Math.sin(Math.PI/8), Math.cos(Math.PI/8), 8, 2.0, 1.5, 1.0)
+			new RadialSkySphere(0, Math.sin(Math.PI/8), Math.cos(Math.PI/8), 8, 8.0, 6, 4.0)
 			// new RadialSkySphere(0, Math.sin(Math.PI/4)*0.8, Math.cos(Math.PI/4)*0.8, 1, 0.2, 0.2, 0.5),
 			// new RadialSkySphere(0, Math.sin(Math.PI/4)*0.8, Math.cos(Math.PI/4)*0.8, 5, 2.0, 2.0, 2.0),
 			// new CrappySkySphere()
 		);
 		
 		final Camera cam = new Camera();
-		cam.imageWidth = 256;
+		cam.imageWidth = 128;
 		cam.imageHeight = 128;
 		cam.x = 10;
 		cam.z = -40;
 		cam.yaw = 0;//Math.PI/8;
-		final double fovY = (double)(Math.PI*0.3); 
+		final double fovY = (double)(Math.PI*0.5); 
 		cam.projection = new FisheyeProjection(fovY*cam.imageWidth/cam.imageHeight, fovY);
 		// cam.projection = new ApertureProjection( cam.projection, 0.05, 4 );
 		

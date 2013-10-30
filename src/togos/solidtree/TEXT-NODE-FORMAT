@@ -1,4 +1,4 @@
-#?TEXT-NODE
+#?TEXT-SOLID-NODE
 =definitions
 # '=' overrides; '?=' defaults.
 # node definitions will be inherited from parent contexts,
@@ -11,10 +11,10 @@ block ?= urn:sha1:ASD123
 g = grass 
 
 # Data block interprets each non-whitespace character as a node name
-# 'xzy' defines the order in which cell data is given.
-# in this case the first row is z0,y0,x0-x4, the second is z1,y0,x0-x4, etc.
-# i.e. x is the first to be incremented, then z, then y.
-=data xzy 4x4x4
+# '+x+z-y' defines the order in which cell data is given.
+# in this case the first row is z0,y3,x0-x3, the second is z1,y3,x0-x4, etc.
+# i.e. x is the first to be incremented, then z, then decrement y.
+=data +x-z+y 4x4x4
 ....
 ....
 ....

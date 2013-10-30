@@ -1,0 +1,26 @@
+#?TEXT-SOLID-NODE
+=defs
+. = empty-node
+# = block-node
+g = grass-node
+
+=data +x+z-y 4x4x4
+....
+.#..
+....
+....
+
+....
+.###
+...#
+.###
+
+.#..
+....
+....
+....
+
+....
+.###
+...#
+##.#

@@ -30,92 +30,17 @@ make-surface-material make-opaque-material make-solid-material-node "grass-node"
 
 rough-mirror-surface make-opaque-material make-solid-material-node "wally-node" def-value
 
-
-
-
-# 0.6 0.5 0.4 make-color 0 0 0 make-color 0 1 2
-# make-simple-visual-material
-
-wally-node wally-node wally-node wally-node
-wally-node empty-node empty-node wally-node
-wally-node wally-node empty-node wally-node
-wally-node wally-node wally-node wally-node
-
-wally-node empty-node empty-node wally-node
-empty-node empty-node empty-node wally-node
-empty-node empty-node empty-node empty-node
-wally-node empty-node wally-node wally-node
-
-wally-node wally-node empty-node wally-node
-empty-node empty-node empty-node empty-node
-wally-node empty-node empty-node empty-node
-wally-node empty-node empty-node wally-node
-
-wally-node wally-node wally-node wally-node
-wally-node empty-node empty-node wally-node
-wally-node empty-node empty-node wally-node
-wally-node wally-node wally-node wally-node
-
-4 4 4 make-composite-node "cubey-node" def-value
-
-wally-node cubey-node cubey-node wally-node
-wally-node empty-node empty-node wally-node
-wally-node cubey-node empty-node wally-node
-wally-node cubey-node cubey-node wally-node
-
-cubey-node empty-node empty-node cubey-node
-empty-node cubey-node empty-node empty-node
-empty-node light-node cubey-node empty-node
-cubey-node empty-node empty-node cubey-node
-
-cubey-node empty-node empty-node cubey-node
-empty-node empty-node empty-node empty-node
-empty-node cubey-node empty-node empty-node
-cubey-node empty-node empty-node cubey-node
-
-wally-node cubey-node cubey-node wally-node
-wally-node cubey-node empty-node wally-node
-wally-node cubey-node empty-node wally-node
-wally-node cubey-node cubey-node wally-node
-
-4 4 4 make-composite-node "lampy-node" def-value
-
-grass-node grass-node grass-node grass-node
-empty-node empty-node empty-node empty-node
-empty-node empty-node empty-node empty-node
-lampy-node lampy-node lampy-node lampy-node
-
-grass-node grass-node grass-node grass-node
-empty-node empty-node empty-node empty-node
-empty-node empty-node empty-node empty-node
-lampy-node wally-node wally-node lampy-node
-
-grass-node grass-node grass-node grass-node
-empty-node lampy-node empty-node empty-node
-empty-node lampy-node empty-node empty-node
-lampy-node wally-node wally-node lampy-node
-
-grass-node grass-node grass-node grass-node
-empty-node empty-node empty-node empty-node
-empty-node empty-node empty-node empty-node
-wally-node wally-node wally-node lampy-node
-
-4 4 4 make-composite-node "place-node" def-value
-
 : multiply4 dup dup dup dup ;
 : multiply16 multiply4 multiply4 multiply4 multiply4 ;
 : multiply64 multiply16 multiply16 multiply16 multiply16 ;
 
 : cn64 multiply64 4 4 4 make-composite-node ;
 
-# place-node cn64 cn64 cn64 cn64
-
-#### Different
 
   transparent-surface
   1.0
-  0.999 0.998 0.997 make-color
-  0.0001 0.0001 0.0002 make-color
+  0.997 0.994 0.990 make-color
+  0.0004 0.0004 0.0008 make-color
   0.0
   rough-mirror-surface
 make-volumetric-material "fog-material" def-value
@@ -172,7 +97,13 @@ empty-node
 1 4 1 make-composite-node "place-node" def-value
 
 empty-node "-" def-value
-wally-node "X" def-value
+
+empty-node "empty-node" ctx-put
+grass-node "grass-node" ctx-put
+wally-node "block-node" ctx-put
+"root" ctx-get "X" def-value
+
+# wally-node "X" def-value
 
 X X X - X X
 - X X - X X
