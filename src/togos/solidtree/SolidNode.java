@@ -1,6 +1,8 @@
 package togos.solidtree;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SolidNode
 {
@@ -27,8 +29,28 @@ public class SolidNode
 		this.subNodes = (subNodes.length == 0 || subNodes == INC) ? subNodes : Arrays.copyOf(subNodes, subNodes.length);
 	}
 	
-	public SolidNode( GeneralMaterial material, int divX, int divY, int divZ, SolidNode[] subNodes ) {
-		this( material, divX, divY, divZ, new SolidNodePalette(subNodes), INC );
+	public static SolidNode build( GeneralMaterial material, int divX, int divY, int divZ, SolidNode[] subNodes ) {
+		final int size = divX*divY*divZ;
+		assert subNodes.length >= size;
+		final HashMap<SolidNode,Integer> nodeIndexes = new HashMap<SolidNode,Integer>();
+		byte[] data = new byte[divX*divY*divZ];
+		int nextIndex = 0;
+		for( int i=0; i<size; ++i ) {
+			Integer index = nodeIndexes.get(subNodes[i]);
+			if( index == null ) {
+				index = nextIndex++;
+				nodeIndexes.put(subNodes[i], index);
+			}
+			if( index.intValue() > 255 ) {
+				throw new RuntimeException("Too many unique SolidNodes!");
+			}
+			data[i] = index.byteValue();
+		}
+		SolidNode[] paletteEntries = new SolidNode[nextIndex];
+		for( Map.Entry<SolidNode, Integer> nodeIndex : nodeIndexes.entrySet() ) {
+			paletteEntries[nodeIndex.getValue().intValue()] = nodeIndex.getKey();
+		}
+		return new SolidNode( material, divX, divY, divZ, new SolidNodePalette(paletteEntries), data );
 	}
 	
 	public SolidNode( GeneralMaterial m ) {

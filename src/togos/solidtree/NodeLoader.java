@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.WeakHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,13 +88,49 @@ public class NodeLoader
 		if( n == null ) throw new ScriptError("'"+name+"' cannot be resolved", sLoc);
 		return n;
 	}
-
+	
+	WeakHashMap<Object,SolidNode> nodesFromOtherThings = new WeakHashMap<Object,SolidNode>();
+	
 	public SolidNode getNode( String name, LoadContext<?> ctx, SourceLocation sLoc ) throws IOException, ScriptError {
-		Object n = getNotNull(name, ctx, sLoc);
-		if( n instanceof SolidNode ) {
-			return (SolidNode)n;
+		Object thing = getNotNull(name, ctx, sLoc);
+		if( thing instanceof SolidNode ) return (SolidNode)thing;
+		SolidNode n = nodesFromOtherThings.get(thing);
+		if( n != null ) return n;
+		if( thing instanceof GeneralMaterial ) {
+			n = new SolidNode( (GeneralMaterial)thing );
 		}
-		throw new ScriptError("'"+name+"' resolved to a "+n.getClass()+" instead of a SolidNode", sLoc);
+		if( n == null ) throw new ScriptError("'"+name+"' resolved to a "+thing.getClass()+", which cannot be converted to a a SolidNode", sLoc);
+		nodesFromOtherThings.put(thing, n);
+		return n;
+	}
+	
+	File findOnIncludePath( String filename ) {
+		for( File d : includePath ) {
+			File f = new File( d, filename );
+			if( f.exists() ) return f;
+		}
+		return null;
+	}
+	
+	protected void runScript( Interpreter interp, File f ) throws IOException, ScriptError {
+		Tokenizer tokenizer = new Tokenizer(f.getPath(), 1, 1, 4, interp.delegatingTokenHandler);
+		
+		try {
+			FileReader scriptReader = new FileReader(f);
+			char[] buf = new char[1024];
+			int i;
+			while( (i = scriptReader.read(buf)) > 0 ) {
+				tokenizer.handle(buf, i);
+			}
+			tokenizer.end();
+			scriptReader.close();
+		} catch( ScriptError e ) {
+			throw e;
+		} catch( IOException e ) {
+			throw e;
+		} catch( Exception e ) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	public Object readForthNode( File f, LoadContext<?> parentContext ) throws ScriptError, IOException {
@@ -101,6 +138,21 @@ public class NodeLoader
 		
 		Interpreter interp = new Interpreter();
 		NodeProcedures.register(interp.wordDefinitions);
+		interp.wordDefinitions.put("include", new StandardWordDefinition() {
+			@Override
+			public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+				String filename = interp.stackPop(String.class, sLoc);
+				File f = findOnIncludePath(filename);
+				if( f == null ) {
+					throw new ScriptError("Couldn't find '"+filename+"' on include path", sLoc);
+				}
+				try {
+					runScript(interp, f);
+				} catch( IOException e ) {
+					throw new RuntimeException(e);
+				}
+			}
+		});
 		interp.wordDefinitions.put("ctx-get", new StandardWordDefinition() {
 			// name -> value
 			@Override public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
@@ -120,23 +172,13 @@ public class NodeLoader
 				ctx.put( name, value );
 			}
 		});
-		Tokenizer tokenizer = new Tokenizer(f.getPath(), 1, 1, 4, interp.delegatingTokenHandler);
 		
 		try {
-			FileReader scriptReader = new FileReader(f);
-			char[] buf = new char[1024];
-			int i;
-			while( (i = scriptReader.read(buf)) > 0 ) {
-				tokenizer.handle(buf, i);
-			}
-			tokenizer.end();
-			scriptReader.close();
+			runScript(interp, f);
 		} catch( ScriptError e ) {
 			throw e;
 		} catch( IOException e ) {
 			throw e;
-		} catch( Exception e ) {
-			throw new RuntimeException(e);
 		}
 		
 		return interp.stackPop( Object.class, BaseSourceLocation.NONE );
@@ -241,11 +283,12 @@ public class NodeLoader
 		if( dataSize == 0 ) throw new ScriptError("Zero-sized node", new BaseSourceLocation(filename, lineNum, 0));
 		if( dataSize == 1 ) return getNode(String.valueOf(data[0]), context, new BaseSourceLocation(filename, dataLineNum, 0));
 		
-		SolidNode[] snData = new SolidNode[dataSize];
-		int w = dims[0], d = dims[1], h = dims[2];
+		final SolidNode[] snData = new SolidNode[dataSize];
+		final int w = dims[0], d = dims[1], h = dims[2];
+		System.err.println("w="+w+", h="+h+", d="+d+", dataSize="+dataSize);
 		for( int j=0, y=h-1; y>=0; --y ) for( int z=0; z<d; ++z ) for( int x=0; x<w; ++x, ++j ) {
 			snData[x+y*h+z*w*h] = getNode(String.valueOf(data[j]), context, new BaseSourceLocation(filename, dataLineNum, 0));
 		}
-		return new SolidNode(StandardMaterial.SPACE, w , h, d, snData);
+		return SolidNode.build(StandardMaterial.SPACE, w, h, d, snData);
 	}
 }

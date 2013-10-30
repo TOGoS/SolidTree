@@ -1,41 +1,13 @@
-1 1 1 make-color "white" def-value
-0 0 0 make-color "black" def-value
-0 make-surface-material "transparent-surface" def-value
+"defs.fs" include
 
-# surface-material -> volumetric-material
-: make-opaque-material 2 black black 0 transparent-surface make-volumetric-material ;
+"rough-mirror-surface" import
+"light" import
+"grass" import
 
-1 1 1 make-color 2 2 2 make-color 0 0.5 2 make-simple-volumetric-material make-solid-material-node "light-node" def-value
-
-    1
-    0.5 0.5 0.5 make-color
-    black
-    1 0.05 0 0
-  make-surface-material-layer
-    1
-    0.5 0.5 0.5 make-color
-    black
-    0 1 1 0
-  make-surface-material-layer
-  2
-make-surface-material "rough-mirror-surface" def-value
-
-    1
-    0.3 0.5 0.2 make-color
-    black
-    1 1 1 0
-  make-surface-material-layer
-  1
-make-surface-material make-opaque-material make-solid-material-node "grass-node" def-value
+grass make-solid-material-node "grass-node" def-value
+light make-solid-material-node "light-node" def-value
 
 rough-mirror-surface make-opaque-material make-solid-material-node "wally-node" def-value
-
-: multiply4 dup dup dup dup ;
-: multiply16 multiply4 multiply4 multiply4 multiply4 ;
-: multiply64 multiply16 multiply16 multiply16 multiply16 ;
-
-: cn64 multiply64 4 4 4 make-composite-node ;
-
 
   transparent-surface
   1.0
@@ -46,7 +18,7 @@ rough-mirror-surface make-opaque-material make-solid-material-node "wally-node" 
 make-volumetric-material "fog-material" def-value
 fog-material make-solid-material-node "fog-node" def-value
 
-fog-node "empty-node" def-value 
+fog-node "empty-node" def-value
 
 wally-node wally-node wally-node empty-node
 empty-node empty-node wally-node empty-node
@@ -98,10 +70,10 @@ empty-node
 
 empty-node "-" def-value
 
-empty-node "empty-node" ctx-put
-grass-node "grass-node" ctx-put
-wally-node "block-node" ctx-put
-"root" ctx-get "X" def-value
+empty-node "empty" ctx-put
+grass-node "grass" ctx-put
+wally-node "full" ctx-put
+"bricks1" ctx-get "X" def-value
 
 # wally-node "X" def-value
 

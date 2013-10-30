@@ -53,7 +53,7 @@ public class NodeShaper
 				}
 			}
 			
-			return anythingChanged ? new SolidNode(
+			return anythingChanged ? SolidNode.build(
 				original.material, divX, divY, divZ, newKids
 			) : original;
 		default:

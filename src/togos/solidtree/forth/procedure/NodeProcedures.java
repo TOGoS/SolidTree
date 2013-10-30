@@ -34,6 +34,15 @@ public class NodeProcedures
 	};
 	
 	static final StandardWordDefinition MAKE_SURFACE_MATERIAL_LAYER = new StandardWordDefinition() {
+		// opacity
+		// filter color
+		// emission collor
+		// mirror reflection factor
+		// random reflection factor
+		// normal reflection factor
+		// forward reflection factor
+		// -> SurfaceMaterial
+		
 		@Override public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
 			double forwardRF = interp.stackPop( Number.class, sLoc ).doubleValue();
 			double normalRF  = interp.stackPop( Number.class, sLoc ).doubleValue();
@@ -50,6 +59,8 @@ public class NodeProcedures
 	};
 	
 	static final StandardWordDefinition MAKE_SURFACE_MATERIAL = new StandardWordDefinition() {
+		// layer0:SurfaceMaterialLayer, layer1...layerN,
+		// layerCount:int -> SurfaceMaterial
 		@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
 			int layerCount = interp.stackPop( Number.class, sLoc ).intValue();
 			SurfaceMaterialLayer[] layers = new SurfaceMaterialLayer[layerCount];
@@ -131,7 +142,7 @@ public class NodeProcedures
 				subNodes[i] = interp.stackPop( SolidNode.class, sLoc );
 			}
 			
-			interp.stackPush( new SolidNode(StandardMaterial.SPACE, divX, divY, divZ, subNodes) );
+			interp.stackPush( SolidNode.build(StandardMaterial.SPACE, divX, divY, divZ, subNodes) );
         }		
 	};
 	
@@ -165,7 +176,7 @@ public class NodeProcedures
 				   spaceDivisions*(spaceDivisions/2) +
 				   (spaceDivisions/2)
 				] = space;
-				space = new SolidNode( StandardMaterial.SPACE, spaceDivisions, spaceDivisions, spaceDivisions, spaceSubNodes );
+				space = SolidNode.build( StandardMaterial.SPACE, spaceDivisions, spaceDivisions, spaceDivisions, spaceSubNodes );
 			}
 			
 			interp.stackPush( space );
@@ -237,6 +248,15 @@ public class NodeProcedures
 				Object o = interp.stackPop(Object.class, sLoc);
 				interp.stackPush(o);
 				interp.stackPush(o);
+            }
+		});
+		ctx.put("swap", new StandardWordDefinition() {
+			@Override
+            public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
+				Object a = interp.stackPop(Object.class, sLoc);
+				Object b = interp.stackPop(Object.class, sLoc);
+				interp.stackPush(a);
+				interp.stackPush(b);
             }
 		});
 	}

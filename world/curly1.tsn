@@ -1,8 +1,7 @@
 #?TEXT-SOLID-NODE
 =defs
-. = empty-node
-# = block-node
-g = grass-node
+. = empty
+# = full
 
 =data +x+z-y 4x4x4
 ....

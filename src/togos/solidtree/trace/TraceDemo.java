@@ -62,7 +62,7 @@ public class TraceDemo
 	}
 	
 	protected static SolidNode mkNode( int w, int h, int d, SolidNode...parts ) {
-		return new SolidNode( StandardMaterial.SPACE, w, h, d, parts );
+		return SolidNode.build( StandardMaterial.SPACE, w, h, d, parts );
 	}
 	
 	protected static File getNewOutputFile( String prefix, String suffix ) {
@@ -72,6 +72,7 @@ public class TraceDemo
 	}
 	
 	public static void main( String[] args ) throws Exception {
+		final String renderDir = "renders";
 		final String sceneName = "testrender"+System.currentTimeMillis(); 
 		SampleMethod sampleMethod = SampleMethod.RANDOM;
 		
@@ -82,9 +83,8 @@ public class TraceDemo
 		
 		LoadContext<SolidNode> loadCtx = new HashMapLoadContext<SolidNode>();
 		
-		//File scriptFile = new File("world.fs");
 		NodeLoader nl = new NodeLoader();
-		nl.includePath.add(new File("."));
+		nl.includePath.add(new File("world"));
 		Object _root = nl.get("world", loadCtx);
 		
 		NodeRoot root;
@@ -136,7 +136,7 @@ public class TraceDemo
 				
 				switch( kevt.getKeyCode() ) {
 				case KeyEvent.VK_D:
-					String baseName = sceneName+"-"+(int)cam.getExposure().getAverageExposure();
+					String baseName = renderDir+"/"+sceneName+"/"+sceneName+"-"+(int)cam.getExposure().getAverageExposure();
 					File saveFile = getNewOutputFile(baseName+"-", ".dump");
 					try {
 						System.err.println("Saving as "+saveFile);
@@ -298,13 +298,13 @@ public class TraceDemo
 					prevTime = System.currentTimeMillis();
 				}
 				if( samplesTaken % 4096 == 0 ) {
-					String baseName = sceneName+"-"+(int)exp.getAverageExposure();
+					String baseName = renderDir+"/"+sceneName+"/"+sceneName+"-"+(int)exp.getAverageExposure();
 					
-					/* adj.extraStatusLines = new String[] {
+					adj.extraStatusLines = new String[] {
 						"Total samples taken: " + samplesTaken,
 						"Samples per second: " + samplesPerSecond,
 						"Average samples per pixel: " + exp.getAverageExposure()
-					}; */
+					};
 					
 					adj.exportFilenamePrefix = baseName;
 					adj.exposureUpdated();
