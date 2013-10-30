@@ -6,7 +6,8 @@
 
 1 1 1 make-color "white" def-value
 0 0 0 make-color "black" def-value
-0 make-surface-material "transparent-surface" def-value
+
+"transparent-surface" import
 
 # surface-material -> volumetric-material
 : make-opaque-material 2 black black 0 transparent-surface make-volumetric-material ;

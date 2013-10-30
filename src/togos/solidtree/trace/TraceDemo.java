@@ -107,8 +107,9 @@ public class TraceDemo
 		final Camera cam = new Camera();
 		cam.imageWidth = 128;
 		cam.imageHeight = 128;
-		cam.x = 10;
-		cam.z = -40;
+		cam.x = 0;
+		cam.y = 0;
+		cam.z = 0;
 		cam.yaw = 0;//Math.PI/8;
 		final double fovY = (double)(Math.PI*0.5); 
 		cam.projection = new FisheyeProjection(fovY*cam.imageWidth/cam.imageHeight, fovY);

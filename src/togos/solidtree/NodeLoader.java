@@ -89,19 +89,10 @@ public class NodeLoader
 		return n;
 	}
 	
-	WeakHashMap<Object,SolidNode> nodesFromOtherThings = new WeakHashMap<Object,SolidNode>();
+	
 	
 	public SolidNode getNode( String name, LoadContext<?> ctx, SourceLocation sLoc ) throws IOException, ScriptError {
-		Object thing = getNotNull(name, ctx, sLoc);
-		if( thing instanceof SolidNode ) return (SolidNode)thing;
-		SolidNode n = nodesFromOtherThings.get(thing);
-		if( n != null ) return n;
-		if( thing instanceof GeneralMaterial ) {
-			n = new SolidNode( (GeneralMaterial)thing );
-		}
-		if( n == null ) throw new ScriptError("'"+name+"' resolved to a "+thing.getClass()+", which cannot be converted to a a SolidNode", sLoc);
-		nodesFromOtherThings.put(thing, n);
-		return n;
+		return NodeConverter.from( getNotNull(name, ctx, sLoc), sLoc );
 	}
 	
 	File findOnIncludePath( String filename ) {
@@ -185,7 +176,7 @@ public class NodeLoader
 			throw e;
 		}
 		
-		return interp.stackPop( Object.class, BaseSourceLocation.NONE );
+		return interp.stackPop( Object.class, new BaseSourceLocation("While reading value from "+f.getPath(), 0, 0) );
 	}
 	
 	public SolidNode readTextNode( File f, LoadContext<?> ctx ) throws ScriptError, IOException
