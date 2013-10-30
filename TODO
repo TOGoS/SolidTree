@@ -1,5 +1,3 @@
-- allow =data-free .tsns if "value" is specified 
-
 - Control all aspects of scene via forth control script
   - for interactive
   - command to export batch script

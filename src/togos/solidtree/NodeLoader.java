@@ -88,8 +88,6 @@ public class NodeLoader
 		return n;
 	}
 	
-	
-	
 	public SolidNode getNode( String name, LoadContext<?> ctx, SourceLocation sLoc ) throws IOException, ScriptError {
 		return NodeConverter.from( getNotNull(name, ctx, sLoc), sLoc );
 	}
@@ -178,7 +176,7 @@ public class NodeLoader
 		return interp.stackPop( Object.class, new BaseSourceLocation("While reading value from "+f.getPath(), 0, 0) );
 	}
 	
-	public SolidNode readTextNode( File f, LoadContext<?> ctx ) throws ScriptError, IOException
+	public Object readTextNode( File f, LoadContext<?> ctx ) throws ScriptError, IOException
 	{
 		BufferedReader br = new BufferedReader(new FileReader(f));
 		try {
@@ -188,7 +186,7 @@ public class NodeLoader
 		}
 	}
 	
-	public SolidNode readTextNode(BufferedReader r, String filename, LoadContext<?> parentContext) throws ScriptError, IOException {
+	public Object readTextNode(BufferedReader r, String filename, LoadContext<?> parentContext) throws ScriptError, IOException {
 		String line;
 		
 		HashMapLoadContext<Object> context = new HashMapLoadContext<Object>(parentContext);
@@ -283,6 +281,8 @@ public class NodeLoader
 				charNodes.put( c, getNode(c, context, new BaseSourceLocation(filename, dataLineNum, 0)));
 			}
 		}
+		
+		if( data == null && context.get("value") != null ) return context.get("value");
 		
 		if( data == null ) throw new ScriptError("No data given", new BaseSourceLocation(filename, lineNum, 0));
 		if( dataSize == 0 ) throw new ScriptError("Zero-sized node", new BaseSourceLocation(filename, lineNum, 0));
