@@ -1,0 +1,33 @@
+- allow =data-free .tsns if "value" is specified 
+
+- Control all aspects of scene via forth control script
+  - for interactive
+  - command to export batch script
+  
+- Batch scripts are like control scripts but render synchronously
+
+- Both control and batch scripts can initialize all scene variables
+  and export as another script.
+
+- RGBE importer/exporter
+  can use raw RGBE * w * h as file format; dimensions can be encoded in extension or guessed
+  based on context
+  
+  - Look at Radiance for semantics of R, G, B, E; use if simple enough, otherwise use custom meaning
+
+- Sky boxes
+  store as 6-square-image vertical strip
+  - export!
+  - import!
+
+- Generate hilly terrain (use noise3 library from TMCMG!)
+
+- ability to merge nodes from forth scripts
+
+- Logical script/result separation
+  - '<script-id> ctx-get' (in .fs) or <script-id> (in .tsn) evaluates to a Binding( Script, ContextSnapshot )
+  - Bindings are lazily converted to nodes when a node is needed
+  - Bindings are 'refined' with <binding>( <param>@<value>, ... ) syntax in .tsn
+  - Bindings can be rebound to the current context by '<binding> rebind' in .fs
+  - This will allow LoadContext.get(...) to be used in place of direct NodeLoader.get(...)
+  - <name> = <script-id>( <param-overrides> ) syntax
