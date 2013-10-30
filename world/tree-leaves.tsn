@@ -1,6 +1,4 @@
 =defs
 material = tree-leaf
-v = noise512
-
-=data +x+z-y 1x1x1
-v
+material = noise512
+value = noise512
