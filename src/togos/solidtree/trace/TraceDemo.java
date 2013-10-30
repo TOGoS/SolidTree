@@ -98,20 +98,20 @@ public class TraceDemo
 		
 		t.setRoot( root );
 		t.skySphere = new AdditiveSkySphere(
-			new RadialSkySphere(0, Math.sin(Math.PI/8), Math.cos(Math.PI/8), 8, 8.0, 6, 4.0)
+			new RadialSkySphere(0, Math.sin(Math.PI/8), Math.cos(Math.PI/8), 8, 8, 7, 6)
 			// new RadialSkySphere(0, Math.sin(Math.PI/4)*0.8, Math.cos(Math.PI/4)*0.8, 1, 0.2, 0.2, 0.5),
 			// new RadialSkySphere(0, Math.sin(Math.PI/4)*0.8, Math.cos(Math.PI/4)*0.8, 5, 2.0, 2.0, 2.0),
 			// new CrappySkySphere()
 		);
 		
 		final Camera cam = new Camera();
-		cam.imageWidth = 128;
-		cam.imageHeight = 128;
+		cam.imageWidth = 384;
+		cam.imageHeight = 192;
 		cam.x = 0;
 		cam.y = 0;
 		cam.z = 0;
 		cam.yaw = 0;//Math.PI/8;
-		final double fovY = (double)(Math.PI*0.5); 
+		final double fovY = (double)(Math.PI*0.3); 
 		cam.projection = new FisheyeProjection(fovY*cam.imageWidth/cam.imageHeight, fovY);
 		// cam.projection = new ApertureProjection( cam.projection, 0.05, 4 );
 		

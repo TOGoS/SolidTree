@@ -1,0 +1,92 @@
+=defs
+
+. = empty
+material = bricks1
+b = repeat64
+l = tree-leaves
+p = black-plastic
+i = light
+a = lamp
+t = tree
+material = black-plastic
+k = noise512
+^ = pyramid
+| = ew-window
+- = ns-window
+g = grass
+r = tree-trunk
+c = brick
+
+=data +x+z-y 8x8x8
+
+........
+........
+........
+........
+........
+........
+........
+........
+
+........
+.^^^^^^.
+.^^^^^^.
+.^^^^^^.
+.^^^^^^.
+.^^^^^^.
+.^^^^^^.
+........
+
+........
+.bbbbbb.
+.bbbbbb.
+.bbbbbb.
+.bbbbbb.
+.bbbbbb.
+.bbbbbb.
+........
+
+.ll.....
+.bb--bbl
+.bb..bbl
+.|....|.
+.|....|l
+.bb..bbl
+.bb--bb.
+.l.l.ll.
+
+........
+.bbbbbbl
+.bb..bbl
+.|....|l
+.|a...|l
+.bb..bbl
+.bb--bbl
+.lllllll
+
+llll.l..
+lbbbbbb.
+.bbbbbbl
+.bbbbbb.
+.bbbbbb.
+.bbbbbbl
+tbbbbbbl
+ll..ll..
+
+gggggggg
+gggggggg
+gggggggg
+gggggggg
+gggggggg
+gggggggg
+gggggggg
+gggggggg
+
+cccccccc
+cccccccc
+cccccccc
+cccccccc
+cccccccc
+cccccccc
+cccccccc
+cccccccc

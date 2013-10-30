@@ -8,7 +8,6 @@ import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
 import togos.solidtree.DColor;
 import togos.solidtree.GeneralMaterial;
-import togos.solidtree.NodeConverter;
 import togos.solidtree.NodeRoot;
 import togos.solidtree.SolidNode;
 import togos.solidtree.StandardMaterial;

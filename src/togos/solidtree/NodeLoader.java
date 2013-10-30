@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.WeakHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -274,6 +273,17 @@ public class NodeLoader
 			}
 		}
 		
+		// Cache all unique nodes here,
+		// Otherwise getNode could return a different one for each cell,
+		// even when the character's the same.
+		HashMap<String,SolidNode> charNodes = new HashMap<String,SolidNode>();
+		for( int j=0; j<dataSize; ++j ) {
+			String c = String.valueOf(data[j]);
+			if( !charNodes.containsKey(c) ) {
+				charNodes.put( c, getNode(c, context, new BaseSourceLocation(filename, dataLineNum, 0)));
+			}
+		}
+		
 		if( data == null ) throw new ScriptError("No data given", new BaseSourceLocation(filename, lineNum, 0));
 		if( dataSize == 0 ) throw new ScriptError("Zero-sized node", new BaseSourceLocation(filename, lineNum, 0));
 		if( dataSize == 1 ) return getNode(String.valueOf(data[0]), context, new BaseSourceLocation(filename, dataLineNum, 0));
@@ -281,8 +291,12 @@ public class NodeLoader
 		final SolidNode[] snData = new SolidNode[dataSize];
 		final int w = dims[0], d = dims[1], h = dims[2];
 		for( int j=0, y=h-1; y>=0; --y ) for( int z=0; z<d; ++z ) for( int x=0; x<w; ++x, ++j ) {
-			snData[x+y*h+z*w*h] = getNode(String.valueOf(data[j]), context, new BaseSourceLocation(filename, dataLineNum, 0));
+			snData[x+y*h+z*w*h] = charNodes.get(String.valueOf(data[j]));
 		}
-		return SolidNode.build(StandardMaterial.SPACE, w, h, d, snData);
+		try {
+			return SolidNode.build(StandardMaterial.SPACE, w, h, d, snData);
+		} catch( Exception e ) {
+			throw new ScriptError(e, new BaseSourceLocation(filename, dataLineNum, 0));
+		}
 	}
 }
