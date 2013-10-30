@@ -22,9 +22,11 @@ import javax.imageio.ImageIO;
 public class AdjusterUI extends Canvas
 {
 	private static final long serialVersionUID = 1L;
+	public static final String[] EMPTY_STRING_ARRAY = new String[0];
 	
 	protected int overlayTextMode = 1; 
 	public String exportFilenamePrefix;
+	public String[] extraStatusLines = EMPTY_STRING_ARRAY;
 	HDRExposure hdrExposure;
 	HDRImage hdrImage;
 	int[] argbBuf;
@@ -161,6 +163,13 @@ public class AdjusterUI extends Canvas
 			g.drawString(String.format("Exposure: %12.4f", exposure), 4, 16*line++ );
 			g.drawString(String.format("Gamma:    %12.4f", gamma   ), 4, 16*line++ );
 			g.drawString("Dithering: " +(dither ? "enabled" : "disabled"), 4, 16*line++ );
+			
+			if( extraStatusLines.length > 0 ) {
+				++line;
+				for( String text : extraStatusLines ) {
+					g.drawString(text, 4, 16*line++ );
+				}
+			}
 		}
 		
 		if( overlayTextMode == 1 ) {
