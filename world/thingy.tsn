@@ -11,11 +11,13 @@ t = tree
 material = black-plastic
 k = noise512
 ^ = pyramid
-| = ew-window
-- = ns-window
+| = window-ew
+- = window-ns
 g = grass
 r = tree-trunk
 c = brick
+[ = potted-tree-top
+] = potted-tree-bottom
 
 =data +x+z-y 8x8x8
 
@@ -51,7 +53,7 @@ c = brick
 .bb..bbl
 .|....|.
 .|....|l
-.bb..bbl
+.bb..[bl
 .bb--bb.
 .l.l.ll.
 
@@ -60,16 +62,16 @@ c = brick
 .bb..bbl
 .|....|l
 .|a...|l
-.bb..bbl
-.bb--bbl
+.bb..]bl
+lbb--bbl
 .lllllll
 
 llll.l..
 lbbbbbb.
-.bbbbbbl
-.bbbbbb.
-.bbbbbb.
-.bbbbbbl
+tbbbbbbl
+tbbbbbbl
+tbbbbbbt
+tbbbbbbl
 tbbbbbbl
 ll..ll..
 

@@ -1,3 +1,6 @@
+- +x+y+z mode for putting levels side-by-side
+  so that 8x8x8s can fit more nicely in an 80-column text file
+
 - Control all aspects of scene via forth control script
   - for interactive
   - command to export batch script

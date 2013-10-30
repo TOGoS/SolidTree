@@ -4,10 +4,10 @@ body ?= rough-mirror-surface
 . = empty
 # = body
 material = body
-/ = se-bevel256
-\ = sw-bevel256
-` = nw-bevel256
-' = ne-bevel256
+/ = bevel256-se
+\ = bevel256-sw
+` = bevel256-nw
+' = bevel256-ne
 l = light
 
 =data +x+z-y 8x8x8
