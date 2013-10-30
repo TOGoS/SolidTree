@@ -104,6 +104,7 @@ public class AdjusterUI extends Canvas
 		}
 		File out = getNewImageExportFile();
 		System.err.println("Exporting to "+out.getPath()+"...");
+		FileUtil.mkParentDirs(out);
 		ImageIO.write(img, "png", out);
 		System.err.println("Wrote "+out.getPath());
 	}

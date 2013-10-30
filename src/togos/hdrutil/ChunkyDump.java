@@ -54,6 +54,7 @@ public class ChunkyDump
 	}
 	
 	public static void saveExposure( HDRExposure exp, File dumpFile ) throws IOException {
+		FileUtil.mkParentDirs(dumpFile);
 		DataOutputStream out = new DataOutputStream(new GZIPOutputStream(new FileOutputStream(dumpFile)));
 		try {
 			saveExposure(exp, out);
