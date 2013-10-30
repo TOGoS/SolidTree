@@ -1,0 +1,7 @@
+#?TEXT-SOLID-NODE
+=defs
+material = bricks1
+z = zame
+
+=data +x+z-y 1x1x1
+z

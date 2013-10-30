@@ -73,53 +73,11 @@ empty-node "-" def-value
 empty-node "empty" ctx-put
 grass-node "grass" ctx-put
 wally-node "full" ctx-put
-"bricks1" ctx-get "X" def-value
+"bricks1" import
 
-# wally-node "X" def-value
-
-X X X - X X
-- X X - X X
-- - - - - X
-X X X X - X
-X X X X - X
-X - - - - X
-
-X X X - - -
-X X X X X X
-- - X X X X
-X - - - X X
-X X X - X -
-X X X - X -
-
-X - X X X X
-X - X - - -
-X X X - X X
-X X X - X X
-- - X - X -
-X - X - X X
-
-X X X - X X
-X - X - X -
-X X X X X -
-- X X X X -
-- X X X X X
-- - X - X X
-
-X X X X - -
-X - - - X X
-X X X - X X
-- - X - X -
-X X X - X X
-X X X - X X
-
-X X X - - -
-- X X X X -
-X X X X X X
-X - X X X -
-X - X X X -
-X - X - - -
-
-6 6 6 make-composite-node "zame-node" def-value
+# empty-node "empty" ctx-put
+# bricks1 "material" ctx-put
+"zamebricks" ctx-get "zame-node" def-value
 
 zame-node multiply64
 4 4 4 make-composite-node "zame-node" def-value

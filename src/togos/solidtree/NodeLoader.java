@@ -158,7 +158,11 @@ public class NodeLoader
 			@Override public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
 				String name = interp.stackPop(String.class, sLoc);
 				try {
-					interp.stackPush( get( name, ctx ) );
+					Object o = get( name, ctx );
+					if( o == null ) {
+						throw new ScriptError("Couldn't resolve '"+name+"' from load context", sLoc);
+					}
+					interp.stackPush( o );
 				} catch(IOException e) {
 					throw new RuntimeException(e);
 				}
@@ -285,7 +289,6 @@ public class NodeLoader
 		
 		final SolidNode[] snData = new SolidNode[dataSize];
 		final int w = dims[0], d = dims[1], h = dims[2];
-		System.err.println("w="+w+", h="+h+", d="+d+", dataSize="+dataSize);
 		for( int j=0, y=h-1; y>=0; --y ) for( int z=0; z<d; ++z ) for( int x=0; x<w; ++x, ++j ) {
 			snData[x+y*h+z*w*h] = getNode(String.valueOf(data[j]), context, new BaseSourceLocation(filename, dataLineNum, 0));
 		}

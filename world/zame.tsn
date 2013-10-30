@@ -1,0 +1,47 @@
+#?TEXT-SOLID-NODE
+=defs
+. = empty
+X = material
+
+=data +x+z-y 6x6x6
+XXX.XX
+.XX.XX
+.....X
+XXXX.X
+XXXX.X
+X....X
+
+XXX...
+XXXXXX
+..XXXX
+X...XX
+XXX.X.
+XXX.X.
+
+X.XXXX
+X.X...
+XXX.XX
+XXX.XX
+..X.X.
+X.X.XX
+
+XXX.XX
+X.X.X.
+XXXXX.
+.XXXX.
+.XXXXX
+..X.XX
+
+XXXX..
+X...XX
+XXX.XX
+..X.X.
+XXX.XX
+XXX.XX
+
+XXX...
+.XXXX.
+XXXXXX
+X.XXX.
+X.XXX.
+X.X...
