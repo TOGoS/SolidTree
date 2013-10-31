@@ -5,10 +5,46 @@
   - for interactive
   - command to export batch script
   
-- Batch scripts are like control scripts but render synchronously
+  Script commands:
+    dx dy dz move-camera
+    x y z set-camera-position
+    yaw set-camera-yaw
+    x y set-camera-resolution
+    projection-mode-name set-camera-projection
+    fov set-camera-fov-y # Defaults horizontal fov to w/h * fov-y
+    w h set-camera-aperture
+    d set-camera-focal-distance
+    auto-camera-focal-distance # Set focal distance to first opaque thing straight ahead
+    x y w h set-render-bounds
+    clear-render-bounds
+    "sequential"/"random" set-sample-mode
+    "quick"/"full" set-trace-mode
+    
+    node x0 y0 z0 x1 y1 z1 -> NodeRoot
+    node size make-scene-root-ncq -> NodeRoot
+    node-root set-scene-root
+    
+    reset-exposure # Resets all pixels to black with 0 samples taken
+    get-camera-snapshot -> HDRImage
+    
+    HDRImage scale apply-exposure! -> HDRImage
+    HDRImage gamma apply-gamma! -> HDRImage
+    HDRImage to-rgb -> BufferedImage
+    
+    HDRImage file write-chunky-dump
+    HDRImage file write-rgbe-data
+    
+    file write-camera-settings # Writes camera settings to file as a sequence of set-camera-... commands
+    
+    BufferedImage filename write-png
+    
+    filename dump-render-chunky
+  
+  Specific to batch mode:
+  
+    average-spp expose  # Run the renderer
 
-- Both control and batch scripts can initialize all scene variables
-  and export as another script.
+- Allow arbitrary camera direction
 
 - RGBE importer/exporter
   can use raw RGBE * w * h as file format; dimensions can be encoded in extension or guessed
