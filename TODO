@@ -19,6 +19,8 @@
     clear-render-bounds
     "sequential"/"random" set-sample-mode
     "quick"/"full" set-trace-mode
+    get-camera-settings -> Camera
+    Camera set-camera-settings 
     
     node x0 y0 z0 x1 y1 z1 -> NodeRoot
     node size make-scene-root-ncq -> NodeRoot
@@ -34,11 +36,16 @@
     HDRImage file write-chunky-dump
     HDRImage file write-rgbe-data
     
-    file write-camera-settings # Writes camera settings to file as a sequence of set-camera-... commands
+    CameraSettings file write-camera-settings # Writes camera settings to file as a sequence of set-camera-... commands
     
     BufferedImage filename write-png
     
     filename dump-render-chunky
+  
+  Interactive mode:
+  
+    show-exposure
+    BufferedImage show-image
   
   Specific to batch mode:
   
