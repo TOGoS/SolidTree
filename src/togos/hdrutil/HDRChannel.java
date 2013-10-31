@@ -1,4 +1,3 @@
-// Auto-generated; see Makefile.
 package togos.hdrutil;
 
 public class HDRChannel {
