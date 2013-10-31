@@ -1,5 +1,8 @@
 package togos.hdrutil;
 
+/**
+ * TODO: Remove because it's not useful AFAICT.
+ */
 public class HDRChannel {
 	public final float[] data;
 	

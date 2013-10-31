@@ -9,6 +9,8 @@ public class HDRExposure
 	public final HDRChannel r, g, b;
 	
 	public HDRExposure( int width, int height ) {
+		assert Util.dimensionsSane(width, height);
+		
 		this.e = new HDRChannel(width*height);
 		this.r = new HDRChannel(width*height);
 		this.g = new HDRChannel(width*height);
