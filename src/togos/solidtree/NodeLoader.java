@@ -291,7 +291,7 @@ public class NodeLoader
 		final SolidNode[] snData = new SolidNode[dataSize];
 		final int w = dims[0], d = dims[1], h = dims[2];
 		for( int j=0, y=h-1; y>=0; --y ) for( int z=0; z<d; ++z ) for( int x=0; x<w; ++x, ++j ) {
-			snData[x+y*h+z*w*h] = charNodes.get(String.valueOf(data[j]));
+			snData[x+y*w+z*w*h] = charNodes.get(String.valueOf(data[j]));
 		}
 		try {
 			return SolidNode.build(StandardMaterial.SPACE, w, h, d, snData);
