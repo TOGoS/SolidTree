@@ -1,0 +1,16 @@
+=defs
+. = empty
+material = ground
+g = multiply8x8z
+material = underground
+u = multiply8x8z
+
+=data +x+z-y 1x1x8
+.
+.
+.
+.
+g
+u
+u
+u
