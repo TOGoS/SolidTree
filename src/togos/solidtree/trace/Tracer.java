@@ -417,7 +417,8 @@ public class Tracer
 		return filterRed == 0 && filterGreen == 0 && filterBlue == 0;
 	}
 	
-	public int maxSteps = 256;
+	public int maxSteps = 4096;
+	public int maxQuickTraceSteps = 256;
 	public int maxBounces = 10;
 	
 	final Vector3D scratch = new Vector3D();
@@ -600,7 +601,7 @@ public class Tracer
 		
 		red = green = blue = (double)0.0;
 
-		for( int i=0; i<maxSteps; ++i ) {
+		for( int i=0; i<maxQuickTraceSteps; ++i ) {
 			if( !findNextIntersection( pos, direction, preIntersect, postIntersect ) ) {
 				direction.normalizeInPlace(1);
 				skySphere.getSkyColor(direction, scratch);
