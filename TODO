@@ -1,11 +1,4 @@
-- 'soft focus' rendering mode
-  - start sampling at lower resolution
-    - make N passes at this resolution
-    - increase resolution slowly and repeat until actual image resolution is reached
-  - optionally, start over at low resolution after making N passes at maximum resolution
-
-- +x+y+z mode for putting levels side-by-side
-  so that 8x8x8s can fit more nicely in an 80-column text file
+- Export camera direction
 
 - Control all aspects of scene via forth control script
   - for interactive
@@ -56,6 +49,15 @@
   Specific to batch mode:
   
     average-spp expose  # Run the renderer
+
+- 'soft focus' rendering mode
+  - start sampling at lower resolution
+    - make N passes at this resolution
+    - increase resolution slowly and repeat until actual image resolution is reached
+  - optionally, start over at low resolution after making N passes at maximum resolution
+
+- +x+y+z mode for putting levels side-by-side
+  so that 8x8x8s can fit more nicely in an 80-column text file
 
 - Allow arbitrary camera direction
 
