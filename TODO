@@ -8,7 +8,9 @@
     dx dy dz move-camera
     x y z set-camera-position
     yaw set-camera-yaw
-    x y set-camera-resolution
+    x y set-camera-resolution # should preserve current data if possible
+    double-camera-resolution
+    halve-camera-resolution
     projection-mode-name set-camera-projection
     fov set-camera-fov-y # Defaults horizontal fov to w/h * fov-y
     w h set-camera-aperture
@@ -50,11 +52,7 @@
   
     average-spp expose  # Run the renderer
 
-- 'soft focus' rendering mode
-  - start sampling at lower resolution
-    - make N passes at this resolution
-    - increase resolution slowly and repeat until actual image resolution is reached
-  - optionally, start over at low resolution after making N passes at maximum resolution
+- ctx:... within forth as shorthand for "..." ctx-get
 
 - +x+y+z mode for putting levels side-by-side
   so that 8x8x8s can fit more nicely in an 80-column text file

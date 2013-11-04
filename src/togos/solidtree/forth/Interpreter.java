@@ -1,5 +1,6 @@
 package togos.solidtree.forth;
 
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -102,5 +103,22 @@ public class Interpreter
 
 	public Object stackPeek() {
 		return stack.size() > 0 ? stack.get(stack.size()-1) : null;
+	}
+	
+	
+	//// Convenience methods for running scripts
+	
+	public void runScript( Reader scriptReader, String filename )
+		throws Exception
+	{
+		Tokenizer tokenizer = new Tokenizer(filename, 1, 1, 4, delegatingTokenHandler);
+		
+		char[] buf = new char[1024];
+		int i;
+		while( (i = scriptReader.read(buf)) > 0 ) {
+			tokenizer.handle(buf, i);
+		}
+		tokenizer.end();
+		scriptReader.close();		
 	}
 }

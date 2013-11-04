@@ -8,18 +8,22 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.ChunkyDump;
 import togos.hdrutil.HDRExposure;
 import togos.lang.BaseSourceLocation;
 import togos.lang.ScriptError;
+import togos.lang.SourceLocation;
 import togos.solidtree.NodeLoader;
 import togos.solidtree.NodeLoader.HashMapLoadContext;
 import togos.solidtree.NodeLoader.LoadContext;
 import togos.solidtree.NodeRoot;
 import togos.solidtree.SolidNode;
 import togos.solidtree.StandardMaterial;
+import togos.solidtree.forth.Interpreter;
+import togos.solidtree.forth.StandardWordDefinition;
 import togos.solidtree.trace.sky.AdditiveSkySphere;
 import togos.solidtree.trace.sky.RadialSkySphere;
 
@@ -33,8 +37,8 @@ public class TraceDemo
 	static class Camera {
 		public boolean preview = true;
 		public int imageWidth, imageHeight;
-		// TOOD: May eventually want to use quaternions instead of pitch/yaw/etc
 		public double x, y, z;
+		// TOOD: May eventually want to use quaternions instead of pitch/yaw/etc
 		public double yaw, pitch, roll;
 		public Projection projection;
 		public HDRExposure exp;
@@ -69,6 +73,18 @@ public class TraceDemo
 		File f;
 		for( int i=0; (f = new File(prefix+i+suffix)).exists(); ++i );
 		return f;
+	}
+	
+	protected static String cameraPositionScript( Camera c ) {
+		return
+			c.x + " " + c.y + " " + c.z + " set-camera position " +
+			c.yaw + " set-camera-yaw " +
+			c.pitch + " set-camera-pitch " +
+			c.roll + " set-camera-roll ";
+	}
+	
+	protected static void dumpCameraPosition( Camera c ) {
+		System.err.println(cameraPositionScript(c));
 	}
 	
 	public static void main( String[] args ) throws Exception {
@@ -128,6 +144,53 @@ public class TraceDemo
 		}
 		adj.setPreferredSize( new Dimension(scaledWidth + 32, scaledHeight + 32) );
 		
+		Thread commandReader = new Thread("interactive command reader") {
+			@Override public void run() {
+				while(true) {
+					try {
+						Interpreter interp = new Interpreter();
+						interp.wordDefinitions.put("set-camera-position", new StandardWordDefinition() {
+							@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+								Number z = interp.stackPop(Number.class, sLoc);
+								Number y = interp.stackPop(Number.class, sLoc);
+								Number x = interp.stackPop(Number.class, sLoc);
+								cam.x = x.doubleValue();
+								cam.y = y.doubleValue();
+								cam.z = z.doubleValue();
+								tii.set( TracerInstruction.RESET );
+								dumpCameraPosition(cam);
+							}
+						});
+						interp.wordDefinitions.put("set-camera-yaw", new StandardWordDefinition() {
+							@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+								cam.yaw = interp.stackPop(Number.class, sLoc).doubleValue();
+								tii.set( TracerInstruction.RESET );
+								dumpCameraPosition(cam);
+							}
+						});
+						interp.wordDefinitions.put("set-camera-pitch", new StandardWordDefinition() {
+							@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+								cam.pitch = interp.stackPop(Number.class, sLoc).doubleValue();
+								tii.set( TracerInstruction.RESET );
+								dumpCameraPosition(cam);
+							}
+						});
+						interp.wordDefinitions.put("set-camera-roll", new StandardWordDefinition() {
+							@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+								cam.roll = interp.stackPop(Number.class, sLoc).doubleValue();
+								tii.set( TracerInstruction.RESET );
+								dumpCameraPosition(cam);
+							}
+						});
+						interp.runScript(new InputStreamReader(System.in), "console");
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		};
+		commandReader.start();
+		
 		adj.addKeyListener(new KeyAdapter() {
 			@Override public void keyPressed( KeyEvent kevt ) {
 				double dir = 1;
@@ -154,15 +217,15 @@ public class TraceDemo
 					cam.preview ^= true;
 					tii.set( TracerInstruction.RESET );
 					break;
+				
+				// Camera movement
+				case KeyEvent.VK_END:
+					dir = -1;
 				case KeyEvent.VK_HOME:
 					cam.x += dir * movedist * Math.cos(cam.yaw);
 					cam.z -= dir * movedist * Math.sin(cam.yaw);
 					tii.set( TracerInstruction.RESET );
-					break;
-				case KeyEvent.VK_END:
-					cam.x -= dir * movedist * Math.cos(cam.yaw);
-					cam.z += dir * movedist * Math.sin(cam.yaw);
-					tii.set( TracerInstruction.RESET );
+					dumpCameraPosition(cam);
 					break;
 				case KeyEvent.VK_DOWN:
 					dir = -1;
@@ -170,22 +233,21 @@ public class TraceDemo
 					cam.x += dir * movedist * Math.sin(cam.yaw);
 					cam.z += dir * movedist * Math.cos(cam.yaw);
 					tii.set( TracerInstruction.RESET );
+					dumpCameraPosition(cam);
 					break;
+				case KeyEvent.VK_PAGE_DOWN:
+					dir = -1;
 				case KeyEvent.VK_PAGE_UP:
 					cam.y += movedist * dir;
 					tii.set( TracerInstruction.RESET );
-					break;
-				case KeyEvent.VK_PAGE_DOWN:
-					cam.y -= movedist * dir;
-					tii.set( TracerInstruction.RESET );
-					break;
-				case KeyEvent.VK_LEFT:
-					cam.yaw += movedist * Math.PI / 16;
-					tii.set( TracerInstruction.RESET );
+					dumpCameraPosition(cam);
 					break;
 				case KeyEvent.VK_RIGHT:
-					cam.yaw -= movedist * Math.PI / 16;
+					dir = -1;
+				case KeyEvent.VK_LEFT:
+					cam.yaw += dir * movedist * Math.PI / 16;
 					tii.set( TracerInstruction.RESET );
+					dumpCameraPosition(cam);
 					break;
 				}
 			}

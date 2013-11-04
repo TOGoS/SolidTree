@@ -14,7 +14,6 @@ import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
 import togos.solidtree.forth.Interpreter;
 import togos.solidtree.forth.StandardWordDefinition;
-import togos.solidtree.forth.Tokenizer;
 import togos.solidtree.forth.procedure.NodeProcedures;
 
 public class NodeLoader
@@ -101,23 +100,17 @@ public class NodeLoader
 	}
 	
 	protected void runScript( Interpreter interp, File f ) throws IOException, ScriptError {
-		Tokenizer tokenizer = new Tokenizer(f.getPath(), 1, 1, 4, interp.delegatingTokenHandler);
-		
+		FileReader scriptReader = new FileReader(f);
 		try {
-			FileReader scriptReader = new FileReader(f);
-			char[] buf = new char[1024];
-			int i;
-			while( (i = scriptReader.read(buf)) > 0 ) {
-				tokenizer.handle(buf, i);
-			}
-			tokenizer.end();
-			scriptReader.close();
+			interp.runScript(scriptReader, f.getName());
 		} catch( ScriptError e ) {
 			throw e;
 		} catch( IOException e ) {
 			throw e;
 		} catch( Exception e ) {
 			throw new RuntimeException(e);
+		} finally {
+			scriptReader.close();
 		}
 	}
 	
