@@ -215,7 +215,7 @@ public class TraceDemo
 		long prevTime = startTime;
 		double samplesPerSecond = 0;
 		int sx = 0, sy = 0;
-		HDRExposure exp = null;
+		HDRExposure exp = cam.getExposure();
 		tii.set( TracerInstruction.RESET );
 		while( true ) {
 			TracerInstruction ti = tii.set( TracerInstruction.CONTINUE );

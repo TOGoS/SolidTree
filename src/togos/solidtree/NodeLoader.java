@@ -271,6 +271,9 @@ public class NodeLoader
 			}
 		}
 		
+		if( data == null && context.get("value") != null ) return context.get("value");
+		if( data == null ) throw new ScriptError("No data given", new BaseSourceLocation(filename, lineNum, 0));
+		
 		// Cache all unique nodes here,
 		// Otherwise getNode could return a different one for each cell,
 		// even when the character's the same.
@@ -282,9 +285,6 @@ public class NodeLoader
 			}
 		}
 		
-		if( data == null && context.get("value") != null ) return context.get("value");
-		
-		if( data == null ) throw new ScriptError("No data given", new BaseSourceLocation(filename, lineNum, 0));
 		if( dataSize == 0 ) throw new ScriptError("Zero-sized node", new BaseSourceLocation(filename, lineNum, 0));
 		if( dataSize == 1 ) return getNode(String.valueOf(data[0]), context, new BaseSourceLocation(filename, dataLineNum, 0));
 		
