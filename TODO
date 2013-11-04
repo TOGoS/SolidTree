@@ -1,3 +1,9 @@
+- 'soft focus' rendering mode
+  - start sampling at lower resolution
+    - make N passes at this resolution
+    - increase resolution slowly and repeat until actual image resolution is reached
+  - optionally, start over at low resolution after making N passes at maximum resolution
+
 - +x+y+z mode for putting levels side-by-side
   so that 8x8x8s can fit more nicely in an 80-column text file
 
@@ -63,6 +69,9 @@
   store as 6-square-image vertical strip
   - export!
   - import!
+
+- Sky spheres
+  - Like sky boxes, but using a spherical projection that spaces samples more evenly
 
 - Generate hilly terrain (use noise3 library from TMCMG!)
 

@@ -13,7 +13,9 @@ k = noise512
 ^ = pyramid
 | = window-ew
 - = window-ns
-g = grass
+d = dirt
+material = sparse-grass
+g = bottomify8x8x8
 r = tree-trunk
 c = brick
 [ = potted-tree-top
@@ -66,23 +68,23 @@ c = brick
 lbb--bbl
 .lllllll
 
-llll.l..
-lbbbbbb.
+llllglgg
+lbbbbbbg
 tbbbbbbl
 tbbbbbbl
 tbbbbbbt
 tbbbbbbl
 tbbbbbbl
-ll..ll..
+llggllgg
 
-gggggggg
-gggggggg
-gggggggg
-gggggggg
-gggggggg
-gggggggg
-gggggggg
-gggggggg
+dddddddd
+dddddddd
+dddddddd
+dddddddd
+dddddddd
+dddddddd
+dddddddd
+dddddddd
 
 cccccccc
 cccccccc

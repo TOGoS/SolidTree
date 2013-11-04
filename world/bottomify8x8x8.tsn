@@ -1,0 +1,13 @@
+=defs
+. = empty
+b = multiply8x8z
+
+=data +x+z-y 1x1x8
+.
+.
+.
+.
+.
+.
+.
+b

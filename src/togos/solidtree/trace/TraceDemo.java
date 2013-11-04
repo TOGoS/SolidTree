@@ -96,9 +96,11 @@ public class TraceDemo
 			throw new ScriptError("Script returned neither a SolidNode nor a NodeRoot, but a "+_root.getClass().getName(), BaseSourceLocation.NONE);
 		}
 		
+		double sunintensity = 100;
+		
 		t.setRoot( root );
 		t.skySphere = new AdditiveSkySphere(
-			new RadialSkySphere(0, Math.sin(Math.PI/8), Math.cos(Math.PI/8), 8, 8, 7, 6)
+			new RadialSkySphere(0, Math.sin(Math.PI/8), Math.cos(Math.PI/8), 16, 1*sunintensity, 0.9*sunintensity, 0.8*sunintensity)
 			// new RadialSkySphere(0, Math.sin(Math.PI/4)*0.8, Math.cos(Math.PI/4)*0.8, 1, 0.2, 0.2, 0.5),
 			// new RadialSkySphere(0, Math.sin(Math.PI/4)*0.8, Math.cos(Math.PI/4)*0.8, 5, 2.0, 2.0, 2.0),
 			// new CrappySkySphere()

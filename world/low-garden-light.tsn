@@ -1,0 +1,16 @@
+=defs
+g = glass
+p = black-plastic
+i = light
+=data +x+z-y 3x3x3
+ppp
+ppp
+ppp
+
+ggg
+gig
+ggg
+
+ppp
+ppp
+ppp
