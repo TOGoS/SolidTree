@@ -14,7 +14,7 @@ import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
 import togos.solidtree.forth.Interpreter;
 import togos.solidtree.forth.StandardWordDefinition;
-import togos.solidtree.forth.procedure.NodeProcedures;
+import togos.solidtree.forth.procedure.SafeProcedures;
 
 public class NodeLoader
 {
@@ -118,7 +118,7 @@ public class NodeLoader
 		final HashMapLoadContext<Object> ctx = new HashMapLoadContext<Object>(parentContext);
 		
 		Interpreter interp = new Interpreter();
-		NodeProcedures.register(interp.wordDefinitions);
+		SafeProcedures.register(interp.wordDefinitions);
 		interp.wordDefinitions.put("include", new StandardWordDefinition() {
 			@Override
 			public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {

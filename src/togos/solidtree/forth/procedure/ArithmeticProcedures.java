@@ -10,30 +10,47 @@ import togos.solidtree.forth.WordDefinition;
 
 public class ArithmeticProcedures
 {
-	protected static boolean isInteger( Number a ) {
-		return a instanceof Byte || a instanceof Short || a instanceof Integer || a instanceof Long;
-	}
-	protected static boolean useIntegerMath( Number a, Number b ) {
-		return isInteger(a) && isInteger(b);
-	}
-	
-	protected static Number add( Number a, Number b ) {
-		if( useIntegerMath(a, b) ) {
-			return Long.valueOf(a.longValue() + b.longValue());
-		} else {
-			return Double.valueOf(a.doubleValue() + b.doubleValue());
-		}
-	}
-	
 	public static StandardWordDefinition ADD = new StandardWordDefinition() {
 		@Override public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
-			interp.stackPush(
-				add( interp.stackPop( Number.class, sLoc ), interp.stackPop( Number.class, sLoc ) )
-			);
+			double b = interp.stackPop(Number.class, sLoc).doubleValue();
+			double a = interp.stackPop(Number.class, sLoc).doubleValue();
+			interp.stackPush( a + b );
+		}
+	};
+	public static StandardWordDefinition SUBTRACT = new StandardWordDefinition() {
+		@Override public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
+			double b = interp.stackPop(Number.class, sLoc).doubleValue();
+			double a = interp.stackPop(Number.class, sLoc).doubleValue();
+			interp.stackPush( a - b );
+		}
+	};
+	public static StandardWordDefinition MULTIPLY = new StandardWordDefinition() {
+		@Override public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
+			double b = interp.stackPop(Number.class, sLoc).doubleValue();
+			double a = interp.stackPop(Number.class, sLoc).doubleValue();
+			interp.stackPush( a * b );
+		}
+	};
+	public static StandardWordDefinition DIVIDE = new StandardWordDefinition() {
+		@Override public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
+			double b = interp.stackPop(Number.class, sLoc).doubleValue();
+			double a = interp.stackPop(Number.class, sLoc).doubleValue();
+			interp.stackPush( a / b );
+		}
+	};
+	public static StandardWordDefinition EXPONENTIATE = new StandardWordDefinition() {
+		@Override public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
+			double b = interp.stackPop(Number.class, sLoc).doubleValue();
+			double a = interp.stackPop(Number.class, sLoc).doubleValue();
+			interp.stackPush( Math.pow(a, b) );
 		}
 	};
 	
 	public static void register( Map<String,? super WordDefinition> ctx ) {
 		ctx.put("+", ADD);
+		ctx.put("-", SUBTRACT);
+		ctx.put("*", MULTIPLY);
+		ctx.put("/", DIVIDE);
+		ctx.put("**", EXPONENTIATE);
 	}
 }

@@ -28,7 +28,7 @@
     node-root set-scene-root
     
     reset-exposure # Resets all pixels to black with 0 samples taken
-    get-camera-snapshot -> HDRImage
+    get-image-snapshot -> HDRImage
     
     HDRImage scale apply-exposure! -> HDRImage
     HDRImage gamma apply-gamma! -> HDRImage
@@ -53,6 +53,11 @@
     average-spp expose  # Run the renderer
 
 - ctx:... within forth as shorthand for "..." ctx-get
+
+- For animations, give camera position (maybe other things) as function of time
+  Frame is an interval.
+  Pick t within the interval for each batch of pixels.
+  Automatic motion blur!
 
 - +x+y+z mode for putting levels side-by-side
   so that 8x8x8s can fit more nicely in an 80-column text file

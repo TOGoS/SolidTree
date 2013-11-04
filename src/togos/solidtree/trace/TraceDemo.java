@@ -8,7 +8,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.ChunkyDump;
@@ -23,7 +22,9 @@ import togos.solidtree.NodeRoot;
 import togos.solidtree.SolidNode;
 import togos.solidtree.StandardMaterial;
 import togos.solidtree.forth.Interpreter;
+import togos.solidtree.forth.REPL;
 import togos.solidtree.forth.StandardWordDefinition;
+import togos.solidtree.forth.procedure.SafeProcedures;
 import togos.solidtree.trace.sky.AdditiveSkySphere;
 import togos.solidtree.trace.sky.RadialSkySphere;
 
@@ -77,7 +78,7 @@ public class TraceDemo
 	
 	protected static String cameraPositionScript( Camera c ) {
 		return
-			c.x + " " + c.y + " " + c.z + " set-camera position " +
+			c.x + " " + c.y + " " + c.z + " set-camera-position " +
 			c.yaw + " set-camera-yaw " +
 			c.pitch + " set-camera-pitch " +
 			c.roll + " set-camera-roll ";
@@ -146,47 +147,57 @@ public class TraceDemo
 		
 		Thread commandReader = new Thread("interactive command reader") {
 			@Override public void run() {
-				while(true) {
+				REPL repl = new REPL();
+				SafeProcedures.register(repl.interp.wordDefinitions);
+				repl.registerReplWords();
+				// TODO: extract to a 'scene' object with registerSceneWords(...)
+				repl.interp.wordDefinitions.put("print-camera-position", new StandardWordDefinition() {
+					@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+						dumpCameraPosition(cam);
+					}
+				});
+				repl.interp.wordDefinitions.put("set-camera-position", new StandardWordDefinition() {
+					@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+						Number z = interp.stackPop(Number.class, sLoc);
+						Number y = interp.stackPop(Number.class, sLoc);
+						Number x = interp.stackPop(Number.class, sLoc);
+						cam.x = x.doubleValue();
+						cam.y = y.doubleValue();
+						cam.z = z.doubleValue();
+						tii.set( TracerInstruction.RESET );
+						dumpCameraPosition(cam);
+					}
+				});
+				repl.interp.wordDefinitions.put("set-camera-yaw", new StandardWordDefinition() {
+					@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+						cam.yaw = interp.stackPop(Number.class, sLoc).doubleValue();
+						tii.set( TracerInstruction.RESET );
+						dumpCameraPosition(cam);
+					}
+				});
+				repl.interp.wordDefinitions.put("set-camera-pitch", new StandardWordDefinition() {
+					@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+						cam.pitch = interp.stackPop(Number.class, sLoc).doubleValue();
+						tii.set( TracerInstruction.RESET );
+						dumpCameraPosition(cam);
+					}
+				});
+				repl.interp.wordDefinitions.put("set-camera-roll", new StandardWordDefinition() {
+					@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+						cam.roll = interp.stackPop(Number.class, sLoc).doubleValue();
+						tii.set( TracerInstruction.RESET );
+						dumpCameraPosition(cam);
+					}
+				});
+				while( repl.run ) {
 					try {
-						Interpreter interp = new Interpreter();
-						interp.wordDefinitions.put("set-camera-position", new StandardWordDefinition() {
-							@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
-								Number z = interp.stackPop(Number.class, sLoc);
-								Number y = interp.stackPop(Number.class, sLoc);
-								Number x = interp.stackPop(Number.class, sLoc);
-								cam.x = x.doubleValue();
-								cam.y = y.doubleValue();
-								cam.z = z.doubleValue();
-								tii.set( TracerInstruction.RESET );
-								dumpCameraPosition(cam);
-							}
-						});
-						interp.wordDefinitions.put("set-camera-yaw", new StandardWordDefinition() {
-							@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
-								cam.yaw = interp.stackPop(Number.class, sLoc).doubleValue();
-								tii.set( TracerInstruction.RESET );
-								dumpCameraPosition(cam);
-							}
-						});
-						interp.wordDefinitions.put("set-camera-pitch", new StandardWordDefinition() {
-							@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
-								cam.pitch = interp.stackPop(Number.class, sLoc).doubleValue();
-								tii.set( TracerInstruction.RESET );
-								dumpCameraPosition(cam);
-							}
-						});
-						interp.wordDefinitions.put("set-camera-roll", new StandardWordDefinition() {
-							@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
-								cam.roll = interp.stackPop(Number.class, sLoc).doubleValue();
-								tii.set( TracerInstruction.RESET );
-								dumpCameraPosition(cam);
-							}
-						});
-						interp.runScript(new InputStreamReader(System.in), "console");
+						repl.run();
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
+				System.err.println("REPL Exited.  Exiting program.");
+				System.exit(0);
 			}
 		};
 		commandReader.start();
