@@ -1,4 +1,4 @@
-package togos.solidtree.trace;
+package togos.solidtree.matrix;
 
 public final class Vector3D {
 	public double x, y, z;

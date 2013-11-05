@@ -9,6 +9,8 @@ import togos.solidtree.SurfaceMaterial;
 import togos.solidtree.SurfaceMaterialLayer;
 import togos.solidtree.SimplexNoise;
 import togos.solidtree.SolidNode;
+import togos.solidtree.matrix.Vector3D;
+import togos.solidtree.matrix.VectorMath;
 import togos.solidtree.trace.sky.CrappySkySphere;
 import togos.solidtree.trace.sky.SkySphere;
 
@@ -595,6 +597,10 @@ public class Tracer
 		}
 	}
 	
+	public void trace( Vector3D o, Vector3D d ) {
+		trace( o.x, o.y, o.z, d.x, d.y, d.z );
+	}
+	
 	public void quickTrace( double x, double y, double z, double dx, double dy, double dz ) {
 		setPosition( x, y, z );
 		setDirection( dx, dy, dz );
@@ -625,5 +631,11 @@ public class Tracer
 				return;
 			}
 		}
+	}
+	
+	// TODO: Change so there is only one public trace method per signature
+	// and a trace mode property.
+	public void quickTrace( Vector3D o, Vector3D d ) {
+		quickTrace( o.x, o.y, o.z, d.x, d.y, d.z );
 	}
 }

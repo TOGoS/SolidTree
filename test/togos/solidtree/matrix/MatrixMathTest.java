@@ -9,15 +9,15 @@ public class MatrixMathTest extends TestCase
 		Matrix v = new Matrix(4,1);
 		Matrix d = new Matrix(4,1);
 		
-		m.set(0,0,3);
-		m.set(1,0,2);
-		m.set(2,0,1);
-		m.set(3,3,1);
+		m.put(0,0,3);
+		m.put(1,0,2);
+		m.put(2,0,1);
+		m.put(3,3,1);
 		
-		v.set(0,0,1);
-		v.set(1,0,0);
-		v.set(2,0,0);
-		v.set(3,0,1);
+		v.put(0,0,1);
+		v.put(1,0,0);
+		v.put(2,0,0);
+		v.put(3,0,1);
 		
 		MatrixMath.multiply(m, v, d);
 		

@@ -25,6 +25,9 @@ import togos.solidtree.forth.Interpreter;
 import togos.solidtree.forth.REPL;
 import togos.solidtree.forth.StandardWordDefinition;
 import togos.solidtree.forth.procedure.SafeProcedures;
+import togos.solidtree.matrix.Matrix;
+import togos.solidtree.matrix.MatrixMath;
+import togos.solidtree.matrix.Vector3D;
 import togos.solidtree.trace.sky.AdditiveSkySphere;
 import togos.solidtree.trace.sky.RadialSkySphere;
 
@@ -127,9 +130,9 @@ public class TraceDemo
 		cam.imageWidth = 384;
 		cam.imageHeight = 192;
 		cam.x = 0;
-		cam.y = 0;
+		cam.y = -1127;
 		cam.z = 0;
-		cam.yaw = 0;//Math.PI/8;
+		cam.yaw = Math.PI/8;
 		final double fovY = (double)(Math.PI*0.3); 
 		cam.projection = new FisheyeProjection(fovY*cam.imageWidth/cam.imageHeight, fovY);
 		// cam.projection = new ApertureProjection( cam.projection, 0.05, 4 );
@@ -233,16 +236,16 @@ public class TraceDemo
 				case KeyEvent.VK_END:
 					dir = -1;
 				case KeyEvent.VK_HOME:
-					cam.x += dir * movedist * Math.cos(cam.yaw);
-					cam.z -= dir * movedist * Math.sin(cam.yaw);
+					cam.x += dir * movedist * Math.cos(-cam.yaw);
+					cam.z -= dir * movedist * Math.sin(-cam.yaw);
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
 					break;
 				case KeyEvent.VK_DOWN:
 					dir = -1;
 				case KeyEvent.VK_UP:
-					cam.x += dir * movedist * Math.sin(cam.yaw);
-					cam.z += dir * movedist * Math.cos(cam.yaw);
+					cam.x += dir * movedist * Math.sin(-cam.yaw);
+					cam.z += dir * movedist * Math.cos(-cam.yaw);
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
 					break;
@@ -253,9 +256,9 @@ public class TraceDemo
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
 					break;
-				case KeyEvent.VK_RIGHT:
-					dir = -1;
 				case KeyEvent.VK_LEFT:
+					dir = -1;
+				case KeyEvent.VK_RIGHT:
 					cam.yaw += dir * movedist * Math.PI / 16;
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
@@ -281,6 +284,16 @@ public class TraceDemo
 		double[] screenX = new double[1024], screenY = new double[1024];
 		double[] camPosX = new double[1024], camPosY = new double[1024], camPosZ = new double[1024];
 		double[] camDirX = new double[1024], camDirY = new double[1024], camDirZ = new double[1024];
+		
+		Matrix cameraTranslation = new Matrix(4,4);
+		Matrix cameraRotation = new Matrix(4,4);
+		Matrix cameraTransform = new Matrix(4,4);
+		Matrix scratchA = new Matrix(4,4);
+		Matrix scratchB = new Matrix(4,4);
+		Vector3D pixelOffset = new Vector3D();
+		Vector3D pixelDirection = new Vector3D();
+		Vector3D rayOffset = new Vector3D();
+		Vector3D rayDirection = new Vector3D();
 		
 		long startTime = System.currentTimeMillis();
 		long samplesTaken = 0;
@@ -322,31 +335,26 @@ public class TraceDemo
 				if( sy >= exp.height ) sy = 0;
 			}
 			
+			// pixel transform matrix = camera matrix * projection matrix(pixel x, y)
+			// position vector  = pixel transform matrix * [0,0,0,1]
+			// direction vector = pixel transform matrix * [0,0,1,1]
+			
+			MatrixMath.yawPitchRoll( cam.yaw, cam.pitch, cam.roll, scratchA, scratchB, cameraRotation );
+			MatrixMath.translation( cam.x, cam.y, cam.z, cameraTranslation );
+			MatrixMath.multiply( cameraTranslation, cameraRotation, cameraTransform );
+			
 			cam.projection.project(vectorSize, screenX, screenY, camPosX, camPosY, camPosZ, camDirX, camDirY, camDirZ);
 			
 			for( int j=0; j<vectorSize; ++j ) {
-				camPosX[j] += cam.x;
-				camPosY[j] += cam.y;
-				camPosZ[j] += cam.z;
-				
-				double sinYaw = Math.sin(cam.yaw);
-				double cosYaw = Math.cos(cam.yaw);
-				
-				double cdx = camDirX[j];
-				double cdz = camDirZ[j];
-				camDirX[j] = cosYaw*cdx + sinYaw*cdz;  
-				camDirZ[j] = cosYaw*cdz - sinYaw*cdx;
+				pixelOffset.set(camPosX[j], camPosY[j], camPosZ[j]);
+				pixelDirection.set(camDirX[j], camDirY[j], camDirZ[j]);
+				MatrixMath.multiply( cameraTransform, pixelOffset, rayOffset );
+				MatrixMath.multiply( cameraRotation, pixelDirection, rayDirection );
 				
 				if( cam.preview ) {
-					t.quickTrace(
-						camPosX[j], camPosY[j], camPosZ[j],
-						camDirX[j], camDirY[j], camDirZ[j]
-					);
+					t.quickTrace( rayOffset, rayDirection );
 				} else {
-					t.trace(
-						camPosX[j], camPosY[j], camPosZ[j],
-						camDirX[j], camDirY[j], camDirZ[j]
-					);
+					t.trace( rayOffset, rayDirection );
 				}
 				
 				int pixelX = (int)((screenX[j]+0.5)*exp.width);

@@ -60,8 +60,6 @@
 - +x+y+z mode for putting levels side-by-side
   so that 8x8x8s can fit more nicely in an 80-column text file
 
-- Allow arbitrary camera direction
-
 - RGBE importer/exporter
   can use raw RGBE * w * h as file format; dimensions can be encoded in extension or guessed
   based on context

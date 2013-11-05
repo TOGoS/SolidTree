@@ -1,4 +1,4 @@
-package togos.solidtree.trace;
+package togos.solidtree.matrix;
 
 
 public class VectorMath
