@@ -1,5 +1,6 @@
 package togos.solidtree.trace.sky;
 
+import togos.solidtree.DColor;
 import togos.solidtree.matrix.Vector3D;
 
 public class AdditiveSkySphere implements SkySphere
@@ -10,12 +11,12 @@ public class AdditiveSkySphere implements SkySphere
 		this.components = components;
 	}
 	
-	@Override public void getSkyColor(Vector3D direction, Vector3D color) {
+	@Override public void getSkyColor(Vector3D direction, DColor color) {
 		double r = 0, g = 0, b = 0;
 		for( SkySphere s : components ) {
 			s.getSkyColor(direction, color);
-			r += color.x; g += color.y; b += color.z;
+			r += color.r; g += color.g; b += color.b;
 		}
-		color.x = r; color.y = g; color.z = b; 
+		color.r = r; color.g = g; color.b = b;
 	}
 }

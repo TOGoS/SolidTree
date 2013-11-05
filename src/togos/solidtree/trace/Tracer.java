@@ -506,6 +506,8 @@ public class Tracer
 		return add;
 	}
 	
+	DColor skyColor = new DColor(0,0,0);
+	
 	public void trace( double x, double y, double z, double dx, double dy, double dz ) {
 		setPosition( x, y, z );
 		setDirection( dx, dy, dz );
@@ -519,10 +521,10 @@ public class Tracer
 			
 			if( !findNextIntersection( pos, direction, preIntersect, postIntersect ) ) {
 				direction.normalizeInPlace(1);
-				skySphere.getSkyColor(direction, scratch);
-				red   += filterRed   * scratch.x;
-				green += filterGreen * scratch.y;
-				blue  += filterBlue  * scratch.z;
+				skySphere.getSkyColor(direction, skyColor);
+				red   += filterRed   * skyColor.r;
+				green += filterGreen * skyColor.g;
+				blue  += filterBlue  * skyColor.b;
 				return;
 			}
 			
@@ -610,10 +612,10 @@ public class Tracer
 		for( int i=0; i<maxQuickTraceSteps; ++i ) {
 			if( !findNextIntersection( pos, direction, preIntersect, postIntersect ) ) {
 				direction.normalizeInPlace(1);
-				skySphere.getSkyColor(direction, scratch);
-				red   = scratch.x;
-				green = scratch.y;
-				blue  = scratch.z;
+				skySphere.getSkyColor(direction, skyColor);
+				red   = skyColor.r;
+				green = skyColor.g;
+				blue  = skyColor.b;
 				return;
 			}
 			setPosition(postIntersect);

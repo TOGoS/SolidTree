@@ -1,5 +1,6 @@
 package togos.solidtree.trace.sky;
 
+import togos.solidtree.DColor;
 import togos.solidtree.matrix.Vector3D;
 
 
@@ -12,7 +13,7 @@ public class CrappySkySphere
 		return min > v ? min : v < max ? v : max;
 	}
 	
-	@Override public void getSkyColor(Vector3D direction, Vector3D color) {
+	@Override public void getSkyColor(Vector3D direction, DColor color) {
 		double r, g, b;
 		if( direction.y < 0 ) {
 			// r = g = b = 0;

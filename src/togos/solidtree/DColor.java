@@ -7,8 +7,13 @@ public class DColor
 	public static final DColor BLACK = new DColor(0,0,0);
 	public static final DColor WHITE = new DColor(1,1,1);
 	
-	public final double r, g, b;
+	public double r, g, b;
+	
 	public DColor( double r, double g, double b ) {
+		set(r,g,b);
+	}
+	
+	public final void set( double r, double g, double b ) {
 		this.r = r;
 		this.g = g;
 		this.b = b;
