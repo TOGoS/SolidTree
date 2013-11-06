@@ -9,7 +9,7 @@ import togos.solidtree.trace.RenderResultChannel;
 public class RenderTask
 {
 	/** How many data points are we generating? */
-	public final int vectorSize;
+	public final int imageDataSize;
 	/** What are we drawing? */
 	public final NodeRoot nodeRoot;
 	/**
@@ -22,12 +22,12 @@ public class RenderTask
 	public final Set<RenderResultChannel> channels;
 	
 	public RenderTask(
-		int vectorSize,
+		int imageDataSize,
 		NodeRoot nodeRoot,
 		Iterator<PixelRayIterator> pixelRayIteratorIterator,
 		Set<RenderResultChannel> channels
 	) {
-		this.vectorSize = vectorSize;
+		this.imageDataSize = imageDataSize;
 		this.nodeRoot = nodeRoot;
 		this.pixelRayIteratorIterator = pixelRayIteratorIterator;
 		this.channels = channels;

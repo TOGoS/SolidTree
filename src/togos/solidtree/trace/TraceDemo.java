@@ -8,6 +8,9 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.ChunkyDump;
@@ -28,17 +31,16 @@ import togos.solidtree.forth.StandardWordDefinition;
 import togos.solidtree.forth.procedure.SafeProcedures;
 import togos.solidtree.matrix.Matrix;
 import togos.solidtree.matrix.MatrixMath;
-import togos.solidtree.matrix.Vector3D;
-import togos.solidtree.trace.sky.AdditiveSkySphere;
-import togos.solidtree.trace.sky.RadialSkySphere;
+import togos.solidtree.trace.job.InfiniteIterator;
+import togos.solidtree.trace.job.LocalRenderServer;
+import togos.solidtree.trace.job.PixelRayIterator;
+import togos.solidtree.trace.job.RenderServer;
+import togos.solidtree.trace.job.RenderTask;
+import togos.solidtree.trace.job.RenderWorker;
+import togos.solidtree.trace.job.XYOrderedPixelRayIterator;
 
 public class TraceDemo
 {
-	enum SampleMethod {
-		LINE,
-		RANDOM
-	}
-	
 	static class Camera {
 		public boolean preview = true;
 		public int imageWidth, imageHeight;
@@ -116,9 +118,7 @@ public class TraceDemo
 	public static void main( String[] args ) throws Exception {
 		final String renderDir = "renders";
 		final String sceneName = "testrender"+System.currentTimeMillis(); 
-		SampleMethod sampleMethod = SampleMethod.RANDOM;
 		
-		Tracer t = new Tracer();
 		final Interrupt<TracerInstruction> tii = new Interrupt<TracerInstruction>();
 		
 		System.err.println("Building world...");
@@ -137,16 +137,6 @@ public class TraceDemo
 		} else {
 			throw new ScriptError("Script returned neither a SolidNode nor a NodeRoot, but a "+_root.getClass().getName(), BaseSourceLocation.NONE);
 		}
-		
-		double sunintensity = 100;
-		
-		t.setRoot( root );
-		t.skySphere = new AdditiveSkySphere(
-			new RadialSkySphere(0, Math.sin(Math.PI/8), Math.cos(Math.PI/8), 16, 1*sunintensity, 0.9*sunintensity, 0.8*sunintensity)
-			// new RadialSkySphere(0, Math.sin(Math.PI/4)*0.8, Math.cos(Math.PI/4)*0.8, 1, 0.2, 0.2, 0.5),
-			// new RadialSkySphere(0, Math.sin(Math.PI/4)*0.8, Math.cos(Math.PI/4)*0.8, 5, 2.0, 2.0, 2.0),
-			// new CrappySkySphere()
-		);
 		
 		final Camera cam = new Camera();
 		cam.imageWidth = 96;
@@ -359,37 +349,32 @@ public class TraceDemo
 		});
 		f.setVisible(true);
 		adj.requestFocus();
-		
-		int vectorSize = 1024;
-		
-		double[] screenX = new double[1024], screenY = new double[1024];
-		double[] camPosX = new double[1024], camPosY = new double[1024], camPosZ = new double[1024];
-		double[] camDirX = new double[1024], camDirY = new double[1024], camDirZ = new double[1024];
-		
+				
 		Matrix cameraTranslation = new Matrix(4,4);
 		Matrix cameraRotation = new Matrix(4,4);
-		Matrix cameraTransform = new Matrix(4,4);
+		final Matrix cameraTransform = new Matrix(4,4);
 		Matrix scratchA = new Matrix(4,4);
 		Matrix scratchB = new Matrix(4,4);
-		Vector3D pixelOffset = new Vector3D();
-		Vector3D pixelDirection = new Vector3D();
-		Vector3D rayOffset = new Vector3D();
-		Vector3D rayDirection = new Vector3D();
+		
+		final Set<RenderResultChannel> desiredChannels = new HashSet<RenderResultChannel>();
+		desiredChannels.add(RenderResultChannel.RED);
+		desiredChannels.add(RenderResultChannel.GREEN);
+		desiredChannels.add(RenderResultChannel.BLUE);
+		desiredChannels.add(RenderResultChannel.EXPOSURE);
+		
+		final RenderServer renderServer = new LocalRenderServer();
 		
 		long startTime = System.currentTimeMillis();
+		long prevTime = startTime-1;
 		long samplesTaken = 0;
-		long samplesTakenAtLastUpdate = 0;
-		long prevTime = startTime;
 		double samplesPerSecond = 0;
-		int sx = 0, sy = 0;
+		long samplesTakenAtLastUpdate = 0;
 		HDRExposure exp = cam.getExposure();
 		tii.set( TracerInstruction.RESET );
 		while( true ) {
 			TracerInstruction ti = tii.set( TracerInstruction.CONTINUE );
 			if( ti == TracerInstruction.RESET ) {
 				startTime = System.currentTimeMillis();
-				samplesTaken = 0;
-				samplesTakenAtLastUpdate = 0;
 				exp = cam.getExposure();
 				exp.clear();
 				adj.setExposure(exp, false);
@@ -405,90 +390,60 @@ public class TraceDemo
 				cam.setExposure(exp);
 			}
 			
-			for( int j=0; j<vectorSize; ++j ) {
-				sampleMethod = cam.preview && cam.imageWidth * cam.imageHeight > vectorSize ?
-					SampleMethod.RANDOM : SampleMethod.LINE;
-				
-				switch( sampleMethod ) {
-				case RANDOM:
-					screenX[j] = (double)(t.random.nextDouble()-0.5);
-					screenY[j] = (double)(t.random.nextDouble()-0.5);
-					break;
-				default:
-					screenX[j] = (double)(sx+t.random.nextDouble()- cam.imageWidth/2.0)/cam.imageWidth;
-					screenY[j] = (double)(sy+t.random.nextDouble()-cam.imageHeight/2.0)/cam.imageHeight;
-				}
-				
-				++sx;
-				if( sx > exp.width ) {
-					sx = 0;
-					++sy;
-				}
-				if( sy >= exp.height ) sy = 0;
-			}
-			
-			// pixel transform matrix = camera matrix * projection matrix(pixel x, y)
-			// position vector  = pixel transform matrix * [0,0,0,1]
-			// direction vector = pixel transform matrix * [0,0,1,1]
+			final int imageWidth = cam.imageWidth;
+			final int imageHeight = cam.imageHeight;
 			
 			MatrixMath.yawPitchRoll( cam.yaw, cam.pitch, cam.roll, scratchA, scratchB, cameraRotation );
 			MatrixMath.translation( cam.x, cam.y, cam.z, cameraTranslation );
 			MatrixMath.multiply( cameraTranslation, cameraRotation, cameraTransform );
 			
-			cam.projection.project(vectorSize, screenX, screenY, camPosX, camPosY, camPosZ, camDirX, camDirY, camDirZ);
+			final int innerIterations = 2;
 			
-			int samplesPerRedraw = exp.width*exp.height / 4;
-			if( samplesPerRedraw < 2048 ) samplesPerRedraw = 2048;
+			RenderTask task = new RenderTask(imageWidth * imageHeight, root, new InfiniteIterator<PixelRayIterator>() {
+				@Override public PixelRayIterator next() {
+					return new XYOrderedPixelRayIterator(imageWidth, imageHeight, cam.projection, cameraTransform, innerIterations);
+				}
+			}, desiredChannels);
 			
-			for( int j=0; j<vectorSize; ++j ) {
-				pixelOffset.set(camPosX[j], camPosY[j], camPosZ[j]);
-				pixelDirection.set(camDirX[j], camDirY[j], camDirZ[j]);
-				MatrixMath.multiply( cameraTransform, pixelOffset, rayOffset );
-				MatrixMath.multiply( cameraRotation, pixelDirection, rayDirection );
+			RenderWorker worker = renderServer.start(task);
+			for( int i=0; i<4; ++i ) {
+				// 4 for demonstrative purposes;
+				// it doesn't do much in this case.
 				
-				if( cam.preview ) {
-					t.quickTrace( rayOffset, rayDirection );
-				} else {
-					t.trace( rayOffset, rayDirection );
-				}
+				Map<RenderResultChannel,Object> nextResult = worker.nextResult();
+				HDRExposure nextResultExposure = new HDRExposure(
+					imageWidth, imageHeight,
+					(float[])nextResult.get(RenderResultChannel.RED),
+					(float[])nextResult.get(RenderResultChannel.GREEN),
+					(float[])nextResult.get(RenderResultChannel.BLUE),
+					(float[])nextResult.get(RenderResultChannel.EXPOSURE)
+				);
 				
-				int pixelX = (int)((screenX[j]+0.5)*exp.width);
-				int pixelY = (int)((screenY[j]+0.5)*exp.height);
-				pixelX = pixelX < 0 ? 0 : pixelX >= exp.width  ? exp.width  - 1 : pixelX;
-				pixelY = pixelY < 0 ? 0 : pixelY >= exp.height ? exp.height - 1 : pixelY;
+				samplesTaken += innerIterations * imageWidth * imageHeight;
 				
-				// Since z = forward, y = up, x = left, need to invert some things:
-				pixelX = exp.width - pixelX - 1;
-				pixelY = exp.height - pixelY - 1;
+				//// Update UI
 				
-				int pixelI = pixelY * exp.width + pixelX;
-				exp.e[pixelI] += 1;
-				exp.r[pixelI] += t.red;
-				exp.g[pixelI] += t.green;
-				exp.b[pixelI] += t.blue;
+				exp.add(nextResultExposure);
+				adj.exposureUpdated();
 				
-				if( samplesTaken - samplesTakenAtLastUpdate >= samplesPerRedraw && adj.isShowing() ) {
-					long time = System.currentTimeMillis();
-					samplesPerSecond =
-						0.8 * samplesPerSecond +
-						0.2 * (samplesTaken - samplesTakenAtLastUpdate) * 1000 / (time - prevTime);
-					
-					samplesTakenAtLastUpdate = samplesTaken;
-					prevTime = System.currentTimeMillis();
-					
-					String baseName = renderDir+"/"+sceneName+"/"+sceneName+"-"+(int)exp.getAverageExposure();
-					
-					adj.extraStatusLines = new String[] {
-						"Total samples taken: " + samplesTaken,
-						"Samples per second: " + samplesPerSecond,
-						"Average samples per pixel: " + exp.getAverageExposure()
-					};
-					
-					adj.exportFilenamePrefix = baseName;
-					adj.exposureUpdated();
-				}
+				long currentTime = System.currentTimeMillis();
+				samplesPerSecond =
+					0.8 * samplesPerSecond +
+					0.2 * (samplesTaken - samplesTakenAtLastUpdate) * 1000 / (currentTime - prevTime);
 				
-				++samplesTaken;
+				samplesTakenAtLastUpdate = samplesTaken;
+				prevTime = currentTime;
+				
+				adj.extraStatusLines = new String[] {
+					"Total samples taken: " + samplesTaken,
+					"Samples per second: " + samplesPerSecond,
+					"Average samples per pixel: " + exp.getAverageExposure()
+				};
+				
+				String baseName = renderDir+"/"+sceneName+"/"+sceneName+"-"+(int)exp.getAverageExposure();
+				
+				adj.exportFilenamePrefix = baseName;
+				adj.exposureUpdated();
 			}
 		}
 	}

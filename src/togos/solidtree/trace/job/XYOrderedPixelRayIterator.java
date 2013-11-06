@@ -2,26 +2,36 @@ package togos.solidtree.trace.job;
 
 import java.util.Random;
 
+import togos.solidtree.matrix.Matrix;
+import togos.solidtree.matrix.MatrixMath;
+import togos.solidtree.matrix.Vector3D;
 import togos.solidtree.trace.Projection;
 
 public class XYOrderedPixelRayIterator implements PixelRayIterator
 {
+	final Vector3D pixelOffset = new Vector3D();
+	final Vector3D pixelDirection = new Vector3D();
+	final Vector3D rayOffset = new Vector3D();
+	final Vector3D rayDirection = new Vector3D();
+	
 	final int imageWidth, imageHeight;
 	final double viewX0, viewX1, viewY0, viewY1;
 	final Random rand = new Random();
 	final long targetSamples;
+	final Matrix cameraTransform;
 	final Projection projection;
 	int x, y;
 	long totalSamples;
 	
 	double[] screenX, screenY;
 	
-	public XYOrderedPixelRayIterator( int imageWidth, int imageHeight, Projection projection, int targetSamplesPerPixel ) {
+	public XYOrderedPixelRayIterator( int imageWidth, int imageHeight, Projection projection, Matrix cameraTransform, int targetSamplesPerPixel ) {
 		assert imageWidth >= 0;
 		assert imageHeight >= 0;
 		assert targetSamplesPerPixel >= 0;
 		this.imageWidth = imageWidth;
 		this.imageHeight = imageHeight;
+		this.cameraTransform = cameraTransform;
 		this.projection = projection;
 		this.targetSamples = imageWidth*imageHeight*targetSamplesPerPixel;
 		this.viewX0 = -0.5;
@@ -47,11 +57,23 @@ public class XYOrderedPixelRayIterator implements PixelRayIterator
 			if( y >= imageHeight ) {
 				y = 0;
 			}
-			screenX[i] = (x + rand.nextDouble()) * (viewX1 - viewX0) + viewX0;
-			screenY[i] = (y + rand.nextDouble()) * (viewY1 - viewY0) + viewY0;
+			
+			b.index[i] = x + y*imageWidth;
+			screenX[i] = (x + rand.nextDouble()) * (viewX1 - viewX0) / imageWidth  + viewX0;
+			screenY[i] = (y + rand.nextDouble()) * (viewY1 - viewY0) / imageHeight + viewY0;
 		}
 		
 		projection.project(b.vectorSize, screenX, screenY, b.ox, b.oy, b.oz, b.dx, b.dy, b.dz);
+		
+		for( i=0; i<b.vectorSize; ++i ) {
+			// Apply transformation!!
+			pixelOffset.set(b.ox[i], b.oy[i], b.oz[i]);
+			pixelDirection.set(b.dx[i], b.dy[i], b.dz[i]);
+			MatrixMath.multiply( cameraTransform, pixelOffset, rayOffset );
+			MatrixMath.multiplyRotationOnly( cameraTransform, pixelDirection, rayDirection );
+			b.ox[i] = pixelOffset.x; b.oy[i] = pixelOffset.y; b.oz[i] = pixelOffset.z;
+			b.dx[i] = pixelDirection.x; b.dy[i] = pixelDirection.y; b.dz[i] = pixelDirection.z;
+		}
 		
 		totalSamples += b.vectorSize; 
 		return true;

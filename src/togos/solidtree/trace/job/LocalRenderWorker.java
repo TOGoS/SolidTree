@@ -8,34 +8,37 @@ import togos.solidtree.trace.Tracer;
 
 public class LocalRenderWorker implements RenderWorker
 {
-	@Override public boolean resultAvailable() { return false; }
 	@Override public void close() { }
 	
 	final Tracer tracer;
 	final RenderTask task;
-	final int bufferSize;
+	final int imageDataSize;
+	final int batchSize;
 	
-	public LocalRenderWorker( Tracer tracer, RenderTask task, int bufferSize ) {
-		this.tracer = tracer;
+	public LocalRenderWorker( RenderTask task, int imageDataSize, int batchSize ) {
 		this.task = task;
-		this.bufferSize = bufferSize;
+		this.imageDataSize = imageDataSize;
+		this.batchSize = batchSize;
+		
+		this.tracer = new Tracer();
+		tracer.setRoot(task.nodeRoot);
 	}
 	
-	@Override public Map<RenderResultChannel, ?> takeResult() {
+	@Override public Map<RenderResultChannel, Object> nextResult() {
 		if( !task.pixelRayIteratorIterator.hasNext() ) return null;
 		
 		final PixelRayIterator pri = task.pixelRayIteratorIterator.next();
-		final PixelRayBuffer prb = new PixelRayBuffer(bufferSize);
+		final PixelRayBuffer prb = new PixelRayBuffer(batchSize);
 		
-		final float[] r = new float[prb.maxVectorSize];
-		final float[] g = new float[prb.maxVectorSize];
-		final float[] b = new float[prb.maxVectorSize];
-		final float[] e = new float[prb.maxVectorSize];
+		final float[] r = new float[imageDataSize];
+		final float[] g = new float[imageDataSize];
+		final float[] b = new float[imageDataSize];
+		final float[] e = new float[imageDataSize];
 		
 		while( pri.next(prb) ) for( int j=prb.vectorSize-1; j>=0; --j ) {
 			int i = prb.index[j];
-			if( i < 0 || i > prb.vectorSize ) {
-				throw new ArrayIndexOutOfBoundsException("Index given by PixelRayIterator ("+i+") is out of bounds (0.."+(bufferSize-1)+")");
+			if( i < 0 || i > imageDataSize ) {
+				throw new ArrayIndexOutOfBoundsException("Index given by PixelRayIterator ("+i+") is out of bounds (0.."+(imageDataSize-1)+")");
 			}
 			tracer.trace( prb.ox[j], prb.oy[j], prb.oz[j], prb.dx[j], prb.dy[j], prb.dz[j] );
 			r[i] += tracer.red;

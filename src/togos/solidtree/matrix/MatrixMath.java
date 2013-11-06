@@ -38,6 +38,15 @@ public class MatrixMath
 		dest.z = a.get(2,0) * b.x + a.get(2,1) * b.y + a.get(2,2) * b.z + a.get(2,3);
 	}
 	
+	public static void multiplyRotationOnly( Matrix a, Vector3D b, Vector3D dest ) {
+		assert a.width  >= 3;
+		assert a.height >= 3;
+		
+		dest.x = a.get(0,0) * b.x + a.get(0,1) * b.y + a.get(0,2) * b.z;
+		dest.y = a.get(1,0) * b.x + a.get(1,1) * b.y + a.get(1,2) * b.z;
+		dest.z = a.get(2,0) * b.x + a.get(2,1) * b.y + a.get(2,2) * b.z;
+	}
+	
 	public static void axisAngleToRotationMatrix( double ax, double ay, double az, double angle, Matrix dest ) {
 		assert VectorMath.isNormalized(ax, ay, az);
 		assert dest.width >= 3 && dest.height >= 3;
