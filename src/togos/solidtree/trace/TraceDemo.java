@@ -45,9 +45,15 @@ public class TraceDemo
 		// TOOD: May eventually want to use quaternions instead of pitch/yaw/etc
 		public double yaw, pitch, roll;
 		public Projection projection;
-		public HDRExposure exp;
+		protected HDRExposure exp;
 		
-		HDRExposure getExposure() {
+		public void setExposure(HDRExposure exp) {
+			this.exp = exp;
+			this.imageHeight = exp.height;
+			this.imageWidth = exp.width;
+		}
+		
+		public HDRExposure getExposure() {
 			if( exp == null || exp.width != imageWidth && exp.height != imageHeight ) {
 				exp = new HDRExposure(imageWidth, imageHeight);
 			}
@@ -66,6 +72,8 @@ public class TraceDemo
 	
 	enum TracerInstruction {
 		CONTINUE,
+		DOUBLE,
+		HALVE,
 		RESET
 	}
 	
@@ -127,8 +135,8 @@ public class TraceDemo
 		);
 		
 		final Camera cam = new Camera();
-		cam.imageWidth = 384;
-		cam.imageHeight = 192;
+		cam.imageWidth = 96;
+		cam.imageHeight = 48;
 		cam.x = 0;
 		cam.y = -1127;
 		cam.z = 0;
@@ -190,6 +198,16 @@ public class TraceDemo
 						cam.roll = interp.stackPop(Number.class, sLoc).doubleValue();
 						tii.set( TracerInstruction.RESET );
 						dumpCameraPosition(cam);
+					}
+				});
+				repl.interp.wordDefinitions.put("double-camera-resolution", new StandardWordDefinition() {
+					@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+						tii.set( TracerInstruction.DOUBLE );
+					}
+				});
+				repl.interp.wordDefinitions.put("halve-camera-resolution", new StandardWordDefinition() {
+					@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+						tii.set( TracerInstruction.HALVE );
 					}
 				});
 				while( repl.run ) {
@@ -310,7 +328,17 @@ public class TraceDemo
 				samplesTaken = 0;
 				exp = cam.getExposure();
 				exp.clear();
-				adj.setExposure(exp);
+				adj.setExposure(exp, false);
+			} else if( ti == TracerInstruction.DOUBLE ) {
+				exp = ExposureScaler.scaleUp(exp);
+				System.err.println("Doubling resolution to "+exp.width+"x"+exp.height);
+				adj.setExposure(exp, false);
+				cam.setExposure(exp);
+			} else if( ti == TracerInstruction.HALVE ) {
+				exp = ExposureScaler.scaleDown(exp, 2);
+				System.err.println("Halved resolution to "+exp.width+"x"+exp.height);
+				adj.setExposure(exp, false);
+				cam.setExposure(exp);
 			}
 			
 			for( int j=0; j<vectorSize; ++j ) {
