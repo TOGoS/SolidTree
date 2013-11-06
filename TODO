@@ -1,3 +1,33 @@
+- create rendering API and use it from TraceDemo.  something like
+
+  RenderServer
+  + getAvailableCapacity() : Integer # Number of idle cores
+  + startRender( RenderTask ) : RenderWorker
+  
+  RenderTask
+  + sceneRoot : NodeRoot
+  + width, height : Integer
+  + channels : Set<Channel> # e.g. red, green, blue, exposure, z-buffer; probably ignored for now
+  + pixelRayIterator : PixelRayIterator
+  
+  PixelRayIterator
+  + next( PixelRayBuffer ) : Boolean
+  
+  PixelRayBuffer
+  + maxVectorSize : Integer
+  + vectorSize : Integer
+  + index : Array[Integer] # Index into image data where the result should be stored
+  + ox, oy, oz : Array[Float]
+  + dx, dy, dz : Array[Float]
+  
+  RenderWorker : Closeable
+  + resultAvailable() : Boolean # True if takeResult() will definitely not block
+  + takeResult() : RenderResult
+  + close() # Cancels any ongoing work
+  
+  RenderResult
+  + data : Map<Channel,Object>
+
 - Control all aspects of scene via forth control script
   - for interactive
   - command to export batch script
