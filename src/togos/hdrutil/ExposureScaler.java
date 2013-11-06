@@ -24,14 +24,14 @@ public class ExposureScaler
 		
 		final HDRExposure big = new HDRExposure(exp.width*2, exp.height*2);
 		
-		final float[] er = exp.r.data;
-		final float[] eg = exp.g.data;
-		final float[] eb = exp.b.data;
-		final float[] ee = exp.e.data;
-		final float[] br = big.r.data;
-		final float[] bg = big.g.data;
-		final float[] bb = big.b.data;
-		final float[] be = big.e.data;
+		final float[] er = exp.r;
+		final float[] eg = exp.g;
+		final float[] eb = exp.b;
+		final float[] ee = exp.e;
+		final float[] br = big.r;
+		final float[] bg = big.g;
+		final float[] bb = big.b;
+		final float[] be = big.e;
 		
 		for( int i=big.height*big.width-1, y=big.height-1; y>=0; --y ) for( int x=big.width-1; x>=0; --x, --i ) {
 			int x0 = clamp(0, (x-1)/2, exp.width -1 );
@@ -59,14 +59,14 @@ public class ExposureScaler
 	public static HDRExposure scaleDown( HDRExposure exp, int ratio ) {
 		final HDRExposure ltl = new HDRExposure(exp.width/ratio, exp.height/ratio);
 		
-		final float[] er = exp.r.data;
-		final float[] eg = exp.g.data;
-		final float[] eb = exp.b.data;
-		final float[] ee = exp.e.data;
-		final float[] lr = ltl.r.data;
-		final float[] lg = ltl.g.data;
-		final float[] lb = ltl.b.data;
-		final float[] le = ltl.e.data;
+		final float[] er = exp.r;
+		final float[] eg = exp.g;
+		final float[] eb = exp.b;
+		final float[] ee = exp.e;
+		final float[] lr = ltl.r;
+		final float[] lg = ltl.g;
+		final float[] lb = ltl.b;
+		final float[] le = ltl.e;
 		
 		for( int i=ltl.height*ltl.width-1, y=ltl.height-1; y>=0; --y ) for( int x=ltl.width-1; x>=0; --x, --i ) {
 			for( int jy=0; jy<ratio; ++jy ) for( int jx=0; jx<ratio; ++jx ) {

@@ -229,8 +229,9 @@ public class AdjusterUI extends Canvas
 				System.err.println("Loading "+dumpFile+"...");
 				HDRExposure exp = ChunkyDump.loadExposure(dumpFile);
 				System.err.println("  -> "+exp.width+"x"+exp.height);
-				if( exp.e.data.length > 0 ) { 
-					chunkySpp += (int)exp.e.data[0];
+				if( exp.e.length > 0 ) {
+					// Don't bother averaging; chunky dumps have the same spp everywhere
+					chunkySpp += (int)exp.e[0];
 				}
 				if( sum == null ) {
 					sum = exp;

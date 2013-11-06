@@ -176,11 +176,11 @@ public class RGBE
 		
 		DataInputStream dis = new DataInputStream(new FileInputStream(f));
 		try {
-			readData( dis, m.width, m.height, exp.r.data, exp.g.data, exp.b.data );
-			exp.r.multiply(m.spp);
-			exp.g.multiply(m.spp);
-			exp.b.multiply(m.spp);
-			exp.e.set(m.spp);
+			readData( dis, m.width, m.height, exp.r, exp.g, exp.b );
+			BatchMath.multiply(exp.r, m.spp, exp.r);
+			BatchMath.multiply(exp.g, m.spp, exp.g);
+			BatchMath.multiply(exp.b, m.spp, exp.b);
+			Util.fill(exp.e, m.spp);
 			return exp;
 		} finally {
 			dis.close();
@@ -202,7 +202,7 @@ public class RGBE
 	public static void write( HDRExposure exp, File f ) throws IOException {
 		DataOutputStream dos = new DataOutputStream(new FileOutputStream(f));
 		try {
-			write( exp.r.data, exp.g.data, exp.b.data, exp.e.data, dos, exp.width*exp.height );
+			write( exp.r, exp.g, exp.b, exp.e, dos, exp.width*exp.height );
 		} finally {
 			dos.close();
 		}

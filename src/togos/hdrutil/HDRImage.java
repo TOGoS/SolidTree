@@ -3,14 +3,14 @@ package togos.hdrutil;
 public class HDRImage
 {
 	final int width, height;
-	final HDRChannel r, g, b;
-	final HDRChannel[] colorChannels;
+	final float[] r, g, b;
+	final float[][] colorChannels;
 	
 	public HDRImage( int width, int height ) {
-		this.r = new HDRChannel(width*height);
-		this.g = new HDRChannel(width*height);
-		this.b = new HDRChannel(width*height);
-		this.colorChannels = new HDRChannel[]{ r, g, b };
+		this.r = new float[width*height];
+		this.g = new float[width*height];
+		this.b = new float[width*height];
+		this.colorChannels = new float[][]{ r, g, b };
 		this.width = width;
 		this.height = height;
 	}
@@ -20,26 +20,25 @@ public class HDRImage
 		assert height == e.height;
 		
 		for( int i=width*height-1; i>=0; --i ) {
-			r.data[i] = e.r.data[i] / e.e.data[i];
-			g.data[i] = e.g.data[i] / e.e.data[i];
-			b.data[i] = e.b.data[i] / e.e.data[i];
+			r[i] = e.r[i] / e.e[i];
+			g[i] = e.g[i] / e.e[i];
+			b[i] = e.b[i] / e.e[i];
 		}
 	}
 	
-	
 	public void multiply( float m ) {
-		for( int c=0; c<colorChannels.length; ++c ) colorChannels[c].multiply(m);
+		for( int c=0; c<colorChannels.length; ++c ) BatchMath.multiply( colorChannels[c], m, colorChannels[c] );
 	}
 	
 	public void exponentiate( float p ) {
-		for( int c=0; c<colorChannels.length; ++c ) colorChannels[c].exponentiate(p);
+		for( int c=0; c<colorChannels.length; ++c ) BatchMath.exponentiate( colorChannels[c], p, colorChannels[c] );
 	}
 
 	public float max() {
 		float max = Float.NEGATIVE_INFINITY;
 		for( int c=0; c<colorChannels.length; ++c ) {
 			for( int i=width*height-1; i>=0; --i ) {
-				max = Math.max( max, colorChannels[c].data[i] );
+				max = Math.max( max, colorChannels[c][i] );
 			}
 		}
 		return max;
@@ -52,9 +51,9 @@ public class HDRImage
 	public void toArgb( int[] dest, boolean dither ) {
 		for( int i=width*height-1; i>=0; --i ) {
 			// Ideal values
-			float iR = 255 * r.data[i];
-			float iG = 255 * g.data[i];
-			float iB = 255 * b.data[i];
+			float iR = 255 * r[i];
+			float iG = 255 * g[i];
+			float iB = 255 * b[i];
 			// Quantized values
 			// TODO: Use a better dithering algorithm
 			int qR, qG, qB;
