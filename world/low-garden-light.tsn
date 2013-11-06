@@ -2,14 +2,20 @@
 g = glass
 p = black-plastic
 i = light
+material = glass
+/ = bevel256-se
+\ = bevel256-sw
+` = bevel256-nw
+' = bevel256-ne
+
 =data +x+z-y 3x3x3
 ppp
 ppp
 ppp
 
-ggg
+/g\
 gig
-ggg
+'g`
 
 ppp
 ppp

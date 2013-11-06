@@ -8,6 +8,9 @@ material = sparse-grass
 g = bottomify8x8x8
 d = dirt
 c = brick
+x = bricks-in-grass-1
+y = bricks-in-grass-2
+z = bricks-in-grass-3
 
 =data +x+z-y 8x8x8
 
@@ -56,14 +59,14 @@ c = brick
 ........
 ........
 
-tggggggg
+tggxgggg
 gggggglg
 glgglggg
-ggggggmg
+ygggggmy
 gtgglggg
-ggggggtg
+gggxggtg
 gmtggggg
-gggggglg
+gzgggylg
 
 dddddddd
 dddddddd
