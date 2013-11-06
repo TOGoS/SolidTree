@@ -16,9 +16,10 @@
   PixelRayBuffer
   + maxVectorSize : Integer
   + vectorSize : Integer
-  + index : Array[Integer] # Index into image data where the result should be stored
-  + ox, oy, oz : Array[Float]
-  + dx, dy, dz : Array[Float]
+  + index : Array[Integer]     # Index into image data where the result should be stored
+  + ox, oy, oz : Array[Double] # Ray offset
+  + dx, dy, dz : Array[Double] # Ray direction
+  + time : Array[Double]       # To support scenes that change over time
   
   RenderWorker : Closeable
   + resultAvailable() : Boolean # True if takeResult() will definitely not block
