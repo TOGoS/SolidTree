@@ -194,6 +194,28 @@ public class AdjusterUI extends Canvas
 		paint(g);
 	}
 	
+	protected static HDRExposure addScaleyAndDestructively( HDRExposure a, HDRExposure b )
+		throws IncompatibleImageException
+	{
+		if( a.width == b.width && a.height == b.height ) {
+			a.add(b);
+			return a;
+		}
+		
+		if( !ExposureScaler.aspectRatioPreserved(a.width, a.height, b.width, b.height) ) {
+			throw new IncompatibleImageException("Image aspect ratios mismatch; "+a.width+"x"+a.height+" vs "+b.width+"x"+b.height);
+		}
+		
+		if( b.width > a.width ) {
+			// Switch so that a is the larger one
+			HDRExposure temp = b;
+			b = a; a = temp;
+		}
+		
+		a.add( ExposureScaler.scaleTo(b, a.width, a.height) );
+		return a;
+	}
+	
 	public static void main( String[] args ) throws Exception {
 		String sceneName = null;
 		HDRExposure sum = null;
@@ -206,13 +228,14 @@ public class AdjusterUI extends Canvas
 				sceneName = sceneName.substring(0, sceneName.length()-5);
 				System.err.println("Loading "+dumpFile+"...");
 				HDRExposure exp = ChunkyDump.loadExposure(dumpFile);
+				System.err.println("  -> "+exp.width+"x"+exp.height);
 				if( exp.e.data.length > 0 ) { 
 					chunkySpp += (int)exp.e.data[0];
 				}
 				if( sum == null ) {
 					sum = exp;
 				} else {
-					sum.add(exp);
+					sum = addScaleyAndDestructively(sum,exp);
 				}
 			}
 		}
@@ -220,7 +243,10 @@ public class AdjusterUI extends Canvas
 		if( sum == null ) {
 			System.err.println("No dumps specified!");
 			System.exit(1);
+			return;
 		}
+		
+		System.err.println("Combined image is "+sum.width+"x"+sum.height);
 		
 		final Frame f = new Frame("Image adjuster");
 		AdjusterUI adj = new AdjusterUI();
