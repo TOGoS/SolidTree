@@ -40,7 +40,13 @@ public class VectorMath
 		double dz = a.z - b.z;
 		return (double)Math.sqrt( dx*dx + dy*dy + dz*dz );
 	}
-
+	
+	public static boolean isNormalized( double x, double y, double z ) {
+		double len = x*x + y*y + z*z;
+		// No need to sqrt since we only care if it's 1 or not!
+		return len > 0.99999 && len < 1.00001; 
+	}
+	
 	public static void normalize( Vector3D normal, double scale, Vector3D dest ) {
 		dest.set(normal);
 		dest.normalizeInPlace(scale);

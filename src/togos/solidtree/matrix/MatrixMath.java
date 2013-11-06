@@ -38,15 +38,8 @@ public class MatrixMath
 		dest.z = a.get(2,0) * b.x + a.get(2,1) * b.y + a.get(2,2) * b.z + a.get(2,3);
 	}
 	
-	private static boolean vectorIsNormalized( double x, double y, double z ) {
-		double len = x*x + y*y + z*z;
-		// No need to sqrt since we only care if it's 1 or not!
-		return len > 0.99999 && len < 1.00001; 
-
-	}
-	
 	public static void axisAngleToRotationMatrix( double ax, double ay, double az, double angle, Matrix dest ) {
-		assert vectorIsNormalized(ax, ay, az);
+		assert VectorMath.isNormalized(ax, ay, az);
 		assert dest.width >= 3 && dest.height >= 3;
 		double sin = (double)Math.sin(angle);
 		double cos = (double)Math.cos(angle);

@@ -100,6 +100,19 @@ public class TraceDemo
 		System.err.println(cameraPositionScript(c));
 	}
 	
+	static class LensSettings {
+		public double fovY = Math.PI*0.3;
+		public double apertureSize = 0;
+		public double focalOffset = 4;
+		
+		public void apply( Camera cam ) {
+			cam.projection = new FisheyeProjection(fovY*cam.imageWidth/cam.imageHeight, fovY);
+			if( apertureSize > 0 ) {
+				cam.projection = new ApertureProjection( cam.projection, apertureSize, focalOffset );
+			}
+		}
+	}
+	
 	public static void main( String[] args ) throws Exception {
 		final String renderDir = "renders";
 		final String sceneName = "testrender"+System.currentTimeMillis(); 
@@ -142,9 +155,9 @@ public class TraceDemo
 		cam.y = -1127;
 		cam.z = 0;
 		cam.yaw = Math.PI/8;
-		final double fovY = (double)(Math.PI*0.3); 
-		cam.projection = new FisheyeProjection(fovY*cam.imageWidth/cam.imageHeight, fovY);
-		// cam.projection = new ApertureProjection( cam.projection, 0.05, 4 );
+		
+		final LensSettings lensSettings = new LensSettings();
+		lensSettings.apply(cam);
 		
 		final AdjusterUI adj = new AdjusterUI();
 		
@@ -209,6 +222,27 @@ public class TraceDemo
 				repl.interp.wordDefinitions.put("halve-camera-resolution", new StandardWordDefinition() {
 					@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
 						tii.set( TracerInstruction.HALVE );
+					}
+				});
+				repl.interp.wordDefinitions.put("set-camera-aperture-size", new StandardWordDefinition() {
+					@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+						lensSettings.apertureSize = interp.stackPop(Number.class, sLoc).doubleValue();
+						lensSettings.apply(cam);
+						tii.set( TracerInstruction.RESET );
+					}
+				});
+				repl.interp.wordDefinitions.put("set-camera-focal-offset", new StandardWordDefinition() {
+					@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+						lensSettings.focalOffset = interp.stackPop(Number.class, sLoc).doubleValue();
+						lensSettings.apply(cam);
+						tii.set( TracerInstruction.RESET );
+					}
+				});
+				repl.interp.wordDefinitions.put("set-camera-fov-y", new StandardWordDefinition() {
+					@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+						lensSettings.fovY = interp.stackPop(Number.class, sLoc).doubleValue();
+						lensSettings.apply(cam);
+						tii.set( TracerInstruction.RESET );
 					}
 				});
 				while( repl.run ) {
