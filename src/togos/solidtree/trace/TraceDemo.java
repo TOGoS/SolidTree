@@ -11,6 +11,7 @@ import java.io.IOException;
 
 import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.ChunkyDump;
+import togos.hdrutil.ExposureScaler;
 import togos.hdrutil.HDRExposure;
 import togos.lang.BaseSourceLocation;
 import togos.lang.ScriptError;
