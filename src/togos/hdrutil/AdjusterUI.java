@@ -111,17 +111,19 @@ public class AdjusterUI extends Canvas
 		System.err.println("Wrote "+out.getPath());
 	}
 	
-	public synchronized void setExposure( HDRExposure exp ) {
+	public synchronized void setExposure( HDRExposure exp, boolean recalculate ) {
 		setPreferredSize( new Dimension(exp.getWidth(), exp.getHeight()));
 		this.bImg = new BufferedImage( exp.getWidth(), exp.getHeight(), BufferedImage.TYPE_INT_ARGB );
 		this.argbBuf = new int[exp.getWidth()*exp.getHeight()];
 		this.hdrImage = exp.getImage();
 		this.hdrExposure = exp;
 		
-		System.err.println("Calculating default exposure...");
-		hdrImage.load(exp);
-		if( hdrImage.max() > 0 ) {
-			this.exposure = 100 / hdrImage.max();
+		if( recalculate ) {
+			System.err.println("Calculating default exposure...");
+			hdrImage.load(exp);
+			if( hdrImage.max() > 0 ) {
+				this.exposure = 100 / hdrImage.max();
+			}
 		}
 		
 		recalculate();
@@ -223,7 +225,7 @@ public class AdjusterUI extends Canvas
 		final Frame f = new Frame("Image adjuster");
 		AdjusterUI adj = new AdjusterUI();
 		adj.exportFilenamePrefix = sceneName + (chunkySpp == 0 ? "" : "-"+chunkySpp);
-		adj.setExposure(sum);
+		adj.setExposure(sum, true);
 		f.add(adj);
 		f.pack();
 		
