@@ -462,10 +462,10 @@ public class TraceDemo
 				pixelY = exp.height - pixelY - 1;
 				
 				int pixelI = pixelY * exp.width + pixelX;
-				exp.e.data[pixelI] += 1;
-				exp.r.data[pixelI] += t.red;
-				exp.g.data[pixelI] += t.green;
-				exp.b.data[pixelI] += t.blue;
+				exp.e[pixelI] += 1;
+				exp.r[pixelI] += t.red;
+				exp.g[pixelI] += t.green;
+				exp.b[pixelI] += t.blue;
 				
 				if( samplesTaken - samplesTakenAtLastUpdate >= samplesPerRedraw && adj.isShowing() ) {
 					long time = System.currentTimeMillis();
