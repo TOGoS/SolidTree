@@ -8,15 +8,28 @@ public class HDRExposure
 	/** Virtual exposure time for each pixel */
 	public final float[] e;
 	
-	public HDRExposure( int width, int height ) {
+	public HDRExposure( int width, int height, float[] r, float[] g, float[] b, float[] e ) {
 		assert Util.dimensionsSane(width, height);
+		assert r.length >= width*height;
+		assert g.length >= width*height;
+		assert b.length >= width*height;
+		assert e.length >= width*height;
 		
-		this.e = new float[width*height];
-		this.r = new float[width*height];
-		this.g = new float[width*height];
-		this.b = new float[width*height];
+		this.r = r;
+		this.g = g;
+		this.b = b;
+		this.e = e;
 		this.width = width;
 		this.height = height;
+	}
+	
+	public HDRExposure( int width, int height ) {
+		this( width, height,
+			new float[width*height],
+			new float[width*height],
+			new float[width*height],
+			new float[width*height]
+		);
 	}
 	
 	public int getWidth() { return width; }
