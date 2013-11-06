@@ -225,6 +225,17 @@ public class TraceDemo
 		commandReader.start();
 		
 		adj.addKeyListener(new KeyAdapter() {
+			static final int KP_0 =  96;
+			static final int KP_1 =  97;
+			static final int KP_2 =  98;
+			static final int KP_3 =  99;
+			static final int KP_4 = 100;
+			static final int KP_5 = 101;
+			static final int KP_6 = 102;
+			static final int KP_7 = 103;
+			static final int KP_8 = 104;
+			static final int KP_9 = 105;
+			
 			@Override public void keyPressed( KeyEvent kevt ) {
 				double dir = 1;
 				
@@ -252,19 +263,20 @@ public class TraceDemo
 					break;
 				
 				// Camera movement
-				case KeyEvent.VK_END:
+				case KeyEvent.VK_END: case KP_3:
 					dir = -1;
-				case KeyEvent.VK_HOME:
+				case KeyEvent.VK_HOME: case KP_1:
 					cam.x += dir * movedist * Math.cos(-cam.yaw);
 					cam.z -= dir * movedist * Math.sin(-cam.yaw);
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
 					break;
-				case KeyEvent.VK_DOWN:
+				case KeyEvent.VK_DOWN: case KP_0:
 					dir = -1;
-				case KeyEvent.VK_UP:
-					cam.x += dir * movedist * Math.sin(-cam.yaw);
-					cam.z += dir * movedist * Math.cos(-cam.yaw);
+				case KeyEvent.VK_UP: case KP_5:
+					cam.x += dir * movedist * Math.sin(-cam.yaw) * Math.cos(cam.pitch);
+					cam.z += dir * movedist * Math.cos(-cam.yaw) * Math.cos(cam.pitch);
+					cam.y += dir * movedist * Math.sin(-cam.pitch);
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
 					break;
@@ -275,13 +287,29 @@ public class TraceDemo
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
 					break;
-				case KeyEvent.VK_LEFT:
+				case KeyEvent.VK_LEFT: case KeyEvent.VK_KP_LEFT: case KP_4:
 					dir = -1;
-				case KeyEvent.VK_RIGHT:
+				case KeyEvent.VK_RIGHT: case KeyEvent.VK_KP_RIGHT: case KP_6:
 					cam.yaw += dir * movedist * Math.PI / 16;
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
 					break;
+				case KeyEvent.VK_KP_DOWN: case KP_2:
+					dir = -1;
+				case KeyEvent.VK_KP_UP: case KP_8:
+					cam.pitch += dir * movedist * Math.PI / 16;
+					tii.set( TracerInstruction.RESET );
+					dumpCameraPosition(cam);
+					break;
+				case KP_7:
+					dir = -1;
+				case KP_9:
+					cam.roll += dir * movedist * Math.PI / 16;
+					tii.set( TracerInstruction.RESET );
+					dumpCameraPosition(cam);
+					break;
+				default:
+					System.err.println("Key "+kevt.getKeyCode());
 				}
 			}
 		});
