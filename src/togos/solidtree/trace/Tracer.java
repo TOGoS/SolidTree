@@ -333,7 +333,7 @@ public class Tracer
 	final Vector3D postIntersect = new Vector3D();
 	final Vector3D direction = new Vector3D();
 	private double filterRed, filterGreen, filterBlue;
-	double red, green, blue;
+	public double red, green, blue;
 	
 	protected void setDirection( double x, double y, double z ) {
 		direction.set(x,y,z);
