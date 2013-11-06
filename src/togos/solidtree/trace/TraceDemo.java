@@ -315,7 +315,7 @@ public class TraceDemo
 		
 		long startTime = System.currentTimeMillis();
 		long samplesTaken = 0;
-		long prevSamplesTaken = 0;
+		long samplesTakenAtLastUpdate = 0;
 		long prevTime = startTime;
 		double samplesPerSecond = 0;
 		int sx = 0, sy = 0;
@@ -326,6 +326,7 @@ public class TraceDemo
 			if( ti == TracerInstruction.RESET ) {
 				startTime = System.currentTimeMillis();
 				samplesTaken = 0;
+				samplesTakenAtLastUpdate = 0;
 				exp = cam.getExposure();
 				exp.clear();
 				adj.setExposure(exp, false);
@@ -373,6 +374,9 @@ public class TraceDemo
 			
 			cam.projection.project(vectorSize, screenX, screenY, camPosX, camPosY, camPosZ, camDirX, camDirY, camDirZ);
 			
+			int samplesPerRedraw = exp.width*exp.height / 4;
+			if( samplesPerRedraw < 2048 ) samplesPerRedraw = 2048;
+			
 			for( int j=0; j<vectorSize; ++j ) {
 				pixelOffset.set(camPosX[j], camPosY[j], camPosZ[j]);
 				pixelDirection.set(camDirX[j], camDirY[j], camDirZ[j]);
@@ -400,16 +404,15 @@ public class TraceDemo
 				exp.g.data[pixelI] += t.green;
 				exp.b.data[pixelI] += t.blue;
 				
-				if( samplesTaken % 16384 == 0 ) {
+				if( samplesTaken - samplesTakenAtLastUpdate >= samplesPerRedraw && adj.isShowing() ) {
 					long time = System.currentTimeMillis();
 					samplesPerSecond =
 						0.8 * samplesPerSecond +
-						0.2 * (samplesTaken - prevSamplesTaken) * 1000 / (time - prevTime);
+						0.2 * (samplesTaken - samplesTakenAtLastUpdate) * 1000 / (time - prevTime);
 					
-					prevSamplesTaken = samplesTaken;
+					samplesTakenAtLastUpdate = samplesTaken;
 					prevTime = System.currentTimeMillis();
-				}
-				if( samplesTaken % 4096 == 0 ) {
+					
 					String baseName = renderDir+"/"+sceneName+"/"+sceneName+"-"+(int)exp.getAverageExposure();
 					
 					adj.extraStatusLines = new String[] {
@@ -421,6 +424,7 @@ public class TraceDemo
 					adj.exportFilenamePrefix = baseName;
 					adj.exposureUpdated();
 				}
+				
 				++samplesTaken;
 			}
 		}
