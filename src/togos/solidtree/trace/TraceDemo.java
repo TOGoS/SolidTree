@@ -350,12 +350,6 @@ public class TraceDemo
 		f.setVisible(true);
 		adj.requestFocus();
 				
-		Matrix cameraTranslation = new Matrix(4,4);
-		Matrix cameraRotation = new Matrix(4,4);
-		final Matrix cameraTransform = new Matrix(4,4);
-		Matrix scratchA = new Matrix(4,4);
-		Matrix scratchB = new Matrix(4,4);
-		
 		final Set<RenderResultChannel> desiredChannels = new HashSet<RenderResultChannel>();
 		desiredChannels.add(RenderResultChannel.RED);
 		desiredChannels.add(RenderResultChannel.GREEN);
@@ -370,81 +364,94 @@ public class TraceDemo
 		double samplesPerSecond = 0;
 		long samplesTakenAtLastUpdate = 0;
 		HDRExposure exp = cam.getExposure();
+		RenderWorker worker = null;
+		boolean restartWorker = false;
 		tii.set( TracerInstruction.RESET );
 		while( true ) {
 			TracerInstruction ti = tii.set( TracerInstruction.CONTINUE );
 			if( ti == TracerInstruction.RESET ) {
+				restartWorker = true;
 				startTime = System.currentTimeMillis();
 				exp = cam.getExposure();
 				exp.clear();
 				adj.setExposure(exp, false);
 			} else if( ti == TracerInstruction.DOUBLE ) {
+				restartWorker = true;
 				exp = ExposureScaler.scaleUp(exp);
 				System.err.println("Doubling resolution to "+exp.width+"x"+exp.height);
 				adj.setExposure(exp, false);
 				cam.setExposure(exp);
 			} else if( ti == TracerInstruction.HALVE ) {
+				restartWorker = true;
 				exp = ExposureScaler.scaleDown(exp, 2);
 				System.err.println("Halved resolution to "+exp.width+"x"+exp.height);
 				adj.setExposure(exp, false);
 				cam.setExposure(exp);
 			}
 			
+			if( restartWorker ) {
+				if( worker != null ) worker.close();
+				worker = null;
+				restartWorker = false;
+			}
+
+			final int innerIterations = 1;
 			final int imageWidth = cam.imageWidth;
 			final int imageHeight = cam.imageHeight;
 			
-			MatrixMath.yawPitchRoll( cam.yaw, cam.pitch, cam.roll, scratchA, scratchB, cameraRotation );
-			MatrixMath.translation( cam.x, cam.y, cam.z, cameraTranslation );
-			MatrixMath.multiply( cameraTranslation, cameraRotation, cameraTransform );
-			
-			final int innerIterations = 2;
-			
-			RenderTask task = new RenderTask(imageWidth * imageHeight, root, new InfiniteIterator<PixelRayIterator>() {
-				@Override public PixelRayIterator next() {
-					return new XYOrderedPixelRayIterator(imageWidth, imageHeight, cam.projection, cameraTransform, innerIterations);
-				}
-			}, desiredChannels);
-			
-			RenderWorker worker = renderServer.start(task);
-			for( int i=0; i<4; ++i ) {
-				// 4 for demonstrative purposes;
-				// it doesn't do much in this case.
+			if( worker == null ) {
+				final Matrix cameraTranslation = new Matrix(4,4);
+				final Matrix cameraRotation = new Matrix(4,4);
+				final Matrix cameraTransform = new Matrix(4,4);
+				final Matrix scratchA = new Matrix(4,4);
+				final Matrix scratchB = new Matrix(4,4);
 				
-				Map<RenderResultChannel,Object> nextResult = worker.nextResult();
-				HDRExposure nextResultExposure = new HDRExposure(
-					imageWidth, imageHeight,
-					(float[])nextResult.get(RenderResultChannel.RED),
-					(float[])nextResult.get(RenderResultChannel.GREEN),
-					(float[])nextResult.get(RenderResultChannel.BLUE),
-					(float[])nextResult.get(RenderResultChannel.EXPOSURE)
-				);
+				MatrixMath.yawPitchRoll( cam.yaw, cam.pitch, cam.roll, scratchA, scratchB, cameraRotation );
+				MatrixMath.translation( cam.x, cam.y, cam.z, cameraTranslation );
+				MatrixMath.multiply( cameraTranslation, cameraRotation, cameraTransform );
 				
-				samplesTaken += innerIterations * imageWidth * imageHeight;
-				
-				//// Update UI
-				
-				exp.add(nextResultExposure);
-				adj.exposureUpdated();
-				
-				long currentTime = System.currentTimeMillis();
-				samplesPerSecond =
-					0.8 * samplesPerSecond +
-					0.2 * (samplesTaken - samplesTakenAtLastUpdate) * 1000 / (currentTime - prevTime);
-				
-				samplesTakenAtLastUpdate = samplesTaken;
-				prevTime = currentTime;
-				
-				adj.extraStatusLines = new String[] {
-					"Total samples taken: " + samplesTaken,
-					"Samples per second: " + samplesPerSecond,
-					"Average samples per pixel: " + exp.getAverageExposure()
-				};
-				
-				String baseName = renderDir+"/"+sceneName+"/"+sceneName+"-"+(int)exp.getAverageExposure();
-				
-				adj.exportFilenamePrefix = baseName;
-				adj.exposureUpdated();
+				RenderTask task = new RenderTask(imageWidth * imageHeight, root, new InfiniteIterator<PixelRayIterator>() {
+					@Override public PixelRayIterator next() {
+						return new XYOrderedPixelRayIterator(imageWidth, imageHeight, cam.projection, cameraTransform, innerIterations);
+					}
+				}, desiredChannels);
+				worker = renderServer.start(task);
 			}
+			
+			Map<RenderResultChannel,Object> nextResult = worker.nextResult();
+			HDRExposure nextResultExposure = new HDRExposure(
+				imageWidth, imageHeight,
+				(float[])nextResult.get(RenderResultChannel.RED),
+				(float[])nextResult.get(RenderResultChannel.GREEN),
+				(float[])nextResult.get(RenderResultChannel.BLUE),
+				(float[])nextResult.get(RenderResultChannel.EXPOSURE)
+			);
+			
+			samplesTaken += innerIterations * imageWidth * imageHeight;
+			
+			//// Update UI
+			
+			exp.add(nextResultExposure);
+			adj.exposureUpdated();
+			
+			long currentTime = System.currentTimeMillis();
+			samplesPerSecond =
+				0.8 * samplesPerSecond +
+				0.2 * (samplesTaken - samplesTakenAtLastUpdate) * 1000 / (currentTime - prevTime);
+			
+			samplesTakenAtLastUpdate = samplesTaken;
+			prevTime = currentTime;
+			
+			adj.extraStatusLines = new String[] {
+				"Total samples taken: " + samplesTaken,
+				"Samples per second: " + samplesPerSecond,
+				"Average samples per pixel: " + exp.getAverageExposure()
+			};
+			
+			String baseName = renderDir+"/"+sceneName+"/"+sceneName+"-"+(int)exp.getAverageExposure();
+			
+			adj.exportFilenamePrefix = baseName;
+			adj.exposureUpdated();
 		}
 	}
 }

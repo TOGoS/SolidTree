@@ -9,8 +9,10 @@ import togos.solidtree.trace.Projection;
 
 public class XYOrderedPixelRayIterator implements PixelRayIterator
 {
+	// Offset/direction from projection, before transforming
 	final Vector3D pixelOffset = new Vector3D();
 	final Vector3D pixelDirection = new Vector3D();
+	// Offset/direction after transforming
 	final Vector3D rayOffset = new Vector3D();
 	final Vector3D rayDirection = new Vector3D();
 	
@@ -36,8 +38,8 @@ public class XYOrderedPixelRayIterator implements PixelRayIterator
 		this.targetSamples = imageWidth*imageHeight*targetSamplesPerPixel;
 		this.viewX0 = -0.5;
 		this.viewX1 = +0.5;
-		this.viewY0 = -0.5;
-		this.viewY1 = +0.5;
+		this.viewY0 = +0.5;
+		this.viewY1 = -0.5;
 	}
 	
 	@Override public boolean next(PixelRayBuffer b) {
@@ -67,12 +69,12 @@ public class XYOrderedPixelRayIterator implements PixelRayIterator
 		
 		for( i=0; i<b.vectorSize; ++i ) {
 			// Apply transformation!!
-			pixelOffset.set(b.ox[i], b.oy[i], b.oz[i]);
+			   pixelOffset.set(b.ox[i], b.oy[i], b.oz[i]);
 			pixelDirection.set(b.dx[i], b.dy[i], b.dz[i]);
 			MatrixMath.multiply( cameraTransform, pixelOffset, rayOffset );
 			MatrixMath.multiplyRotationOnly( cameraTransform, pixelDirection, rayDirection );
-			b.ox[i] = pixelOffset.x; b.oy[i] = pixelOffset.y; b.oz[i] = pixelOffset.z;
-			b.dx[i] = pixelDirection.x; b.dy[i] = pixelDirection.y; b.dz[i] = pixelDirection.z;
+			b.ox[i] =    rayOffset.x; b.oy[i] =    rayOffset.y; b.oz[i] =    rayOffset.z;
+			b.dx[i] = rayDirection.x; b.dy[i] = rayDirection.y; b.dz[i] = rayDirection.z;
 		}
 		
 		totalSamples += b.vectorSize; 
