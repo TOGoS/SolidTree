@@ -1,4 +1,8 @@
-- Use rendering API from TraceDemo
+- Create RenderServer/Worker that delegate to other RenderServers/Workers
+
+- Command to merge render dumps
+
+- When dumping scenes, write a file including all settings
 
 - Control all aspects of scene via forth control script
   - for interactive

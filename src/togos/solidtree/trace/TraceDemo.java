@@ -394,7 +394,7 @@ public class TraceDemo
 				worker = null;
 				restartWorker = false;
 			}
-
+			
 			final int innerIterations = 1;
 			final int imageWidth = cam.imageWidth;
 			final int imageHeight = cam.imageHeight;
