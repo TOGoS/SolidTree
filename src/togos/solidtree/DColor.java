@@ -1,9 +1,12 @@
 package togos.solidtree;
 
+import java.io.Serializable;
 import java.util.Random;
 
-public class DColor
+public class DColor implements Serializable
 {
+	private static final long serialVersionUID = 1L;
+	
 	public static final DColor BLACK = new DColor(0,0,0);
 	public static final DColor WHITE = new DColor(1,1,1);
 	

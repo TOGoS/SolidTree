@@ -1,7 +1,11 @@
 package togos.solidtree;
 
-public class SurfaceMaterial
+import java.io.Serializable;
+
+public class SurfaceMaterial implements Serializable
 {
+	private static final long serialVersionUID = 1L;
+	
 	public static final SurfaceMaterial TRANSPARENT = new SurfaceMaterial();
 	
 	// Layers from innermost to outermost --

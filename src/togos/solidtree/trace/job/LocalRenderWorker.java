@@ -37,6 +37,7 @@ public class LocalRenderWorker implements RenderResultIterator
 		final float[] b = new float[imageDataSize];
 		final float[] e = new float[imageDataSize];
 		
+		long totalSamples = 0;
 		while( pri.next(prb) ) for( int j=prb.vectorSize-1; j>=0; --j ) {
 			int i = prb.index[j];
 			if( i < 0 || i > imageDataSize ) {
@@ -47,13 +48,17 @@ public class LocalRenderWorker implements RenderResultIterator
 			g[i] += tracer.green;
 			b[i] += tracer.blue;
 			e[i]++;
+			
+			++totalSamples;
 		}
+		
+		System.err.println("Completed job with "+totalSamples+" samples");
 		
 		HashMap<RenderResultChannel,Object> rrcs = new HashMap<RenderResultChannel,Object>();
 		rrcs.put(RenderResultChannel.RED, r);
 		rrcs.put(RenderResultChannel.GREEN, g);
 		rrcs.put(RenderResultChannel.BLUE, b);
 		rrcs.put(RenderResultChannel.EXPOSURE, e);
-		return new RenderResult(rrcs);
+		return new RenderResult(totalSamples, rrcs);
 	}
 }

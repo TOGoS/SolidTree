@@ -1,7 +1,11 @@
 package togos.solidtree;
 
-public class NodeRoot
+import java.io.Serializable;
+
+public class NodeRoot implements Serializable
 {
+	private static final long serialVersionUID = 1L;
+	
 	public final SolidNode node;
 	public final double x0, y0, z0, x1, y1, z1;
 	

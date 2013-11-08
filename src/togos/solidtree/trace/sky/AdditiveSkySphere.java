@@ -5,6 +5,8 @@ import togos.solidtree.matrix.Vector3D;
 
 public class AdditiveSkySphere implements SkySphere
 {
+	private static final long serialVersionUID = 1L;
+	
 	public final SkySphere[] components;
 	
 	public AdditiveSkySphere( SkySphere...components ) {

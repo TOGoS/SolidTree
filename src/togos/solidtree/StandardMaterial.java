@@ -2,6 +2,8 @@ package togos.solidtree;
 
 public class StandardMaterial implements GeneralMaterial
 {
+	private static final long serialVersionUID = 1L;
+	
 	public static StandardMaterial SPACE = new StandardMaterial(
 		SurfaceMaterial.TRANSPARENT,
 		1, DColor.WHITE, DColor.BLACK,

@@ -7,13 +7,16 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.HashSet;
 import java.util.Set;
 
 import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.ChunkyDump;
 import togos.hdrutil.ExposureScaler;
+import togos.hdrutil.FileUtil;
 import togos.hdrutil.HDRExposure;
 import togos.lang.BaseSourceLocation;
 import togos.lang.ScriptError;
@@ -30,14 +33,12 @@ import togos.solidtree.forth.StandardWordDefinition;
 import togos.solidtree.forth.procedure.SafeProcedures;
 import togos.solidtree.matrix.Matrix;
 import togos.solidtree.matrix.MatrixMath;
-import togos.solidtree.trace.job.InfiniteIterator;
+import togos.solidtree.trace.job.DistributingRenderServer;
+import togos.solidtree.trace.job.InfiniteXYOrderedPixelRayIteratorIterator;
 import togos.solidtree.trace.job.LocalRenderServer;
-import togos.solidtree.trace.job.MultiRenderServer;
-import togos.solidtree.trace.job.PixelRayIterator;
 import togos.solidtree.trace.job.RenderResult;
-import togos.solidtree.trace.job.RenderTask;
 import togos.solidtree.trace.job.RenderResultIterator;
-import togos.solidtree.trace.job.XYOrderedPixelRayIterator;
+import togos.solidtree.trace.job.RenderTask;
 import togos.solidtree.trace.sky.CrappySkySphere;
 
 public class TraceDemo
@@ -357,9 +358,24 @@ public class TraceDemo
 		desiredChannels.add(RenderResultChannel.BLUE);
 		desiredChannels.add(RenderResultChannel.EXPOSURE);
 		
-		final MultiRenderServer renderServer = new MultiRenderServer();
-		renderServer.addServer(new LocalRenderServer());
-		renderServer.addServer(new LocalRenderServer());
+		final DistributingRenderServer renderServer = new DistributingRenderServer();
+		for( int i=Runtime.getRuntime().availableProcessors(); i>0; --i ) {
+			Thread t = new Thread("Render worker "+i) {
+				@Override public void run() {
+					int maxTaskRepititions = 1;
+					RenderTask task;
+					LocalRenderServer lrs = new LocalRenderServer();
+					while( (task = renderServer.takeTask()) != null ) {
+						RenderResultIterator rri = lrs.start(task);
+						RenderResult res;
+						for( int r=0; r<maxTaskRepititions && (res = rri.nextResult()) != null; ++r ) {
+							renderServer.putTaskResult(task, res);
+						}
+					}
+				}
+			};
+			t.start();
+		}
 		
 		long startTime = System.currentTimeMillis();
 		long prevTime = startTime-1;
@@ -367,27 +383,41 @@ public class TraceDemo
 		double samplesPerSecond = 0;
 		long samplesTakenAtLastUpdate = 0;
 		HDRExposure exp = cam.getExposure();
-		RenderResultIterator worker = null;
+		RenderResultIterator renderResultIterator = null;
 		Scene scene = null;
 		boolean restartWorker = false;
 		tii.set( TracerInstruction.RESET );
+		int innerIterations = 1;
 		while( true ) {
 			TracerInstruction ti = tii.set( TracerInstruction.CONTINUE );
 			if( ti == TracerInstruction.RESET ) {
 				restartWorker = true;
+				innerIterations = 1;
 				startTime = System.currentTimeMillis();
 				exp = cam.getExposure();
 				exp.clear();
 				adj.setExposure(exp, false);
 				scene = new Scene(root, new CrappySkySphere());
+				
+				File sceneFile = new File(renderDir+"/"+sceneName+"/"+sceneName+".scene");
+				System.err.println("Saving scene to "+sceneFile);
+				FileUtil.mkParentDirs(sceneFile);
+				ObjectOutputStream sceneOs = new ObjectOutputStream(new FileOutputStream(sceneFile));
+				try {
+					sceneOs.writeObject(scene);
+				} finally {
+					sceneOs.close();
+				}
 			} else if( ti == TracerInstruction.DOUBLE ) {
 				restartWorker = true;
+				innerIterations = 1;
 				exp = ExposureScaler.scaleUp(exp);
 				System.err.println("Doubling resolution to "+exp.width+"x"+exp.height);
 				adj.setExposure(exp, false);
 				cam.setExposure(exp);
 			} else if( ti == TracerInstruction.HALVE ) {
 				restartWorker = true;
+				innerIterations = 1;
 				exp = ExposureScaler.scaleDown(exp, 2);
 				System.err.println("Halved resolution to "+exp.width+"x"+exp.height);
 				adj.setExposure(exp, false);
@@ -395,16 +425,15 @@ public class TraceDemo
 			}
 			
 			if( restartWorker ) {
-				if( worker != null ) worker.close();
-				worker = null;
+				if( renderResultIterator != null ) renderResultIterator.close();
+				renderResultIterator = null;
 				restartWorker = false;
 			}
 			
-			final int innerIterations = 1;
 			final int imageWidth = cam.imageWidth;
 			final int imageHeight = cam.imageHeight;
 			
-			if( worker == null ) {
+			if( renderResultIterator == null ) {
 				final Matrix cameraTranslation = new Matrix(4,4);
 				final Matrix cameraRotation = new Matrix(4,4);
 				final Matrix cameraTransform = new Matrix(4,4);
@@ -415,18 +444,17 @@ public class TraceDemo
 				MatrixMath.translation( cam.x, cam.y, cam.z, cameraTranslation );
 				MatrixMath.multiply( cameraTranslation, cameraRotation, cameraTransform );
 				
-				RenderTask task = new RenderTask(imageWidth * imageHeight, scene, new InfiniteIterator<PixelRayIterator>() {
-					@Override public PixelRayIterator next() {
-						return new XYOrderedPixelRayIterator(imageWidth, imageHeight, cam.projection, cameraTransform, innerIterations);
-					}
-				}, desiredChannels);
-				worker = renderServer.start(task);
+				RenderTask task = new RenderTask(
+					imageWidth * imageHeight, scene,
+					new InfiniteXYOrderedPixelRayIteratorIterator(imageWidth, imageHeight, cam.projection, cameraTransform, innerIterations),
+					desiredChannels);
+				
+				renderResultIterator = renderServer.start(task);
 			}
 			
-			RenderResult nextResult = worker.nextResult();
+			RenderResult nextResult = renderResultIterator.nextResult();
 			HDRExposure nextResultExposure = RenderUtil.toHdrExposure(nextResult, imageWidth, imageHeight);
-			
-			samplesTaken += innerIterations * imageWidth * imageHeight;
+			samplesTaken += nextResult.sampleCount;
 			
 			//// Update UI
 			
@@ -451,6 +479,11 @@ public class TraceDemo
 			
 			adj.exportFilenamePrefix = baseName;
 			adj.exposureUpdated();
+			
+			if( innerIterations < 10 ) { 
+				++innerIterations;
+				restartWorker = true;
+			}
 		}
 	}
 }

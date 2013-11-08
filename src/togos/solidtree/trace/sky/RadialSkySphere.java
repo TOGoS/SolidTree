@@ -5,6 +5,8 @@ import togos.solidtree.matrix.Vector3D;
 
 public class RadialSkySphere implements SkySphere
 {
+	private static final long serialVersionUID = 1L;
+	
 	final double cx, cy, cz;
 	final double r, g, b;
 	final double distPower;

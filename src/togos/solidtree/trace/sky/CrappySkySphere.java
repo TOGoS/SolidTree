@@ -6,6 +6,8 @@ import togos.solidtree.matrix.Vector3D;
 public class CrappySkySphere
 	implements SkySphere
 {
+	private static final long serialVersionUID = 1L;
+	
 	double intensity = 0.1;
 	
 	double clamp( double min, double v, double max ) {

@@ -1,7 +1,11 @@
 package togos.solidtree;
 
-public class SurfaceMaterialLayer
+import java.io.Serializable;
+
+public class SurfaceMaterialLayer implements Serializable
 {
+	private static final long serialVersionUID = 1L;
+	
 	public static final SurfaceMaterialLayer TRANSPARENT =
 		new SurfaceMaterialLayer( 0, DColor.WHITE, DColor.BLACK, 0, 0, 0, 1 );
 	

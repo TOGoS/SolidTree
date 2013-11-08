@@ -1,9 +1,12 @@
 package togos.solidtree;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class SolidNodePalette
+public class SolidNodePalette implements Serializable
 {
+	private static final long serialVersionUID = 1L;
+	
 	public static final SolidNodePalette EMPTY = new SolidNodePalette(new SolidNode[0]); 
 	
 	private final SolidNode[] nodes;

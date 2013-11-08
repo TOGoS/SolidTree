@@ -1,11 +1,14 @@
 package togos.solidtree;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SolidNode
+public class SolidNode implements Serializable
 {
+	private static final long serialVersionUID = 1L;
+	
 	public static final byte[] EMPTY_SUBNODE_LIST = new byte[0];
 	public static final SolidNode EMPTY = new SolidNode( StandardMaterial.SPACE );
 	private static final byte[] INC = new byte[256];

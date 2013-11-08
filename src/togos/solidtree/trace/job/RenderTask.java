@@ -1,13 +1,16 @@
 package togos.solidtree.trace.job;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Set;
 
 import togos.solidtree.trace.RenderResultChannel;
 import togos.solidtree.trace.Scene;
 
-public class RenderTask
+public class RenderTask implements Serializable
 {
+	private static final long serialVersionUID = 1L;
+	
 	/** How many data points are we generating? */
 	public final int imageDataSize;
 	/** What are we drawing? */
@@ -17,14 +20,14 @@ public class RenderTask
 	 * A separate result will be generated for each step of the outer iterator.
 	 * No result data should be carried over between outer iterations.
 	 */
-	public final Iterator<PixelRayIterator> pixelRayIteratorIterator;
+	public final Iterator<? extends PixelRayIterator> pixelRayIteratorIterator;
 	/** What data do we want back? */
 	public final Set<RenderResultChannel> channels;
 	
 	public RenderTask(
 		int imageDataSize,
 		Scene scene,
-		Iterator<PixelRayIterator> pixelRayIteratorIterator,
+		Iterator<? extends PixelRayIterator> pixelRayIteratorIterator,
 		Set<RenderResultChannel> channels
 	) {
 		this.imageDataSize = imageDataSize;

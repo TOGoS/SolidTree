@@ -22,6 +22,7 @@ public class XYOrderedPixelRayIterator implements PixelRayIterator
 	final long targetSamples;
 	final Matrix cameraTransform;
 	final Projection projection;
+	
 	int x, y;
 	long totalSamples;
 	
@@ -35,7 +36,7 @@ public class XYOrderedPixelRayIterator implements PixelRayIterator
 		this.imageHeight = imageHeight;
 		this.cameraTransform = cameraTransform;
 		this.projection = projection;
-		this.targetSamples = imageWidth*imageHeight*targetSamplesPerPixel;
+		this.targetSamples = (long)imageWidth*imageHeight*targetSamplesPerPixel;
 		this.viewX0 = -0.5;
 		this.viewX1 = +0.5;
 		this.viewY0 = +0.5;

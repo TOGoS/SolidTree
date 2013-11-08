@@ -1,3 +1,5 @@
 package togos.solidtree;
 
-public interface GeneralMaterial extends PathTraceMaterial { }
+import java.io.Serializable;
+
+public interface GeneralMaterial extends PathTraceMaterial, Serializable { }

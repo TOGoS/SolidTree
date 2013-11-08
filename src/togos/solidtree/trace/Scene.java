@@ -1,10 +1,14 @@
 package togos.solidtree.trace;
 
+import java.io.Serializable;
+
 import togos.solidtree.NodeRoot;
 import togos.solidtree.trace.sky.SkySphere;
 
-public class Scene
+public class Scene implements Serializable
 {
+	private static final long serialVersionUID = 1L;
+	
 	public final NodeRoot nodeRoot;
 	public final SkySphere sky;
 	
