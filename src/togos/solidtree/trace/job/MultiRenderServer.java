@@ -8,9 +8,12 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
+/**
+ * Runs tasks on multiple other servers simultaneously.
+ */
 public class MultiRenderServer implements RenderServer
 {
-	Set<RenderServer> servers = new HashSet<RenderServer>();
+	final Set<RenderServer> servers = new HashSet<RenderServer>();
 	
 	public synchronized void addServer(RenderServer rs) {
 		servers.add(rs);
@@ -61,11 +64,6 @@ public class MultiRenderServer implements RenderServer
 			wt.start();
 			workerThreads.add(wt);
 		}
-		
-		// It would be neat to!
-		// occasionally start new workers using the most updated server list
-		// this os actually important for recovering from dead workers
-		// (or the worker thread count might just reach 0 and we get stuck)
 		
 		return new RenderResultIterator() {
 			boolean closed = false;
