@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
@@ -23,14 +22,6 @@ public class MultiRenderServer implements RenderServer
 	
 	protected List<RenderServer> getServerListSnapshot() {
 		return new ArrayList<RenderServer>(servers);
-	}
-	
-	@Override public int getAvailableCapacity() {
-		int capacity = 0;
-		for( RenderServer rs : getServerListSnapshot() ) {
-			capacity += rs.getAvailableCapacity();
-		}
-		return capacity;
 	}
 	
 	class RenderWorkerThread extends Thread {
@@ -65,18 +56,10 @@ public class MultiRenderServer implements RenderServer
 		final List<RenderServer> servers = getServerListSnapshot();
 		final Set<RenderWorkerThread> workerThreads = new HashSet<RenderWorkerThread>();
 		
-		int threadsStarted = 0;
 		for( RenderServer rs : servers ) {
-			for( int i=0; i<rs.getAvailableCapacity(); ++i, ++threadsStarted ) {
-				RenderWorkerThread wt = new RenderWorkerThread( rs.start(t), resultQueue );
-				wt.start();
-				workerThreads.add(wt);
-			}
-		}
-		
-		if( threadsStarted == 0 && servers.size() > 0 ) {
-			// Then just start one and return it
-			return servers.get(new Random().nextInt(servers.size())).start(t);
+			RenderWorkerThread wt = new RenderWorkerThread( rs.start(t), resultQueue );
+			wt.start();
+			workerThreads.add(wt);
 		}
 		
 		// It would be neat to!
@@ -88,7 +71,7 @@ public class MultiRenderServer implements RenderServer
 			boolean closed = false;
 			@Override public void close() throws IOException {
 				closed = false;
-				for( RenderWorkerThread wrxrt : workerThreads ) wrxrt.close();  
+				for( RenderWorkerThread wrxrt : workerThreads ) wrxrt.close();
 			}
 			@Override public RenderResult nextResult() {
 				if( closed ) return null;
