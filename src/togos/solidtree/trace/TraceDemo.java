@@ -480,8 +480,8 @@ public class TraceDemo
 			adj.exportFilenamePrefix = baseName;
 			adj.exposureUpdated();
 			
-			if( innerIterations < 10 ) { 
-				++innerIterations;
+			if( innerIterations == 1 ) { 
+				innerIterations = 10;
 				restartWorker = true;
 			}
 		}
