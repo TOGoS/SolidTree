@@ -75,6 +75,11 @@ public class Tracer
 		setRoot( root.node, root.x0, root.y0, root.z0, root.x1, root.y1, root.z1 );
 	}
 	
+	public void setScene( Scene scene ) {
+		setRoot( scene.nodeRoot );
+		this.skySphere = scene.sky;
+	}
+	
 	protected Cursor fixCursor() {
 		if( cursorIdx == 0 ) cursorIdx = 1;
 		
@@ -506,7 +511,10 @@ public class Tracer
 		return add;
 	}
 	
-	DColor skyColor = new DColor(0,0,0);
+	/**
+	 * Temporary storage for sky color coming from sky sphere
+	 */
+	private DColor skyColor = new DColor(0,0,0);
 	
 	public void trace( double x, double y, double z, double dx, double dy, double dz ) {
 		setPosition( x, y, z );

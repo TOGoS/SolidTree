@@ -3,7 +3,6 @@ package togos.solidtree.trace.sky;
 import togos.solidtree.DColor;
 import togos.solidtree.matrix.Vector3D;
 
-
 public class CrappySkySphere
 	implements SkySphere
 {

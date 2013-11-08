@@ -38,6 +38,7 @@ import togos.solidtree.trace.job.RenderServer;
 import togos.solidtree.trace.job.RenderTask;
 import togos.solidtree.trace.job.RenderWorker;
 import togos.solidtree.trace.job.XYOrderedPixelRayIterator;
+import togos.solidtree.trace.sky.CrappySkySphere;
 
 public class TraceDemo
 {
@@ -365,6 +366,7 @@ public class TraceDemo
 		long samplesTakenAtLastUpdate = 0;
 		HDRExposure exp = cam.getExposure();
 		RenderWorker worker = null;
+		Scene scene = null;
 		boolean restartWorker = false;
 		tii.set( TracerInstruction.RESET );
 		while( true ) {
@@ -375,6 +377,7 @@ public class TraceDemo
 				exp = cam.getExposure();
 				exp.clear();
 				adj.setExposure(exp, false);
+				scene = new Scene(root, new CrappySkySphere());
 			} else if( ti == TracerInstruction.DOUBLE ) {
 				restartWorker = true;
 				exp = ExposureScaler.scaleUp(exp);
@@ -410,7 +413,7 @@ public class TraceDemo
 				MatrixMath.translation( cam.x, cam.y, cam.z, cameraTranslation );
 				MatrixMath.multiply( cameraTranslation, cameraRotation, cameraTransform );
 				
-				RenderTask task = new RenderTask(imageWidth * imageHeight, root, new InfiniteIterator<PixelRayIterator>() {
+				RenderTask task = new RenderTask(imageWidth * imageHeight, scene, new InfiniteIterator<PixelRayIterator>() {
 					@Override public PixelRayIterator next() {
 						return new XYOrderedPixelRayIterator(imageWidth, imageHeight, cam.projection, cameraTransform, innerIterations);
 					}

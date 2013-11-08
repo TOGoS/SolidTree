@@ -3,15 +3,15 @@ package togos.solidtree.trace.job;
 import java.util.Iterator;
 import java.util.Set;
 
-import togos.solidtree.NodeRoot;
 import togos.solidtree.trace.RenderResultChannel;
+import togos.solidtree.trace.Scene;
 
 public class RenderTask
 {
 	/** How many data points are we generating? */
 	public final int imageDataSize;
 	/** What are we drawing? */
-	public final NodeRoot nodeRoot;
+	public final Scene scene;
 	/**
 	 * What order do we generate the data, and from what perspective?
 	 * A separate result will be generated for each step of the outer iterator.
@@ -23,12 +23,12 @@ public class RenderTask
 	
 	public RenderTask(
 		int imageDataSize,
-		NodeRoot nodeRoot,
+		Scene scene,
 		Iterator<PixelRayIterator> pixelRayIteratorIterator,
 		Set<RenderResultChannel> channels
 	) {
 		this.imageDataSize = imageDataSize;
-		this.nodeRoot = nodeRoot;
+		this.scene = scene;
 		this.pixelRayIteratorIterator = pixelRayIteratorIterator;
 		this.channels = channels;
 	}

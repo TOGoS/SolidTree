@@ -7,12 +7,11 @@ import togos.solidtree.trace.Tracer;
 
 public class LocalRenderWorker implements RenderWorker
 {
-	@Override public void close() { }
-	
-	final Tracer tracer;
-	final RenderTask task;
-	final int imageDataSize;
-	final int batchSize;
+	protected final Tracer tracer;
+	protected final RenderTask task;
+	protected final int imageDataSize;
+	protected final int batchSize;
+	protected boolean run = true;
 	
 	public LocalRenderWorker( RenderTask task, int imageDataSize, int batchSize ) {
 		this.task = task;
@@ -20,11 +19,15 @@ public class LocalRenderWorker implements RenderWorker
 		this.batchSize = batchSize;
 		
 		this.tracer = new Tracer();
-		tracer.setRoot(task.nodeRoot);
+		tracer.setScene(task.scene);
+	}
+	
+	@Override public void close() {
+		run = false;
 	}
 	
 	@Override public RenderResult nextResult() {
-		if( !task.pixelRayIteratorIterator.hasNext() ) return null;
+		if( !run || !task.pixelRayIteratorIterator.hasNext() ) return null;
 		
 		final PixelRayIterator pri = task.pixelRayIteratorIterator.next();
 		final PixelRayBuffer prb = new PixelRayBuffer(batchSize);
