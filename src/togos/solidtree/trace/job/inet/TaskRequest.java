@@ -1,0 +1,7 @@
+package togos.solidtree.trace.job.inet;
+
+import java.io.Serializable;
+
+public class TaskRequest implements Serializable {
+	private static final long serialVersionUID = 1L; 
+}
