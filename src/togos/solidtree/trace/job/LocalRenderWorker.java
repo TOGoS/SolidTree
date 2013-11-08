@@ -52,8 +52,6 @@ public class LocalRenderWorker implements RenderResultIterator
 			++totalSamples;
 		}
 		
-		System.err.println("Completed job with "+totalSamples+" samples");
-		
 		HashMap<RenderResultChannel,Object> rrcs = new HashMap<RenderResultChannel,Object>();
 		rrcs.put(RenderResultChannel.RED, r);
 		rrcs.put(RenderResultChannel.GREEN, g);
