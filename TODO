@@ -91,3 +91,6 @@
   - Bindings can be rebound to the current context by '<binding> rebind' in .fs
   - This will allow LoadContext.get(...) to be used in place of direct NodeLoader.get(...)
   - <name> = <script-id>( <param-overrides> ) syntax
+
+I am trying to render this scene
+35.9429701532131 -1151.658505660188 0.574698968494441 set-camera-position 3.730641276137881 set-camera-yaw -0.1963495408493623 set-camera-pitch 6.283185307179591 set-camera-roll 

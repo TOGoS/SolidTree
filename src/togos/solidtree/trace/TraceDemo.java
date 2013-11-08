@@ -9,7 +9,6 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import togos.hdrutil.AdjusterUI;
@@ -34,6 +33,7 @@ import togos.solidtree.matrix.MatrixMath;
 import togos.solidtree.trace.job.InfiniteIterator;
 import togos.solidtree.trace.job.LocalRenderServer;
 import togos.solidtree.trace.job.PixelRayIterator;
+import togos.solidtree.trace.job.RenderResult;
 import togos.solidtree.trace.job.RenderServer;
 import togos.solidtree.trace.job.RenderTask;
 import togos.solidtree.trace.job.RenderWorker;
@@ -418,14 +418,8 @@ public class TraceDemo
 				worker = renderServer.start(task);
 			}
 			
-			Map<RenderResultChannel,Object> nextResult = worker.nextResult();
-			HDRExposure nextResultExposure = new HDRExposure(
-				imageWidth, imageHeight,
-				(float[])nextResult.get(RenderResultChannel.RED),
-				(float[])nextResult.get(RenderResultChannel.GREEN),
-				(float[])nextResult.get(RenderResultChannel.BLUE),
-				(float[])nextResult.get(RenderResultChannel.EXPOSURE)
-			);
+			RenderResult nextResult = worker.nextResult();
+			HDRExposure nextResultExposure = RenderUtil.toHdrExposure(nextResult, imageWidth, imageHeight);
 			
 			samplesTaken += innerIterations * imageWidth * imageHeight;
 			

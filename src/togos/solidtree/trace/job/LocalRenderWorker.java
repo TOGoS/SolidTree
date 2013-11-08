@@ -1,7 +1,6 @@
 package togos.solidtree.trace.job;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import togos.solidtree.trace.RenderResultChannel;
 import togos.solidtree.trace.Tracer;
@@ -24,7 +23,7 @@ public class LocalRenderWorker implements RenderWorker
 		tracer.setRoot(task.nodeRoot);
 	}
 	
-	@Override public Map<RenderResultChannel, Object> nextResult() {
+	@Override public RenderResult nextResult() {
 		if( !task.pixelRayIteratorIterator.hasNext() ) return null;
 		
 		final PixelRayIterator pri = task.pixelRayIteratorIterator.next();
@@ -47,11 +46,11 @@ public class LocalRenderWorker implements RenderWorker
 			e[i]++;
 		}
 		
-		HashMap<RenderResultChannel,Object> result = new HashMap<RenderResultChannel,Object>();
-		result.put(RenderResultChannel.RED, r);
-		result.put(RenderResultChannel.GREEN, g);
-		result.put(RenderResultChannel.BLUE, b);
-		result.put(RenderResultChannel.EXPOSURE, e);
-		return result;
+		HashMap<RenderResultChannel,Object> rrcs = new HashMap<RenderResultChannel,Object>();
+		rrcs.put(RenderResultChannel.RED, r);
+		rrcs.put(RenderResultChannel.GREEN, g);
+		rrcs.put(RenderResultChannel.BLUE, b);
+		rrcs.put(RenderResultChannel.EXPOSURE, e);
+		return new RenderResult(rrcs);
 	}
 }
