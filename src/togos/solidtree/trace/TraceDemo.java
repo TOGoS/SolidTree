@@ -32,9 +32,9 @@ import togos.solidtree.matrix.Matrix;
 import togos.solidtree.matrix.MatrixMath;
 import togos.solidtree.trace.job.InfiniteIterator;
 import togos.solidtree.trace.job.LocalRenderServer;
+import togos.solidtree.trace.job.MultiRenderServer;
 import togos.solidtree.trace.job.PixelRayIterator;
 import togos.solidtree.trace.job.RenderResult;
-import togos.solidtree.trace.job.RenderServer;
 import togos.solidtree.trace.job.RenderTask;
 import togos.solidtree.trace.job.RenderWorker;
 import togos.solidtree.trace.job.XYOrderedPixelRayIterator;
@@ -357,7 +357,9 @@ public class TraceDemo
 		desiredChannels.add(RenderResultChannel.BLUE);
 		desiredChannels.add(RenderResultChannel.EXPOSURE);
 		
-		final RenderServer renderServer = new LocalRenderServer();
+		final MultiRenderServer renderServer = new MultiRenderServer();
+		renderServer.addServer(new LocalRenderServer());
+		renderServer.addServer(new LocalRenderServer());
 		
 		long startTime = System.currentTimeMillis();
 		long prevTime = startTime-1;
