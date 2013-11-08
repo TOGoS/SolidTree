@@ -24,11 +24,11 @@ public class MultiRenderServer implements RenderServer
 		return new ArrayList<RenderServer>(servers);
 	}
 	
-	class RenderWorkerThread extends Thread {
-		protected final RenderWorker wrxr;
+	class RenderPusherThread extends Thread {
+		protected final RenderResultIterator wrxr;
 		protected final BlockingQueue<RenderResult> resultQueue;
 		
-		public RenderWorkerThread( RenderWorker wrxr, BlockingQueue<RenderResult> resultQueue ) {
+		public RenderPusherThread( RenderResultIterator wrxr, BlockingQueue<RenderResult> resultQueue ) {
 			super("Render worker thread");
 			this.wrxr = wrxr;
 			this.resultQueue = resultQueue;
@@ -51,13 +51,13 @@ public class MultiRenderServer implements RenderServer
 		}
 	}
 	
-	@Override public RenderWorker start(RenderTask t) {
+	@Override public RenderResultIterator start(RenderTask t) {
 		final SynchronousQueue<RenderResult> resultQueue = new SynchronousQueue<RenderResult>(true);
 		final List<RenderServer> servers = getServerListSnapshot();
-		final Set<RenderWorkerThread> workerThreads = new HashSet<RenderWorkerThread>();
+		final Set<RenderPusherThread> workerThreads = new HashSet<RenderPusherThread>();
 		
 		for( RenderServer rs : servers ) {
-			RenderWorkerThread wt = new RenderWorkerThread( rs.start(t), resultQueue );
+			RenderPusherThread wt = new RenderPusherThread( rs.start(t), resultQueue );
 			wt.start();
 			workerThreads.add(wt);
 		}
@@ -67,11 +67,11 @@ public class MultiRenderServer implements RenderServer
 		// this os actually important for recovering from dead workers
 		// (or the worker thread count might just reach 0 and we get stuck)
 		
-		return new RenderWorker() {
+		return new RenderResultIterator() {
 			boolean closed = false;
 			@Override public void close() throws IOException {
 				closed = false;
-				for( RenderWorkerThread wrxrt : workerThreads ) wrxrt.close();
+				for( RenderPusherThread wrxrt : workerThreads ) wrxrt.close();
 			}
 			@Override public RenderResult nextResult() {
 				if( closed ) return null;

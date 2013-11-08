@@ -36,7 +36,7 @@ import togos.solidtree.trace.job.MultiRenderServer;
 import togos.solidtree.trace.job.PixelRayIterator;
 import togos.solidtree.trace.job.RenderResult;
 import togos.solidtree.trace.job.RenderTask;
-import togos.solidtree.trace.job.RenderWorker;
+import togos.solidtree.trace.job.RenderResultIterator;
 import togos.solidtree.trace.job.XYOrderedPixelRayIterator;
 import togos.solidtree.trace.sky.CrappySkySphere;
 
@@ -367,7 +367,7 @@ public class TraceDemo
 		double samplesPerSecond = 0;
 		long samplesTakenAtLastUpdate = 0;
 		HDRExposure exp = cam.getExposure();
-		RenderWorker worker = null;
+		RenderResultIterator worker = null;
 		Scene scene = null;
 		boolean restartWorker = false;
 		tii.set( TracerInstruction.RESET );

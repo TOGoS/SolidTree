@@ -5,7 +5,7 @@ import java.util.HashMap;
 import togos.solidtree.trace.RenderResultChannel;
 import togos.solidtree.trace.Tracer;
 
-public class LocalRenderWorker implements RenderWorker
+public class LocalRenderWorker implements RenderResultIterator
 {
 	protected final Tracer tracer;
 	protected final RenderTask task;
