@@ -48,13 +48,16 @@ public class MultiRenderServer implements RenderServer
 				while( !interrupted() && (res = wrxr.nextResult()) != null  ) {
 					resultQueue.put( res );
 				}
+			} catch( IOException e ) {
+				System.err.println("Error reading render result");
+				e.printStackTrace();
 			} catch( InterruptedException e ) {
 				// Done!
 			}
 		}
 	}
 	
-	@Override public RenderResultIterator start(RenderTask t) {
+	@Override public RenderResultIterator start(RenderTask t) throws IOException, InterruptedException {
 		final SynchronousQueue<RenderResult> resultQueue = new SynchronousQueue<RenderResult>(true);
 		final List<RenderServer> servers = getServerListSnapshot();
 		final Set<RenderPusherThread> workerThreads = new HashSet<RenderPusherThread>();

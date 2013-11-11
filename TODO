@@ -1,4 +1,4 @@
-- Create RenderServer/Worker that delegate to other RenderServers/Workers
+- Formalize task distribution system
 
 - Command to merge render dumps
 

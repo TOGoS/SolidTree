@@ -1,11 +1,12 @@
 package togos.solidtree.trace.job;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.SynchronousQueue;
 
 /**
  * Distributes tasks to clients that ask for them.
@@ -13,32 +14,46 @@ import java.util.concurrent.SynchronousQueue;
 public class DistributingRenderServer
 	implements RenderServer, TaskServer
 {
-	final HashMap<RenderTask,Set<AsyncRenderIterator>> taskResultListeners = new HashMap<RenderTask,Set<AsyncRenderIterator>>();
+	public interface RenderResultListener {
+		public void result( RenderResult res ) throws IOException, InterruptedException;
+		public void end();
+	}
 	
-	protected void addListener( RenderTask task, AsyncRenderIterator worker ) {
+	static class TaskInfo {
+		public final RenderTask task;
+		final HashSet<RenderResultListener> listeners = new HashSet<RenderResultListener>();
+		
+		public TaskInfo( RenderTask task ) {
+			this.task = task;
+		}
+	}
+	
+	final HashMap<String,TaskInfo> taskResultListeners = new HashMap<String,TaskInfo>();
+	
+	protected void addListener( RenderTask task, RenderResultListener listener ) {
 		synchronized( taskResultListeners ) {
-			Set<AsyncRenderIterator> listenerSet = taskResultListeners.get(task);
-			if( listenerSet == null ) {
-				listenerSet = new HashSet<AsyncRenderIterator>(1);
-				taskResultListeners.put(task, listenerSet);
+			TaskInfo taskInfo = taskResultListeners.get(task.taskId);
+			if( taskInfo == null ) {
+				taskInfo = new TaskInfo( task );
+				taskResultListeners.put(task.taskId, taskInfo);
 			}
-			listenerSet.add(worker);
+			taskInfo.listeners.add(listener);
 			taskResultListeners.notifyAll();
 		}
 	}
 	
-	protected void removeListener( RenderTask task, AsyncRenderIterator worker ) {
+	protected void removeListener( String taskId, RenderResultListener listener ) {
 		synchronized( taskResultListeners ) {
-			Set<AsyncRenderIterator> listenerSet = taskResultListeners.get(task);
-			if( listenerSet == null ) return; // Nothing to do!
-			listenerSet.remove(worker);
-			if( listenerSet.size() == 0 ) taskResultListeners.remove(task);
+			TaskInfo taskInfo = taskResultListeners.get(taskId);
+			if( taskInfo == null ) return; // Nothing to do!
+			taskInfo.listeners.remove(listener);
+			if( taskInfo.listeners.size() == 0 ) taskResultListeners.remove(taskId);
 		}		
 	}
 	
-	class AsyncRenderIterator implements RenderResultIterator {
+	class AsyncRenderIterator implements RenderResultIterator, RenderResultListener {
 		final RenderTask task;
-		final SynchronousQueue<RenderResult> resultQueue = new SynchronousQueue<RenderResult>();
+		private RenderResult result = null;
 		private boolean closed = false; 
 		
 		public AsyncRenderIterator( RenderTask task ) {
@@ -47,31 +62,58 @@ public class DistributingRenderServer
 		
 		@Override public void close() {
 			if( closed ) return;
-			removeListener(task, this);
+			synchronized( this ) {
+				closed = true;
+				notifyAll();
+			}
+			removeListener(task.taskId, this);
 		}
 		
-		public void putResult(RenderResult rr) throws InterruptedException {
-			resultQueue.put(rr);
+		@Override public void result(RenderResult rr) {
+			try {
+				synchronized( this ) {
+					while( !closed && result != null ) wait();
+					if( !closed ) {
+						result = rr;
+						notifyAll();
+					}
+				}
+			} catch( InterruptedException e ) {
+				Thread.currentThread().interrupt();
+			}
+		}
+		
+		@Override public void end() {
+			close();
 		}
 		
 		@Override public RenderResult nextResult() {
 			try {
-				return resultQueue.take();
+				synchronized( this ) {
+					while( !closed && result == null ) wait();
+					RenderResult res = result;
+					result = null;
+					notifyAll();
+					return res;
+				}
 			} catch( InterruptedException e ) {
-				close();
 				Thread.currentThread().interrupt();
 				return null;
 			}
 		}
 	}
-		
+	
+	public void start( RenderTask task, RenderResultListener listener ) {
+		addListener( task, listener );
+	}
+	
 	@Override public RenderResultIterator start(RenderTask task) {
 		AsyncRenderIterator worker = new AsyncRenderIterator(task);
 		addListener( task, worker );
 		return worker;
 	}
 	
-	protected static <T> T getRandom( Set<T> s ) {
+	protected static <T> T getRandom( Collection<T> s ) {
 		Random r = new Random();
 		Iterator<T> iter = s.iterator();
 		for( int i=r.nextInt(s.size()); i>0; --i, iter.next() );
@@ -82,7 +124,7 @@ public class DistributingRenderServer
 		try {
 			synchronized( taskResultListeners ) {
 				while( taskResultListeners.size() == 0 ) taskResultListeners.wait();
-				return getRandom(taskResultListeners.keySet());
+				return getRandom(taskResultListeners.values()).task;
 			}
 		} catch( InterruptedException e ) {
 			Thread.currentThread().interrupt();
@@ -90,18 +132,15 @@ public class DistributingRenderServer
 		}
 	}
 	
-	@Override public void putTaskResult(RenderTask task, RenderResult result) {
-		Set<AsyncRenderIterator> workers;
+	@Override public void putTaskResult(String taskId, RenderResult result)
+		throws IOException, InterruptedException
+	{
+		ArrayList<RenderResultListener> listeners;
 		synchronized( taskResultListeners ) {
-			workers = taskResultListeners.get(task);
-			if( workers == null ) return;
-			workers = new HashSet<AsyncRenderIterator>( workers );
+			TaskInfo taskInfo = taskResultListeners.get(taskId);
+			if( taskInfo == null ) return;
+			listeners = new ArrayList<RenderResultListener>( taskInfo.listeners );
 		}
-		try {
-			for( AsyncRenderIterator worker : workers ) worker.putResult(result);
-		} catch( InterruptedException e ) {
-			System.err.println(Thread.currentThread().getName()+" interrupted");
-			Thread.currentThread().interrupt();
-		}
+		for( RenderResultListener listener : listeners ) listener.result(result);
 	}
 }

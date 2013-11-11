@@ -2,6 +2,7 @@ package togos.solidtree.trace.job;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.Set;
 
 import togos.solidtree.trace.RenderResultChannel;
@@ -11,6 +12,7 @@ public class RenderTask implements Serializable
 {
 	private static final long serialVersionUID = 1L;
 	
+	public final String taskId;
 	/** How many data points are we generating? */
 	public final int imageDataSize;
 	/** What are we drawing? */
@@ -30,6 +32,8 @@ public class RenderTask implements Serializable
 		Iterator<? extends PixelRayIterator> pixelRayIteratorIterator,
 		Set<RenderResultChannel> channels
 	) {
+		Random r = new Random();
+		this.taskId = "task-"+System.currentTimeMillis()+"-"+r.nextLong()+"-"+r.nextLong();
 		this.imageDataSize = imageDataSize;
 		this.scene = scene;
 		this.pixelRayIteratorIterator = pixelRayIteratorIterator;

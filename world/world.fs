@@ -4,9 +4,9 @@
 
   transparent-surface
   1.0
-  0.9997 0.9997 0.9997 make-color
-  0.0001 0.0001 0.0002 make-color
-  0.01
+  white # 0.9997 0.9997 0.9997 make-color
+  black # 0.0001 0.0001 0.0002 make-color
+  0.2
   rough-mirror-surface
 make-volumetric-material "fog" def-value
 

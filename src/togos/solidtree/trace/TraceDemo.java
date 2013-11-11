@@ -39,6 +39,7 @@ import togos.solidtree.trace.job.LocalRenderServer;
 import togos.solidtree.trace.job.RenderResult;
 import togos.solidtree.trace.job.RenderResultIterator;
 import togos.solidtree.trace.job.RenderTask;
+import togos.solidtree.trace.job.inet.InetRenderServer;
 import togos.solidtree.trace.sky.CrappySkySphere;
 
 public class TraceDemo
@@ -359,23 +360,36 @@ public class TraceDemo
 		desiredChannels.add(RenderResultChannel.EXPOSURE);
 		
 		final DistributingRenderServer renderServer = new DistributingRenderServer();
-		for( int i=Runtime.getRuntime().availableProcessors(); i>0; --i ) {
+		
+		int localRenderThreadCount = 0; //Runtime.getRuntime().availableProcessors();
+		
+		for( int i=localRenderThreadCount; i>0; --i ) {
 			Thread t = new Thread("Render worker "+i) {
 				@Override public void run() {
 					int maxTaskRepititions = 1;
 					RenderTask task;
 					LocalRenderServer lrs = new LocalRenderServer();
-					while( (task = renderServer.takeTask()) != null ) {
-						RenderResultIterator rri = lrs.start(task);
-						RenderResult res;
-						for( int r=0; r<maxTaskRepititions && (res = rri.nextResult()) != null; ++r ) {
-							renderServer.putTaskResult(task, res);
+					try {
+						while( (task = renderServer.takeTask()) != null ) {
+							RenderResultIterator rri = lrs.start(task);
+							RenderResult res;
+							for( int r=0; r<maxTaskRepititions && (res = rri.nextResult()) != null; ++r ) {
+								renderServer.putTaskResult(task.taskId, res);
+							}
 						}
+					} catch( InterruptedException e ) {
+						Thread.currentThread().interrupt();
+					} catch( IOException e ) {
+						System.err.println("Exiting task runner due to exception:");
+						e.printStackTrace();
 					}
 				}
 			};
 			t.start();
 		}
+		
+		InetRenderServer irs = new InetRenderServer(renderServer, InetRenderServer.DEFAULT_PORT);
+		irs.start();
 		
 		long startTime = System.currentTimeMillis();
 		long prevTime = startTime-1;
