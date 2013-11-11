@@ -1,7 +1,11 @@
 package togos.solidtree.trace;
 
-public class FisheyeProjection implements Projection
+import java.io.Serializable;
+
+public class FisheyeProjection implements Projection, Serializable
 {
+	private static final long serialVersionUID = 1L;
+	
 	/** Horizontal and vertical fields of view, in radians */
 	final double fovX, fovY;
 	

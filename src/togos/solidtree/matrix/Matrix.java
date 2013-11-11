@@ -1,7 +1,11 @@
 package togos.solidtree.matrix;
 
-public class Matrix
+import java.io.Serializable;
+
+public class Matrix implements Serializable
 {
+	private static final long serialVersionUID = 1L;
+	
 	public final int width, height;
 	/** [row*width+column] */
 	private final double[] values;
