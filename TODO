@@ -1,3 +1,7 @@
+- Automatically dump periodically
+
+- Dump RGBE data instead of Chunky dumps
+
 - Formalize task distribution system
 
 - Command to merge render dumps
