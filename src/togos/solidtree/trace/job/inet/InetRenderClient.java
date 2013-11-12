@@ -154,7 +154,7 @@ public class InetRenderClient extends Thread implements RenderServer, TaskServer
 								perfCount.samplesCompleted( res.sampleCount );
 								renderClient.putTaskResult(task.taskId, res);
 							}
-							System.err.print(perfCount.toString()+"    \r");
+							if( _verbose ) System.err.print(perfCount.toString()+"    \r");
 						}
 					} catch( InterruptedException e ) {
 						Thread.currentThread().interrupt();
