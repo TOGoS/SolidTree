@@ -44,6 +44,7 @@ public class InetRenderServer extends Thread
 			try {
 				debug("Sending "+msg.getClass()+" to client");
 				oos.writeObject(msg);
+				oos.reset();
 				oos.flush();
 			} catch( IOException e ) {
 				closed = true;

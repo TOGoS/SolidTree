@@ -47,6 +47,7 @@ public class InetRenderClient extends Thread implements RenderServer, TaskServer
 		synchronized( oos ) {
 			debug("Sending "+msg.getClass()+" to server");
 			oos.writeObject( msg );
+			oos.reset();
 			oos.flush();
 		}
 	}
