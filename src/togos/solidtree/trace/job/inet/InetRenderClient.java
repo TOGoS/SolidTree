@@ -8,10 +8,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import togos.solidtree.trace.job.LocalRenderServer;
+import togos.solidtree.trace.job.PerformanceCounter;
 import togos.solidtree.trace.job.RenderResult;
 import togos.solidtree.trace.job.RenderResultIterator;
 import togos.solidtree.trace.job.RenderServer;
@@ -101,10 +103,13 @@ public class InetRenderClient extends Thread implements RenderServer, TaskServer
 	public static void main(String[] args) throws Exception {
 		String serverName = null;
 		int serverPort = InetRenderServer.DEFAULT_PORT;
+		boolean verbose = false;
 		
 		for( int i=0; i<args.length; ++i ) {
 			String arg = args[i];
-			if( arg.startsWith("-") ) {
+			if( "-v".equals(arg) ) {
+				verbose = true;
+			} else if( arg.startsWith("-") ) {
 				System.err.println("Error: Unrecognized argument: "+arg);
 				System.exit(1);
 			} else {
@@ -128,7 +133,14 @@ public class InetRenderClient extends Thread implements RenderServer, TaskServer
 		renderClient.start();
 		
 		int threadCount = Runtime.getRuntime().availableProcessors();
+		if( verbose ) {
+			System.err.println("Starting "+threadCount+" threads");
+		}
+		
+		final PerformanceCounter perfCount = new PerformanceCounter();
+		
 		for( int i=threadCount; i>0; --i ) {
+			final boolean _verbose = verbose;
 			Thread t = new Thread("Render worker "+i) {
 				@Override public void run() {
 					int maxTaskRepititions = 1;
@@ -139,8 +151,10 @@ public class InetRenderClient extends Thread implements RenderServer, TaskServer
 							RenderResultIterator rri = lrs.start(task);
 							RenderResult res;
 							for( int r=0; r<maxTaskRepititions && (res = rri.nextResult()) != null; ++r ) {
+								perfCount.samplesCompleted( res.sampleCount );
 								renderClient.putTaskResult(task.taskId, res);
 							}
+							System.err.print(perfCount.toString()+"    \r");
 						}
 					} catch( InterruptedException e ) {
 						Thread.currentThread().interrupt();
