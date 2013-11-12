@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -131,12 +134,15 @@ public class InetRenderClient extends Thread implements RenderServer, TaskServer
 		final InetRenderClient renderClient = new InetRenderClient(s);
 		renderClient.start();
 		
-		int threadCount = Runtime.getRuntime().availableProcessors();
-		if( verbose ) {
-			System.err.println("Starting "+threadCount+" threads");
-		}
-		
 		final PerformanceCounter perfCount = new PerformanceCounter();
+		int threadCount = Runtime.getRuntime().availableProcessors();
+		
+		if( verbose ) {
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
+			System.err.println("Starting "+threadCount+" threads at "+df.format(new Date()));
+			System.err.println(PerformanceCounter.HEADER_STRING);
+			System.err.print(perfCount.toString()+"    \r");
+		}
 		
 		for( int i=threadCount; i>0; --i ) {
 			final boolean _verbose = verbose;
