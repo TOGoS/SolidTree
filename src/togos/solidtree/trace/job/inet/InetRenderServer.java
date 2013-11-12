@@ -1,5 +1,6 @@
 package togos.solidtree.trace.job.inet;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -86,6 +87,9 @@ public class InetRenderServer extends Thread
 				}
 			} catch( InterruptedException e ) {
 				Thread.currentThread().interrupt();
+			} catch( EOFException e ) {
+				closed = true;
+				System.err.println("Lost connection from "+sock.getRemoteSocketAddress());
 			} catch( IOException e ) {
 				closed = true;
 				e.printStackTrace();
