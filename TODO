@@ -1,12 +1,26 @@
+UI
+- Cap redraws/second
 - Automatically dump periodically
-
 - Dump RGBE data instead of Chunky dumps
+- Forth command to trigger dump/export
+- Command to merge render dumps
+- When dumping scenes, write a file including all settings
+- -local-render-threads parameter for UI
+- -threads parameter for render client
+
+Networking
+- Remodel network client
+  To more elegantly handle server disconnects
+  client contains its own server and worker threads
+  main thread reads from server, requests tasks, restarts connection to server
+
+- HTTP-based protocol
+  POST a task
+  GET a task
+  POST task results
+  GET task results
 
 - Formalize task distribution system
-
-- Command to merge render dumps
-
-- When dumping scenes, write a file including all settings
 
 - Control all aspects of scene via forth control script
   - for interactive
@@ -83,6 +97,8 @@
 
 - Sky spheres
   - Like sky boxes, but using a spherical projection that spaces samples more evenly
+
+- Import Minecraft worlds
 
 - Generate hilly terrain (use noise3 library from TMCMG!)
 
