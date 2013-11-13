@@ -19,7 +19,7 @@ public class SolidNode implements Serializable
 	public final int divX, divY, divZ;
 	public final SolidNodePalette palette;
 	private final byte[] subNodes;
-	public final GeneralMaterial material; 
+	public final GeneralMaterial material;
 	
 	public SolidNode( GeneralMaterial material, int divX, int divY, int divZ, SolidNodePalette palette, byte[] subNodes ) {
 		assert subNodes.length >= divX * divY * divZ;

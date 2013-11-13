@@ -5,10 +5,9 @@ import java.util.Random;
 import togos.solidtree.DColor;
 import togos.solidtree.NodeRoot;
 import togos.solidtree.PathTraceMaterial;
+import togos.solidtree.SimplexNoise;
 import togos.solidtree.SurfaceMaterial;
 import togos.solidtree.SurfaceMaterialLayer;
-import togos.solidtree.SimplexNoise;
-import togos.solidtree.SolidNode;
 import togos.solidtree.matrix.Vector3D;
 import togos.solidtree.matrix.VectorMath;
 import togos.solidtree.trace.sky.CrappySkySphere;
@@ -17,7 +16,7 @@ import togos.solidtree.trace.sky.SkySphere;
 public class Tracer
 {
 	static final class Cursor {
-		SolidNode node;
+		TraceNode node;
 		double x0, y0, z0, x1, y1, z1;
 		
 		public boolean contains( Vector3D pos ) {
@@ -40,7 +39,7 @@ public class Tracer
 		}
 		
 		public void set(
-			SolidNode node,
+			TraceNode node,
 			double x0, double y0, double z0,
 			double x1, double y1, double z1
 		) {
@@ -60,18 +59,18 @@ public class Tracer
 	
 	public Tracer() {
 		for( int i=0; i<cursors.length; ++i ) cursors[i] = new Cursor();
-		cursors[0].set( SolidNode.EMPTY,
+		cursors[0].set( TraceNode.EMPTY,
 			Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY,
 			Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY
 		);
-		setRoot( SolidNode.EMPTY, 0, 0, 0, 0, 0, 0 );
+		setRoot( TraceNode.EMPTY, 0, 0, 0, 0, 0, 0 );
 	}
 	
-	public void setRoot( SolidNode root, double minX, double minY, double minZ, double maxX, double maxY, double maxZ ) {
+	public void setRoot( TraceNode root, double minX, double minY, double minZ, double maxX, double maxY, double maxZ ) {
 		cursors[1].set( root, minX, minY, minZ, maxX, maxY, maxZ );
 	}
 	
-	public void setRoot( NodeRoot root ) {
+	public void setRoot( NodeRoot<TraceNode> root ) {
 		setRoot( root.node, root.x0, root.y0, root.z0, root.x1, root.y1, root.z1 );
 	}
 	
@@ -90,89 +89,41 @@ public class Tracer
 		return a < b ? a : b; 
 	}
 	
-	protected static final void subdivideFast( Cursor c, Vector3D pos, Cursor dest ) {
-		assert c.contains(pos);
-		final SolidNode n = c.node;
-		
-		double cw = (c.x1 - c.x0) / n.divX;
-		double ch = (c.y1 - c.y0) / n.divY;
-		double cd = (c.z1 - c.z0) / n.divZ;
-		
-		int cix = min( n.divX-1, (int)((pos.x - c.x0) / cw));
-		int ciy = min( n.divY-1, (int)((pos.y - c.y0) / ch));
-		int ciz = min( n.divZ-1, (int)((pos.z - c.z0) / cd));
-		assert cix >= 0;
-		assert ciy >= 0;
-		assert ciz >= 0;
-		assert cix < n.divX;
-		assert ciy < n.divY;
-		assert ciz < n.divZ;
-		
-		assert cix < n.divX;
-		assert ciy < n.divY;
-		assert ciz < n.divZ;
-		
-		double cx0 = min(pos.x, c.x0 + cw*cix);
-		double cy0 = min(pos.y, c.y0 + ch*ciy);
-		double cz0 = min(pos.z, c.z0 + cd*ciz);
-		double cx1 = max(pos.x, c.x0 + cw*(cix+1));
-		double cy1 = max(pos.y, c.y0 + ch*(ciy+1));
-		double cz1 = max(pos.z, c.z0 + cd*(ciz+1));
-		
-		//System.err.println(cix+", "+ciy+", "+ciz);
-		//System.err.println(pos.x + ", "+pos.y+", "+pos.z+" within "+cx0+", "+cy0+", "+cz0+" to "+cx1+", "+cy1+", "+cz1);
-		assert cx0 >= c.x0;
-		assert cy0 >= c.y0;
-		assert cz0 >= c.z0;
-		assert cx1 <= c.x1;
-		assert cy1 <= c.y1;
-		assert cz1 <= c.z1;
-		
-		assert pos.x >= cx0;
-		assert pos.y >= cy0;
-		assert pos.z >= cz0;
-		assert pos.x <= cx1;
-		assert pos.y <= cy1;
-		assert pos.z <= cz1;
-		
-		dest.set(
-			n.subNode(cix, ciy, ciz),
-			cx0, cy0, cz0,
-			cx1, cy1, cz1
-		);
-		
-		assert dest.contains(pos);
-	}
-	
-	protected static void subdivideSlow( Cursor c, Vector3D pos, Cursor dest ) {
+	protected static final void subdivide( Cursor c, Vector3D pos, Cursor dest ) {
 		assert c.contains(pos);
 		
-		final SolidNode n = c.node;
-		
-		double sw = (c.x1 - c.x0) / n.divX;
-		double sh = (c.y1 - c.y0) / n.divY;
-		double sd = (c.z1 - c.z0) / n.divZ;
-		
-		for( int sz=0; sz<n.divZ; ++sz ) {
-			if( pos.z < c.z0+sd*sz || pos.z > c.z0+sd*(sz+1) ) continue;
-			for( int sy=0; sy<n.divY; ++sy ) {
-				if( pos.y < c.y0+sh*sy || pos.y > c.y0+sh*(sy+1) ) continue;
-				for( int sx=0; sx<n.divX; ++sx ) {
-					if( pos.x < c.x0+sw*sx || pos.x > c.x0+sw*(sx+1) ) continue;
-					
-					dest.set(
-						n.subNode(sx,sy,sz),
-						c.x0+sw*sx    , c.y0+sh*sy    , c.z0+sd*sz    ,
-						c.x0+sw*(sx+1), c.y0+sh*(sy+1), c.z0+sd*(sz+1)
-					);
-
-					return;
-				}
+		final TraceNode n = c.node;
+		double mid;
+		switch( n.division ) {
+		case TraceNode.DIV_X:
+			mid = c.x0 + n.splitPoint * (c.x1 - c.x0);
+			if( pos.x < mid ) {
+				dest.set(n.subNodeA, c.x0, c.y0, c.z0, mid, c.y1, c.z1);
+			} else {
+				dest.set(n.subNodeB, mid, c.y0, c.z0, c.x1, c.y1, c.z1);
 			}
+			break;
+		case TraceNode.DIV_Y:
+			mid = c.y0 + n.splitPoint * (c.y1 - c.y0);
+			if( pos.y < mid ) {
+				dest.set(n.subNodeA, c.x0, c.y0, c.z0, c.x1, mid, c.z1);
+			} else {
+				dest.set(n.subNodeB, c.x0, mid, c.z0, c.x1, c.y1, c.z1);
+			}
+			break;
+		case TraceNode.DIV_Z:
+			mid = c.z0 + n.splitPoint * (c.z1 - c.z0);
+			if( pos.z < mid ) {
+				dest.set(n.subNodeA, c.x0, c.y0, c.z0, c.x1, c.y1, mid);
+			} else {
+				dest.set(n.subNodeB, c.x0, c.y0, mid, c.x1, c.y1, c.z1);
+			}
+			break;
+		default:
+			throw new RuntimeException("Invalid TraceNode division value: "+n.division);
 		}
 		
-		// Should never get here!
-		assert false;
+		assert dest.contains(pos);
 	}
 	
 	protected Cursor fixCursor() {
@@ -185,7 +136,7 @@ public class Tracer
 		
 		// As long as it's subdividible, subdivide!
 		while( cursors[cursorIdx].node.isSubdivided() ) {
-			subdivideFast( cursors[cursorIdx], pos, cursors[++cursorIdx] );
+			subdivide( cursors[cursorIdx], pos, cursors[++cursorIdx] );
 		}
 		
 		return cursors[cursorIdx];

@@ -18,7 +18,6 @@ import togos.hdrutil.ChunkyDump;
 import togos.hdrutil.ExposureScaler;
 import togos.hdrutil.FileUtil;
 import togos.hdrutil.HDRExposure;
-import togos.lang.BaseSourceLocation;
 import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
 import togos.solidtree.NodeLoader;
@@ -118,6 +117,26 @@ public class TraceDemo
 		}
 	}
 	
+	protected static TraceNode toTraceNode( Object o ) {
+		if( o instanceof TraceNode ) {
+			return (TraceNode)o;
+		} else if( o instanceof SolidNode ) {
+			return new NodeConverter().toTraceNode((SolidNode)o);
+		} else {
+			throw new RuntimeException("Don't know how to turn "+o+" into a trace node");
+		}
+	}
+	
+	protected static NodeRoot<TraceNode> toTraceNodeRoot( Object o ) {
+		if( o instanceof NodeRoot ) {
+			@SuppressWarnings("rawtypes")
+			NodeRoot r = (NodeRoot)o;
+			return new NodeRoot<TraceNode>( toTraceNode(r.node), r.x0, r.y0, r.z0, r.x1, r.y1, r.z1);
+		} else {
+			return new NodeRoot<TraceNode>( toTraceNode(o), 1024, 1024, 1024 );
+		}
+	}
+	
 	public static void main( String[] args ) throws Exception {
 		final String renderDir = "renders";
 		final String sceneName = "testrender"+System.currentTimeMillis(); 
@@ -130,16 +149,7 @@ public class TraceDemo
 		
 		NodeLoader nl = new NodeLoader();
 		nl.includePath.add(new File("world"));
-		Object _root = nl.get("world", loadCtx);
-		
-		NodeRoot root;
-		if( _root instanceof NodeRoot ) {
-			root = (NodeRoot)_root;
-		} else if( _root instanceof SolidNode ) {
-			root = new NodeRoot( (SolidNode)_root, 1024, 1024, 1024 );
-		} else {
-			throw new ScriptError("Script returned neither a SolidNode nor a NodeRoot, but a "+_root.getClass().getName(), BaseSourceLocation.NONE);
-		}
+		NodeRoot<TraceNode> root = toTraceNodeRoot( nl.get("world", loadCtx) ); 
 		
 		final Camera cam = new Camera();
 		cam.imageWidth = 96;
@@ -361,7 +371,7 @@ public class TraceDemo
 		
 		final DistributingRenderServer renderServer = new DistributingRenderServer();
 		
-		int localRenderThreadCount = 0; //Runtime.getRuntime().availableProcessors();
+		int localRenderThreadCount = 1; //Runtime.getRuntime().availableProcessors();
 		
 		for( int i=localRenderThreadCount; i>0; --i ) {
 			Thread t = new Thread("Render worker "+i) {

@@ -9,10 +9,10 @@ public class Scene implements Serializable
 {
 	private static final long serialVersionUID = 1L;
 	
-	public final NodeRoot nodeRoot;
+	public final NodeRoot<TraceNode> nodeRoot;
 	public final SkySphere sky;
 	
-	public Scene( NodeRoot nodeRoot, SkySphere sky ) {
+	public Scene( NodeRoot<TraceNode> nodeRoot, SkySphere sky ) {
 		this.nodeRoot = nodeRoot;
 		this.sky = sky;
 	}
