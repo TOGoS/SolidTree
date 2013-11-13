@@ -80,6 +80,101 @@ public class Tracer
 		this.skySphere = scene.sky;
 	}
 	
+	protected static final double min( double a, double b ) {
+		return a < b ? a : b; 
+	}
+	protected static final double max( double a, double b ) {
+		return a > b ? a : b; 
+	}
+	protected static final int min( int a, int b ) {
+		return a < b ? a : b; 
+	}
+	
+	protected static final void subdivideFast( Cursor c, Vector3D pos, Cursor dest ) {
+		assert c.contains(pos);
+		final SolidNode n = c.node;
+		
+		double cw = (c.x1 - c.x0) / n.divX;
+		double ch = (c.y1 - c.y0) / n.divY;
+		double cd = (c.z1 - c.z0) / n.divZ;
+		
+		int cix = min( n.divX-1, (int)((pos.x - c.x0) / cw));
+		int ciy = min( n.divY-1, (int)((pos.y - c.y0) / ch));
+		int ciz = min( n.divZ-1, (int)((pos.z - c.z0) / cd));
+		assert cix >= 0;
+		assert ciy >= 0;
+		assert ciz >= 0;
+		assert cix < n.divX;
+		assert ciy < n.divY;
+		assert ciz < n.divZ;
+		
+		assert cix < n.divX;
+		assert ciy < n.divY;
+		assert ciz < n.divZ;
+		
+		double cx0 = min(pos.x, c.x0 + cw*cix);
+		double cy0 = min(pos.y, c.y0 + ch*ciy);
+		double cz0 = min(pos.z, c.z0 + cd*ciz);
+		double cx1 = max(pos.x, c.x0 + cw*(cix+1));
+		double cy1 = max(pos.y, c.y0 + ch*(ciy+1));
+		double cz1 = max(pos.z, c.z0 + cd*(ciz+1));
+		
+		//System.err.println(cix+", "+ciy+", "+ciz);
+		//System.err.println(pos.x + ", "+pos.y+", "+pos.z+" within "+cx0+", "+cy0+", "+cz0+" to "+cx1+", "+cy1+", "+cz1);
+		assert cx0 >= c.x0;
+		assert cy0 >= c.y0;
+		assert cz0 >= c.z0;
+		assert cx1 <= c.x1;
+		assert cy1 <= c.y1;
+		assert cz1 <= c.z1;
+		
+		assert pos.x >= cx0;
+		assert pos.y >= cy0;
+		assert pos.z >= cz0;
+		assert pos.x <= cx1;
+		assert pos.y <= cy1;
+		assert pos.z <= cz1;
+		
+		dest.set(
+			n.subNode(cix, ciy, ciz),
+			cx0, cy0, cz0,
+			cx1, cy1, cz1
+		);
+		
+		assert dest.contains(pos);
+	}
+	
+	protected static void subdivideSlow( Cursor c, Vector3D pos, Cursor dest ) {
+		assert c.contains(pos);
+		
+		final SolidNode n = c.node;
+		
+		double sw = (c.x1 - c.x0) / n.divX;
+		double sh = (c.y1 - c.y0) / n.divY;
+		double sd = (c.z1 - c.z0) / n.divZ;
+		
+		for( int sz=0; sz<n.divZ; ++sz ) {
+			if( pos.z < c.z0+sd*sz || pos.z > c.z0+sd*(sz+1) ) continue;
+			for( int sy=0; sy<n.divY; ++sy ) {
+				if( pos.y < c.y0+sh*sy || pos.y > c.y0+sh*(sy+1) ) continue;
+				for( int sx=0; sx<n.divX; ++sx ) {
+					if( pos.x < c.x0+sw*sx || pos.x > c.x0+sw*(sx+1) ) continue;
+					
+					dest.set(
+						n.subNode(sx,sy,sz),
+						c.x0+sw*sx    , c.y0+sh*sy    , c.z0+sd*sz    ,
+						c.x0+sw*(sx+1), c.y0+sh*(sy+1), c.z0+sd*(sz+1)
+					);
+
+					return;
+				}
+			}
+		}
+		
+		// Should never get here!
+		assert false;
+	}
+	
 	protected Cursor fixCursor() {
 		if( cursorIdx == 0 ) cursorIdx = 1;
 		
@@ -89,33 +184,8 @@ public class Tracer
 		}
 		
 		// As long as it's subdividible, subdivide!
-		treeTraversal: while( cursors[cursorIdx].node.isSubdivided() ) {
-			Cursor c = cursors[cursorIdx];
-			SolidNode n = c.node;
-			
-			double sw = (c.x1 - c.x0) / n.divX;
-			double sh = (c.y1 - c.y0) / n.divY;
-			double sd = (c.z1 - c.z0) / n.divZ;
-			
-			for( int sz=0; sz<n.divZ; ++sz ) {
-				if( pos.z < c.z0+sd*sz || pos.z > c.z0+sd*(sz+1) ) continue;
-				for( int sy=0; sy<n.divY; ++sy ) {
-					if( pos.y < c.y0+sh*sy || pos.y > c.y0+sh*(sy+1) ) continue;
-					for( int sx=0; sx<n.divX; ++sx ) {
-						if( pos.x < c.x0+sw*sx || pos.x > c.x0+sw*(sx+1) ) continue;
-						
-						cursors[++cursorIdx].set(
-							n.subNode(sx,sy,sz),
-							c.x0+sw*sx    , c.y0+sh*sy    , c.z0+sd*sz    ,
-							c.x0+sw*(sx+1), c.y0+sh*(sy+1), c.z0+sd*(sz+1)
-						);
-
-						continue treeTraversal;
-					}
-				}
-			}
-			
-			throw new RuntimeException("Sub-node not found in node!  Argh!");
+		while( cursors[cursorIdx].node.isSubdivided() ) {
+			subdivideFast( cursors[cursorIdx], pos, cursors[++cursorIdx] );
 		}
 		
 		return cursors[cursorIdx];
