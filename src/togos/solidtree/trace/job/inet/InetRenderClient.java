@@ -3,6 +3,7 @@ package togos.solidtree.trace.job.inet;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintStream;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -26,6 +27,7 @@ public class InetRenderClient extends Thread implements RenderServer, TaskServer
 {
 	final ObjectOutputStream oos;
 	final ObjectInputStream ois;
+	public PrintStream debugStream;
 	
 	public InetRenderClient( Socket sock )  throws IOException {
 		this.oos = new ObjectOutputStream(sock.getOutputStream());
@@ -36,7 +38,8 @@ public class InetRenderClient extends Thread implements RenderServer, TaskServer
 	final BlockingQueue<RenderTask> taskQueue = new ArrayBlockingQueue<RenderTask>(4);
 	
 	protected void debug( String text ) {
-		// no-op
+		PrintStream ds = debugStream;
+		if( ds != null ) ds.println(text);
 	}
 	
 	protected synchronized BlockingQueue<TaskResult> getQueue(String taskId) {
@@ -56,10 +59,28 @@ public class InetRenderClient extends Thread implements RenderServer, TaskServer
 		}
 	}
 	
+	protected Object receive() throws IOException, ClassNotFoundException {
+		return ois.readObject();
+	}
+	
+	/**
+	 * Use in single-threaded mode.
+	 * i.e. do not use when run()ning. 
+	 */
+	protected RenderTask requestAndTakeTask() throws Exception {
+		send( new TaskRequest() );
+		Object msg = receive();
+		if( msg instanceof RenderTask ) {
+			return (RenderTask)msg;
+		} else {
+			throw new Exception("Received something other than a RenderTask in response to a TaskRequest: "+msg.getClass());
+		}
+	}
+	
 	public void run() {
 		try {
 			Object msg;
-			while( (msg = ois.readObject()) != null ) {
+			while( (msg = receive()) != null ) {
 				debug("Received "+msg.getClass()+" from server");
 				
 				if( msg instanceof RenderTask ) {
@@ -106,11 +127,17 @@ public class InetRenderClient extends Thread implements RenderServer, TaskServer
 		String serverName = null;
 		int serverPort = InetRenderServer.DEFAULT_PORT;
 		boolean verbose = false;
+		int threadCount = -1;
+		boolean debug = false;
 		
 		for( int i=0; i<args.length; ++i ) {
 			String arg = args[i];
-			if( "-v".equals(arg) ) {
+			if( "-threads".equals(arg) ) {
+				threadCount = Integer.parseInt(args[++i]);
+			} else if( "-v".equals(arg) ) {
 				verbose = true;
+			} else if( "-debug".equals(arg) ) {
+				debug = true;
 			} else if( arg.startsWith("-") ) {
 				System.err.println("Error: Unrecognized argument: "+arg);
 				System.exit(1);
@@ -132,23 +159,51 @@ public class InetRenderClient extends Thread implements RenderServer, TaskServer
 		
 		Socket s = new Socket(serverName, serverPort);
 		final InetRenderClient renderClient = new InetRenderClient(s);
-		renderClient.start();
+		if( debug ) {
+			renderClient.debugStream = System.err;
+		}
 		
 		final PerformanceCounter perfCount = new PerformanceCounter();
-		int threadCount = Runtime.getRuntime().availableProcessors();
+		if( threadCount == -1 ) {
+			threadCount = Runtime.getRuntime().availableProcessors();
+		}
+		
+		final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
+		final int maxTaskRepititions = 1;
+		final boolean _verbose = verbose;
+		perfCount.samplesCompleted(0);
+		
+		if( threadCount == 1 ) {
+			if( verbose ) {
+				System.err.println("Starting single-threaded render process at "+df.format(new Date()));
+				System.err.println(PerformanceCounter.HEADER_STRING);
+				System.err.print(perfCount.toString()+"    \r");
+			}
+			
+			LocalRenderServer lrs = new LocalRenderServer();
+			RenderTask task;
+			while( (task = renderClient.requestAndTakeTask()) != null ) {
+				RenderResultIterator rri = lrs.start(task);
+				RenderResult res;
+				for( int r=0; r<maxTaskRepititions && (res = rri.nextResult()) != null; ++r ) {
+					perfCount.samplesCompleted( res.sampleCount );
+					renderClient.putTaskResult(task.taskId, res);
+				}
+				rri.close();
+				if( _verbose ) System.err.print(perfCount.toString()+"    \r");
+			}
+			return;
+		}
 		
 		if( verbose ) {
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
 			System.err.println("Starting "+threadCount+" threads at "+df.format(new Date()));
 			System.err.println(PerformanceCounter.HEADER_STRING);
 			System.err.print(perfCount.toString()+"    \r");
 		}
 		
 		for( int i=threadCount; i>0; --i ) {
-			final boolean _verbose = verbose;
 			Thread t = new Thread("Render worker "+i) {
 				@Override public void run() {
-					int maxTaskRepititions = 1;
 					RenderTask task;
 					LocalRenderServer lrs = new LocalRenderServer();
 					try {
@@ -159,6 +214,7 @@ public class InetRenderClient extends Thread implements RenderServer, TaskServer
 								perfCount.samplesCompleted( res.sampleCount );
 								renderClient.putTaskResult(task.taskId, res);
 							}
+							rri.close();
 							if( _verbose ) System.err.print(perfCount.toString()+"    \r");
 						}
 					} catch( InterruptedException e ) {
@@ -171,5 +227,6 @@ public class InetRenderClient extends Thread implements RenderServer, TaskServer
 			};
 			t.start();
 		}
+		renderClient.run();
 	}
 }
