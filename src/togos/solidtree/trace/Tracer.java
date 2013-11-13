@@ -89,15 +89,15 @@ public class Tracer
 		return a < b ? a : b; 
 	}
 	
-	protected static final void subdivide( Cursor c, Vector3D pos, Cursor dest ) {
-		assert c.contains(pos);
+	protected static final void subdivide( Cursor c, double x, double y, double z, Cursor dest ) {
+		assert c.contains(x, y, z);
 		
 		final TraceNode n = c.node;
 		double mid;
 		switch( n.division ) {
 		case TraceNode.DIV_X:
 			mid = c.x0 + n.splitPoint * (c.x1 - c.x0);
-			if( pos.x < mid ) {
+			if( x < mid ) {
 				dest.set(n.subNodeA, c.x0, c.y0, c.z0, mid, c.y1, c.z1);
 			} else {
 				dest.set(n.subNodeB, mid, c.y0, c.z0, c.x1, c.y1, c.z1);
@@ -105,7 +105,7 @@ public class Tracer
 			break;
 		case TraceNode.DIV_Y:
 			mid = c.y0 + n.splitPoint * (c.y1 - c.y0);
-			if( pos.y < mid ) {
+			if( y < mid ) {
 				dest.set(n.subNodeA, c.x0, c.y0, c.z0, c.x1, mid, c.z1);
 			} else {
 				dest.set(n.subNodeB, c.x0, mid, c.z0, c.x1, c.y1, c.z1);
@@ -113,7 +113,7 @@ public class Tracer
 			break;
 		case TraceNode.DIV_Z:
 			mid = c.z0 + n.splitPoint * (c.z1 - c.z0);
-			if( pos.z < mid ) {
+			if( z < mid ) {
 				dest.set(n.subNodeA, c.x0, c.y0, c.z0, c.x1, c.y1, mid);
 			} else {
 				dest.set(n.subNodeB, c.x0, c.y0, mid, c.x1, c.y1, c.z1);
@@ -123,20 +123,20 @@ public class Tracer
 			throw new RuntimeException("Invalid TraceNode division value: "+n.division);
 		}
 		
-		assert dest.contains(pos);
+		assert dest.contains(x, y, z);
 	}
 	
-	protected Cursor fixCursor() {
+	protected Cursor fixCursor(double x, double y, double z) {
 		if( cursorIdx == 0 ) cursorIdx = 1;
 		
-		while( !cursors[cursorIdx].contains(pos) ) {
+		while( !cursors[cursorIdx].contains(x, y, z) ) {
 			// Back out until we fit
 			--cursorIdx;
 		}
 		
 		// As long as it's subdividible, subdivide!
 		while( cursors[cursorIdx].node.isSubdivided() ) {
-			subdivide( cursors[cursorIdx], pos, cursors[++cursorIdx] );
+			subdivide( cursors[cursorIdx], x, y, z, cursors[++cursorIdx] );
 		}
 		
 		return cursors[cursorIdx];
@@ -144,12 +144,11 @@ public class Tracer
 	
 	protected void setPosition( double x, double y, double z ) {
 		pos.set(x,y,z);
-		fixCursor();
+		fixCursor(x, y, z);
 	}
 	
 	protected void setPosition( Vector3D v ) {
-		pos.set(v);
-		fixCursor();
+		setPosition(v.x, v.y, v.z);
 	}
 	
 	protected boolean findNextIntersectionOld( Vector3D p, Vector3D d, Vector3D dest ) {
@@ -363,7 +362,6 @@ public class Tracer
 	
 	protected void setDirection( double x, double y, double z ) {
 		direction.set(x,y,z);
-		fixCursor();
 	}
 	
 	private final Vector3D zeroVector = new Vector3D();
