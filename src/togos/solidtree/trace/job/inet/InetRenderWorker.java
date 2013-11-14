@@ -1,6 +1,5 @@
 package togos.solidtree.trace.job.inet;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -41,19 +40,8 @@ public class InetRenderWorker
 	ArrayBlockingQueue<RenderTask> taskQueue = new ArrayBlockingQueue<RenderTask>(1);
 	ArrayBlockingQueue<TaskResult> resultQueue = new ArrayBlockingQueue<TaskResult>(3);
 	
-	protected void forceClose( Closeable c ) {
-		if( c == null ) return;
-		try {
-			c.close();
-		} catch( IOException e ) {
-			// Don't care!
-		}
-	}
-	
 	protected void closeConnection() {
-		forceClose(ois);
-		forceClose(oos);
-		forceClose(sock);
+		IOUtil.forceClose(sock);
 		synchronized(this) {
 			ois = null;
 			oos = null;

@@ -13,19 +13,25 @@ import togos.solidtree.trace.job.RenderResult;
 
 public class InetRenderServer extends Thread
 {
+	public static final int VERBOSITY_NONE = 0;
+	public static final int VERBOSITY_WARNINGS = 1;
+	public static final int VERBOSITY_DEBUG = 2;
+	
 	public static final int DEFAULT_PORT = 31148;
 	
 	public final DistributingRenderServer wrappedServer;
 	public final int port;
 	private ServerSocket ss;
+	public int verbosity = VERBOSITY_DEBUG;
 	
-	public InetRenderServer( DistributingRenderServer wrappedServer, int port ) {
+	public InetRenderServer( String threadName, DistributingRenderServer wrappedServer, int port ) {
+		super(threadName);
 		this.wrappedServer = wrappedServer;
 		this.port = port;
 	}
 	
 	protected void debug( String text ) {
-		// no-op
+		if( verbosity >= VERBOSITY_DEBUG ) System.err.println(text);
 	}
 	
 	class ConnectionHandler extends Thread {
@@ -34,24 +40,21 @@ public class InetRenderServer extends Thread
 		private final ObjectInputStream ois;
 		private boolean closed = false;
 		
-		public ConnectionHandler( Socket sock ) throws IOException {
+		public ConnectionHandler( String threadName, Socket sock ) throws IOException {
+			super(threadName);
 			this.sock = sock;
 			this.oos = new ObjectOutputStream(sock.getOutputStream());
 			this.ois = new ObjectInputStream(sock.getInputStream());
 		}
 		
-		protected synchronized void send( Object msg ) {
+		protected synchronized void send( Object msg ) throws IOException {
 			if( closed ) return;
-			try {
-				debug("Sending "+msg.getClass()+" to client");
-				oos.writeObject(msg);
-				oos.reset();
-				oos.flush();
-			} catch( IOException e ) {
-				closed = true;
-			}
+			debug("Sending "+msg.getClass()+" to client");
+			oos.writeObject(msg);
+			oos.reset();
+			oos.flush();
 		}
-		
+				
 		@Override public void run() {
 			Object msg;
 			try {
@@ -89,6 +92,7 @@ public class InetRenderServer extends Thread
 				Thread.currentThread().interrupt();
 			} catch( EOFException e ) {
 				closed = true;
+				IOUtil.forceClose(sock);
 				System.err.println("Lost connection from "+sock.getRemoteSocketAddress());
 			} catch( IOException e ) {
 				closed = true;
@@ -126,7 +130,7 @@ public class InetRenderServer extends Thread
 			while( (sock = ss.accept()) != null ) {
 				debug("Got connection from "+sock.getRemoteSocketAddress());
 				try {
-					ConnectionHandler ch = new ConnectionHandler(sock);
+					ConnectionHandler ch = new ConnectionHandler(getName()+" connection handler", sock);
 					addConnectionHandler(ch);
 					ch.start();
 				} catch (IOException e) {

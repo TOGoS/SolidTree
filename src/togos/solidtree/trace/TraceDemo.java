@@ -398,7 +398,7 @@ public class TraceDemo
 			t.start();
 		}
 		
-		InetRenderServer irs = new InetRenderServer(renderServer, InetRenderServer.DEFAULT_PORT);
+		InetRenderServer irs = new InetRenderServer("local Inet render server", renderServer, InetRenderServer.DEFAULT_PORT);
 		irs.start();
 		
 		long startTime = System.currentTimeMillis();
@@ -412,6 +412,8 @@ public class TraceDemo
 		boolean restartWorker = false;
 		tii.set( TracerInstruction.RESET );
 		int innerIterations = 1;
+		long lastDump = System.currentTimeMillis();
+		long lastRedraw = 0;
 		while( true ) {
 			TracerInstruction ti = tii.set( TracerInstruction.CONTINUE );
 			if( ti == TracerInstruction.RESET ) {
@@ -482,10 +484,23 @@ public class TraceDemo
 			
 			//// Update UI
 			
-			exp.add(nextResultExposure);
-			adj.exposureUpdated();
-			
 			long currentTime = System.currentTimeMillis();
+			if( currentTime - lastRedraw > 200 ) {
+				lastRedraw = currentTime;
+				exp.add(nextResultExposure);
+				adj.exposureUpdated();
+			}
+			
+			// Autosave every 30 minutes!
+			if( currentTime - lastDump > 1800*1000 ) {
+				File autoDumpFile = new File(renderDir+"/"+sceneName+"/"+sceneName+"-"+(int)exp.getAverageExposure()+".dump");
+				FileUtil.mkParentDirs(autoDumpFile);
+				System.err.print("Auto-saving "+autoDumpFile+"...");
+				ChunkyDump.saveExposure(exp, autoDumpFile);
+				System.err.println("done");
+				lastDump = currentTime;
+			}
+			
 			samplesPerSecond =
 				0.8 * samplesPerSecond +
 				0.2 * (samplesTaken - samplesTakenAtLastUpdate) * 1000 / (currentTime - prevTime);
