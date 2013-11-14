@@ -185,8 +185,10 @@ public class NodeProcedures
 			double d = interp.stackPop( Number.class, sLoc ).doubleValue();
 			double h = interp.stackPop( Number.class, sLoc ).doubleValue();
 			double w = interp.stackPop( Number.class, sLoc ).doubleValue();
+			// TODO: SolidNode and TraceNode should both implement
+			// some node interface which this would accept any implementation of
 			SolidNode core = interp.stackPop( SolidNode.class, sLoc );
-			interp.stackPush( new NodeRoot(core, w, h, d) );
+			interp.stackPush( new NodeRoot<SolidNode>(core, w, h, d) );
 		}
 	};
 	
