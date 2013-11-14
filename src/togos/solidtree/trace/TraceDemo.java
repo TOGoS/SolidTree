@@ -39,7 +39,7 @@ import togos.solidtree.trace.job.RenderResult;
 import togos.solidtree.trace.job.RenderResultIterator;
 import togos.solidtree.trace.job.RenderTask;
 import togos.solidtree.trace.job.inet.InetRenderServer;
-import togos.solidtree.trace.sky.CrappySkySphere;
+import togos.solidtree.trace.sky.AdditiveSkySphere;
 
 public class TraceDemo
 {
@@ -421,7 +421,7 @@ public class TraceDemo
 				exp = cam.getExposure();
 				exp.clear();
 				adj.setExposure(exp, false);
-				scene = new Scene(root, new CrappySkySphere());
+				scene = new Scene(root, new AdditiveSkySphere());
 				
 				File sceneFile = new File(renderDir+"/"+sceneName+"/"+sceneName+".scene");
 				System.err.println("Saving scene to "+sceneFile);
