@@ -114,7 +114,7 @@ public class InetRenderServer extends Thread
 		synchronized(connectionHandlers) { connectionHandlers.add(h); }
 	}
 	protected void removeConnectionHandler( ConnectionHandler h ) {
-		synchronized(connectionHandlers) { connectionHandlers.add(h); }
+		synchronized(connectionHandlers) { connectionHandlers.remove(h); }
 	}
 	
 	@Override public void run() {
