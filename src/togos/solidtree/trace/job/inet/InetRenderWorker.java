@@ -113,12 +113,26 @@ public class InetRenderWorker
 		return oos;
 	}
 	
+	protected void debug(String text) {
+		if( verbosity >= VERBOSITY_MUCH ) {
+			System.err.println(Thread.currentThread().getName()+": "+text);
+		}
+	}
+	
 	public void runWriter() throws InterruptedException {
 		while( true ) {
 			try {
 				ObjectOutputStream oos = getWriter();
+				debug("Writing task request...");
 				oos.writeObject(new TaskRequest());
-				oos.writeObject(resultQueue.take());
+				oos.flush();
+				debug("Wrote request.  Reading result from queue...");
+				TaskResult res = resultQueue.take();
+				debug("Got result from queue.  Writing result...");
+				oos.writeObject(res);
+				oos.reset();
+				oos.flush();
+				debug("Wrote result");
 			} catch( IOException e ) {
 				if( verbosity >= VERBOSITY_NORMAL ) System.err.println("Error writing; forcing close");
 				closeConnection();
@@ -157,14 +171,23 @@ public class InetRenderWorker
 	
 	public void runWorker() throws InterruptedException {
 		while( true ) {
+			debug("Looking for a task (any task) to work on...");
 			RenderTask task = getSomeTask();
+			debug("Got task.  Starting work.");
 			
 			LocalRenderWorker rri = lrs.start(task);
 			RenderResult res;
 			for( int r=0; r<taskRepititions && (res = rri.nextResult()) != null; ++r ) {
 				perfCount.samplesCompleted( res.sampleCount );
-				if( verbosity >= VERBOSITY_NORMAL ) System.err.print(perfCount.toString()+"    \r");
+				if( verbosity == VERBOSITY_NORMAL ) System.err.print(perfCount.toString()+"    \r");
+				if( verbosity >= VERBOSITY_MUCH ) {
+					debug(perfCount.toString());
+					debug("Pushing result into queue...");
+				}
+				debug("Work done.  Pushing to result queue...");
 				resultQueue.put(new TaskResult(task.taskId, res));
+				debug("Appended result to queue");
+				
 			}
 			rri.close();
 		}
