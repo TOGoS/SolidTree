@@ -1,12 +1,16 @@
-# 64 meters cube
-
 =defs
 
 . = empty
-b = bungalo
-e = bungalo-empty-lot-1
-f = bungalo-empty-lot-2
+l = tree-leaves
+t = tree
+m = low-garden-light 
+material = sparse-grass
+g = bottomify8x8x8
+d = dirt
 c = brick
+x = bricks-in-grass-1
+y = bricks-in-grass-2
+z = bricks-in-grass-3
 
 =data +x+z-y 8x8x8
 
@@ -46,32 +50,32 @@ c = brick
 ........
 ........
 
-efeefeee
-febeeeee
-eefeffee
-efefeeee
-ffeeebee
-eefeeeee
-ebeefffe
-eeefeeeb
+........
+........
+........
+........
+..ll....
+........
+........
+........
 
-cccccccc
-cccccccc
-cccccccc
-cccccccc
-cccccccc
-cccccccc
-cccccccc
-cccccccc
+gggggggg
+gglggggg
+gggggglg
+ggllgggg
+gllllggg
+ggllgggg
+gggggggg
+ggggglgg
 
-cccccccc
-cccccccc
-cccccccc
-cccccccc
-cccccccc
-cccccccc
-cccccccc
-cccccccc
+dddddddd
+dddddddd
+dddddddd
+dddddddd
+dddddddd
+dddddddd
+dddddddd
+dddddddd
 
 cccccccc
 cccccccc

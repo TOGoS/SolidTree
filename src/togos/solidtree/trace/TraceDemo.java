@@ -154,9 +154,9 @@ public class TraceDemo
 		final Camera cam = new Camera();
 		cam.imageWidth = 96;
 		cam.imageHeight = 48;
-		cam.x = 0;
-		cam.y = -1127;
-		cam.z = 0;
+		cam.x = 0.1;
+		cam.y = 30.1;
+		cam.z = 0.1;
 		cam.yaw = Math.PI/8;
 		
 		final LensSettings lensSettings = new LensSettings();

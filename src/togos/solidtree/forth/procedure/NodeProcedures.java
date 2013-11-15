@@ -117,7 +117,7 @@ public class NodeProcedures
 		}
 	};
 	
-	static final StandardWordDefinition MAKE_SOLID_MATERIAL_NODE = new StandardWordDefinition() {
+	static final StandardWordDefinition MAKE_HOMOGENEOUS_NODE = new StandardWordDefinition() {
 		// GenericMaterial -> SolidNode
 		
 		@Override public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
@@ -194,7 +194,7 @@ public class NodeProcedures
 	
 	public static void register( Map<String,? super WordDefinition> ctx ) {
 		ctx.put("empty-node", new ConstantValue(SolidNode.EMPTY) );
-		ctx.put("make-solid-material-node", MAKE_SOLID_MATERIAL_NODE);
+		ctx.put("make-homogeneous-node", MAKE_HOMOGENEOUS_NODE);
 		ctx.put("make-composite-node", MAKE_COMPOSITE_NODE);
 		ctx.put("make-simple-volumetric-material", MAKE_SIMPLE_VISUAL_MATERIAL);
 		ctx.put("make-surface-material", MAKE_SURFACE_MATERIAL);

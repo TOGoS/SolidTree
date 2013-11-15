@@ -17,12 +17,12 @@ public class InetRenderServer extends Thread
 	public static final int VERBOSITY_WARNINGS = 1;
 	public static final int VERBOSITY_DEBUG = 2;
 	
-	public static final int DEFAULT_PORT = 31148;
+	public static final int DEFAULT_PORT = 31149;
 	
 	public final DistributingRenderServer wrappedServer;
 	public final int port;
 	private ServerSocket ss;
-	public int verbosity = VERBOSITY_DEBUG;
+	public int verbosity = VERBOSITY_WARNINGS;
 	
 	public InetRenderServer( String threadName, DistributingRenderServer wrappedServer, int port ) {
 		super(threadName);
@@ -54,7 +54,7 @@ public class InetRenderServer extends Thread
 			oos.reset();
 			oos.flush();
 		}
-				
+		
 		@Override public void run() {
 			Object msg;
 			try {
