@@ -590,12 +590,6 @@ public class Tracer
 			green += filterGreen * filterGlow(internalEmissionColor.g, internalFilterColor.g, fExpDistGreen, dist);
 			blue  += filterBlue  * filterGlow(internalEmissionColor.b, internalFilterColor.b, fExpDistBlue , dist);
 			
-			/*
-			red   += filterRed   * (internalEmissionColor.r * (fExpDistRed  -1)/Math.log(internalFilterColor.r));
-			green += filterGreen * (internalEmissionColor.g * (fExpDistGreen-1)/Math.log(internalFilterColor.g));
-			blue  += filterBlue  * (internalEmissionColor.b * (fExpDistBlue -1)/Math.log(internalFilterColor.b));
-			*/
-			
 			filterRed   *= fExpDistRed;
 			filterGreen *= fExpDistGreen;
 			filterBlue  *= fExpDistBlue;
