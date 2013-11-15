@@ -450,6 +450,10 @@ public class Tracer
 	final Vector3D scratch = new Vector3D();
 	
 	/**
+	 * Determines (probibalistically) if refraction or reflection will occur
+	 * when a ray passes between media with different indexes of refraction and
+	 * updates 'direction' in either case.
+	 * 
 	 * @param ni index of refraction of source (incident ray) material
 	 * @param nr index of refraction in destination (refracted ray) material
 	 * @return true if the ray passes through the surface, false if it bounces off
@@ -613,14 +617,14 @@ public class Tracer
 				assert direction.isRegular();
 				if(
 					processSurfaceInteraction( direction, normal, newMaterial.getSurfaceMaterial() )
-					&& nr != ni && refract( ni, nr )
+					&& (nr == ni || refract( ni, nr ))
 				) {
 					// Move to new position
 				} else {
 					// Move back to old node
 					setPosition(preIntersect);
+					++bounces;
 				}
-				++bounces;
 				assert direction.isRegular();
 			}
 		}
