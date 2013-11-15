@@ -586,9 +586,9 @@ public class Tracer
 			double fExpDistGreen = Math.pow(internalFilterColor.g, dist);
 			double fExpDistBlue  = Math.pow(internalFilterColor.b, dist);
 			
-			red   += filterRed * filterGlow(internalEmissionColor.r, internalFilterColor.r, fExpDistRed  , dist);
-			green += filterRed * filterGlow(internalEmissionColor.g, internalFilterColor.g, fExpDistGreen, dist);
-			blue  += filterRed * filterGlow(internalEmissionColor.b, internalFilterColor.b, fExpDistBlue , dist);
+			red   += filterRed   * filterGlow(internalEmissionColor.r, internalFilterColor.r, fExpDistRed  , dist);
+			green += filterGreen * filterGlow(internalEmissionColor.g, internalFilterColor.g, fExpDistGreen, dist);
+			blue  += filterBlue  * filterGlow(internalEmissionColor.b, internalFilterColor.b, fExpDistBlue , dist);
 			
 			/*
 			red   += filterRed   * (internalEmissionColor.r * (fExpDistRed  -1)/Math.log(internalFilterColor.r));
