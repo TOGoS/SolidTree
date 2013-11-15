@@ -324,9 +324,9 @@ public class TraceDemo
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
 					break;
-				case KeyEvent.VK_LEFT: case KeyEvent.VK_KP_LEFT: case KP_4:
-					dir = -1;
 				case KeyEvent.VK_RIGHT: case KeyEvent.VK_KP_RIGHT: case KP_6:
+					dir = -1;
+				case KeyEvent.VK_LEFT: case KeyEvent.VK_KP_LEFT: case KP_4:
 					cam.yaw += dir * movedist * Math.PI / 16;
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
