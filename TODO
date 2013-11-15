@@ -1,3 +1,6 @@
+Bugs
+- Things look goofy when camera is at node boundary (e.g. 0, 0, 0 or 0, 64, 0)
+
 UI
 - Cap redraws/second
 - Automatically dump periodically
@@ -7,6 +10,8 @@ UI
 - When dumping scenes, write a file including all settings
 - -local-render-threads parameter for UI
 - -threads parameter for render client
+- command to list worker connections
+- reintroduce preview mode
 
 Networking
 - Remodel network client
