@@ -338,9 +338,9 @@ public class TraceDemo
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
 					break;
-				case KP_7:
-					dir = -1;
 				case KP_9:
+					dir = -1;
+				case KP_7:
 					cam.roll += dir * movedist * Math.PI / 16;
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
