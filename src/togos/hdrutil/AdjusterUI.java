@@ -58,7 +58,6 @@ public class AdjusterUI extends Canvas
 		}
 		
 		@Override public void run() {
-			System.err.println(getName()+" running!");
 			while( true ) {
 				try {
 					HDRExposure exp;
