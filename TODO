@@ -1,9 +1,15 @@
 Bugs
 - Things look goofy when camera is at node boundary (e.g. 0, 0, 0 or 0, 64, 0)
 
+Rearchitect UI / rendering interaction
+  Render thread:
+    interruptable and resets immediately when scene changes
+    at beginning of loop, if scene has changed
+      close old render result iterator
+    in preview mode, does rendering itself
+    otherwise pulls results from the job system
+
 UI
-- Cap redraws/second
-- Automatically dump periodically
 - Dump RGBE data instead of Chunky dumps
 - Forth command to trigger dump/export
 - Command to merge render dumps

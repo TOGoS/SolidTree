@@ -43,6 +43,10 @@ public class XYOrderedPixelRayIterator implements PixelRayIterator
 		this.viewY1 = -0.5;
 	}
 	
+	@Override public int getImageDataSize() {
+		return imageWidth*imageHeight;
+	}
+	
 	@Override public boolean next(PixelRayBuffer b) {
 		if( totalSamples == targetSamples ) return false;
 		

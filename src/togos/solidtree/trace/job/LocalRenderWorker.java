@@ -9,16 +9,15 @@ public class LocalRenderWorker implements RenderResultIterator
 {
 	protected final Tracer tracer;
 	protected final RenderTask task;
-	protected final int imageDataSize;
 	protected final int batchSize;
 	protected boolean run = true;
 	
-	public LocalRenderWorker( RenderTask task, int imageDataSize, int batchSize ) {
+	public LocalRenderWorker( RenderTask task, int batchSize ) {
 		this.task = task;
-		this.imageDataSize = imageDataSize;
 		this.batchSize = batchSize;
 		
 		this.tracer = new Tracer();
+		tracer.mode = task.traceMode;
 		tracer.setScene(task.scene);
 	}
 	
@@ -30,6 +29,7 @@ public class LocalRenderWorker implements RenderResultIterator
 		if( !run || !task.pixelRayIteratorIterator.hasNext() ) return null;
 		
 		final PixelRayIterator pri = task.pixelRayIteratorIterator.next();
+		int imageDataSize = pri.getImageDataSize();
 		final PixelRayBuffer prb = new PixelRayBuffer(batchSize);
 		
 		final float[] r = new float[imageDataSize];

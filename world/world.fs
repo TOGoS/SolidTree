@@ -29,7 +29,7 @@ make-volumetric-material "haze" def-value
   transparent-surface
   1.0
   0.5 0.5 0.5 make-color
-  1.0 1.0 1.0 make-color
+  10.0 10.0 10.0 make-color
   0.0
   transparent-surface
 make-volumetric-material "sun" def-value

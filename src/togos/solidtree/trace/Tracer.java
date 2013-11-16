@@ -50,6 +50,12 @@ public class Tracer
 		}
 	}
 	
+	public enum Mode {
+		FULL, QUICK
+	}
+	
+	public Mode mode = Mode.FULL;
+	
 	Random random = new Random();
 	
 	// Current position
@@ -539,7 +545,7 @@ public class Tracer
 	 */
 	private DColor skyColor = new DColor(0,0,0);
 	
-	public void trace( double x, double y, double z, double dx, double dy, double dz ) {
+	public void fullTrace( double x, double y, double z, double dx, double dy, double dz ) {
 		setPosition( x, y, z );
 		setDirection( dx, dy, dz );
 		
@@ -624,10 +630,6 @@ public class Tracer
 		}
 	}
 	
-	public void trace( Vector3D o, Vector3D d ) {
-		trace( o.x, o.y, o.z, d.x, d.y, d.z );
-	}
-	
 	public void quickTrace( double x, double y, double z, double dx, double dy, double dz ) {
 		setPosition( x, y, z );
 		setDirection( dx, dy, dz );
@@ -660,9 +662,15 @@ public class Tracer
 		}
 	}
 	
-	// TODO: Change so there is only one public trace method per signature
-	// and a trace mode property.
-	public void quickTrace( Vector3D o, Vector3D d ) {
-		quickTrace( o.x, o.y, o.z, d.x, d.y, d.z );
+	public void trace( double ox, double oy, double oz, double dx, double dy, double dz ) {
+		switch( mode ) {
+		case FULL: fullTrace(ox,oy,oz,dx,dy,dz); break;
+		case QUICK: quickTrace(ox,oy,oz,dx,dy,dz); break;
+		default: assert false;
+		}
+	}
+	
+	public void trace( Vector3D o, Vector3D d ) {
+		trace( o.x, o.y, o.z, d.x, d.y, d.z );
 	}
 }

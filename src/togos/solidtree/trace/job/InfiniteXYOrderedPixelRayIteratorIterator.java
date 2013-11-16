@@ -16,15 +16,24 @@ public class InfiniteXYOrderedPixelRayIteratorIterator extends InfiniteIterator<
 	protected final Matrix transform;
 	protected final int innerIterations;
 	
+	transient int currentInnerIterations;
+	
 	public InfiniteXYOrderedPixelRayIteratorIterator(int imageWidth, int imageHeight, Projection projection, Matrix transform, int innerIterations) {
 		this.imageWidth = imageWidth;
 		this.imageHeight = imageHeight;
 		this.projection = projection;
 		this.transform = transform;
 		this.innerIterations = innerIterations;
+		
+		currentInnerIterations = 1;
 	}
 	
 	@Override public XYOrderedPixelRayIterator next() {
-		return new XYOrderedPixelRayIterator(imageWidth, imageHeight, projection, transform, innerIterations);
+		XYOrderedPixelRayIterator it = new XYOrderedPixelRayIterator(imageWidth, imageHeight, projection, transform, currentInnerIterations);
+		
+		currentInnerIterations *= 2;
+		if( currentInnerIterations > innerIterations ) currentInnerIterations = innerIterations;
+		
+		return it;
 	}
 }

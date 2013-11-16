@@ -471,7 +471,8 @@ public class TraceDemo
 				MatrixMath.multiply( cameraTranslation, cameraRotation, cameraTransform );
 				
 				RenderTask task = new RenderTask(
-					imageWidth * imageHeight, scene,
+					cam.preview ? Tracer.Mode.QUICK : Tracer.Mode.FULL, 
+					scene,
 					new InfiniteXYOrderedPixelRayIteratorIterator(imageWidth, imageHeight, cam.projection, cameraTransform, innerIterations),
 					desiredChannels);
 				

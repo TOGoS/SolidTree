@@ -6,6 +6,7 @@
 b = bungalo
 e = bungalo-empty-lot-1
 f = bungalo-empty-lot-2
+g = bungalo-empty-lot-3
 c = brick
 
 =data +x+z-y 8x8x8
@@ -46,14 +47,14 @@ c = brick
 ........
 ........
 
-efeefeee
-febeeeee
-eefeffee
-efefeeee
-ffeeebee
-eefeeeee
-ebeefffe
-eeefeeeb
+efgefegg
+febgggee
+egfgffeg
+efefeggg
+ffegebee
+gefeggge
+gbegfffe
+eggfeeeb
 
 cccccccc
 cccccccc
