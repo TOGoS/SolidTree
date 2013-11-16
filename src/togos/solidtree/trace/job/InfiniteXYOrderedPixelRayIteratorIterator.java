@@ -29,9 +29,11 @@ public class InfiniteXYOrderedPixelRayIteratorIterator extends InfiniteIterator<
 	}
 	
 	@Override public XYOrderedPixelRayIterator next() {
+		if( currentInnerIterations < 1 ) currentInnerIterations = 1;
+		
 		XYOrderedPixelRayIterator it = new XYOrderedPixelRayIterator(imageWidth, imageHeight, projection, transform, currentInnerIterations);
 		
-		currentInnerIterations *= 2;
+		currentInnerIterations += 2;
 		if( currentInnerIterations > innerIterations ) currentInnerIterations = innerIterations;
 		
 		return it;
