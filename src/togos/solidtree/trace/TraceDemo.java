@@ -300,9 +300,9 @@ public class TraceDemo
 					break;
 				
 				// Camera movement
-				case KeyEvent.VK_END: case KP_3:
-					dir = -1;
 				case KeyEvent.VK_HOME: case KP_1:
+					dir = -1;
+				case KeyEvent.VK_END: case KP_3:
 					cam.x += dir * movedist * Math.cos(-cam.yaw);
 					cam.z -= dir * movedist * Math.sin(-cam.yaw);
 					tii.set( TracerInstruction.RESET );
