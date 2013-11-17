@@ -10,6 +10,7 @@ Rearchitect UI / rendering interaction
     otherwise pulls results from the job system
 
 UI
+- Ability to control dithering
 - Dump RGBE data instead of Chunky dumps
 - Forth command to trigger dump/export
 - Command to merge render dumps
