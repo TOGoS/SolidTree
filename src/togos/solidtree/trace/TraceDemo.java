@@ -362,7 +362,7 @@ public class TraceDemo
 		});
 		f.setVisible(true);
 		adj.requestFocus();
-				
+		
 		final Set<RenderResultChannel> desiredChannels = new HashSet<RenderResultChannel>();
 		desiredChannels.add(RenderResultChannel.RED);
 		desiredChannels.add(RenderResultChannel.GREEN);
