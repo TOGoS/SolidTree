@@ -38,6 +38,11 @@ public class UIRenderThread extends Thread
 		public final Tracer.Mode traceMode;
 		
 		public View( Scene scene, Projection projection, Matrix cameraTransform, Tracer.Mode traceMode ) {
+			assert scene != null;
+			assert projection != null;
+			assert cameraTransform != null && cameraTransform.width >= 4 && cameraTransform.height >= 3;
+			assert traceMode != null;
+			
 			this.scene = scene;
 			this.projection = projection;
 			this.cameraTransform = cameraTransform;
@@ -180,6 +185,7 @@ public class UIRenderThread extends Thread
 		if( settingsChanged ) {
 			hdrExposure = getExposure(hdrExposure, s.imageWidth, s.imageHeight, viewChanged);
 			exposureUpdated(hdrExposure);
+			oldSettings = s;
 		}
 		
 		RenderResult res = renderResultIterator.nextResult();
