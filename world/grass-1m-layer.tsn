@@ -1,0 +1,16 @@
+# The bottom layer of grass-1m
+
+=defs
+
+1 = sparse-grass-1
+2 = sparse-grass-2
+
+=data +x+z-y 8x8x1
+12211212
+21221121
+12121212
+22121112
+21112221
+21121211
+22121221
+11221121

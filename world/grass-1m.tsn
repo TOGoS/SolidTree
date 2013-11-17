@@ -1,0 +1,13 @@
+=defs
+. = empty
+g = grass-1m-layer
+
+=data +x+z-y 1x1x8
+.
+.
+.
+.
+.
+.
+.
+g
