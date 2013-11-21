@@ -1,7 +1,14 @@
 =defs
+
+bricks-in-grass-3 = grass-1m
+
 . = empty
-g = sparse-grass
+g = grass-8d
 b = bricks1
+u = bungalo
+v = bungalo-empty-lot-1
+w = bungalo-empty-lot-2
+x = bungalo-empty-lot-3
 
 =data +x+z-y 8x8x8
 ........
@@ -51,8 +58,8 @@ b = bricks1
 
 ........
 ........
-........
-........
+.vu.....
+.wx.....
 ....bb..
 ....bb..
 ........
@@ -60,8 +67,8 @@ b = bricks1
 
 ........
 ........
-........
-........
+.bb.....
+.bb.....
 ....bbb.
 ....bbb.
 ....bb..
@@ -69,9 +76,9 @@ b = bricks1
 
 gggggggg
 gggggggg
-gggggggg
-gggggggg
-ggggbbbb
+gbbggggg
+gbbggggg
+ggbbbbbb
 ggggbbbb
 ggggbbbg
 ggggbbgg

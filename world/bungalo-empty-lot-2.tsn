@@ -2,10 +2,9 @@
 
 . = empty
 l = tree-leaves
-t = tree
+t = tree-in-grass
 m = low-garden-light 
-material = sparse-grass
-g = bottomify8x8x8
+g = grass-1m
 d = dirt
 c = brick
 x = bricks-in-grass-1

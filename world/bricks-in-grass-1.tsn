@@ -1,6 +1,6 @@
 =defs
 . = empty
-g = sparse-grass
+g = grass-8d
 b = bricks1
 
 =data +x+z-y 8x8x8
