@@ -1,10 +1,14 @@
 package togos.solidtree.trace;
 
+import java.io.Serializable;
 import java.util.Random;
 
 import togos.solidtree.matrix.VectorMath;
 
-public class ApertureProjection implements Projection {
+public class ApertureProjection implements Projection, Serializable
+{
+	private static final long serialVersionUID = 1L;
+	
 	final Projection wrapped;
 	final double apertureSize;
 	final double focalDistance;
