@@ -24,11 +24,14 @@ public class InfiniteXYOrderedPixelRayIteratorIterator extends InfiniteIterator<
 		this.projection = projection;
 		this.transform = transform;
 		this.innerIterations = innerIterations;
-		
-		currentInnerIterations = 1;
 	}
 	
 	@Override public XYOrderedPixelRayIterator next() {
+		if( currentInnerIterations <= 0 ) currentInnerIterations = 1;
+		if( currentInnerIterations > innerIterations ) currentInnerIterations = innerIterations;
+		
+		assert currentInnerIterations > 0;
+		
 		XYOrderedPixelRayIterator it = new XYOrderedPixelRayIterator(imageWidth, imageHeight, projection, transform, currentInnerIterations);
 		
 		currentInnerIterations *= 2;
