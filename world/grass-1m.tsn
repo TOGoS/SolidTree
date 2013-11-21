@@ -1,0 +1,13 @@
+=defs
+. = empty
+b = grass-blades-512-a
+
+=data +x+z-y 1x1x8
+.
+.
+.
+.
+.
+.
+.
+b

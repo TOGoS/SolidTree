@@ -1,0 +1,10 @@
+=defs
+
+. = empty
+g = grass-material
+
+=data +x+z-y 1x1x3
+
+.
+g
+g

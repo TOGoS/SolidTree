@@ -1,0 +1,17 @@
+=defs
+
+a = grass-blades-8-a
+b = grass-blades-8-b
+c = grass-blades-8-c
+d = grass-blades-8-d
+
+=data +x+z-y 8x8x1
+
+bddccabc
+cbdcbcdd
+dddccdba
+bbdcbbad
+daccbcda
+bcbaadcc
+bdcacdab
+abacbdcd

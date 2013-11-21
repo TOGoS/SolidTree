@@ -1,0 +1,15 @@
+=defs
+
+a = grass-blades-64-a
+b = grass-blades-64-b
+
+=data +x+z-y 8x8x1
+
+babbabab
+ababbbaa
+aaaabbba
+babbabbb
+baaaabab
+bbaababa
+bbbaaaba
+babbaabb

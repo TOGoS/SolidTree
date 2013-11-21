@@ -1,0 +1,18 @@
+=defs
+
+. = empty
+a = grass-blade-a
+b = grass-blade-b
+c = grass-blade-c
+d = grass-blade-d
+
+=data +x+z-y 8x8x1
+
+b....adc
+.b...c.a
+..a...d.
+b.d...a.
+bad.a...
+...cb.db
+...bc...
+....ccb.
