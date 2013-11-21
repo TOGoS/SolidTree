@@ -1,7 +1,7 @@
 #?TEXT-SOLID-NODE
 =defs
 . = empty
-# = brick
+# = brickette2
 / = mortar
 
 =data +x+z-y 8x8x8
