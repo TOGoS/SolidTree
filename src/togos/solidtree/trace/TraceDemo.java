@@ -139,7 +139,7 @@ public class TraceDemo
 	
 	public static void main( String[] args ) throws Exception {
 		final String renderDir = "renders";
-		final String sceneName = "testrender"+System.currentTimeMillis(); 
+		final String sceneName = "testrender"+System.currentTimeMillis();
 		
 		final Interrupt<TracerInstruction> tii = new Interrupt<TracerInstruction>();
 		
@@ -338,9 +338,9 @@ public class TraceDemo
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
 					break;
-				case KP_7:
-					dir = -1;
 				case KP_9:
+					dir = -1;
+				case KP_7:
 					cam.roll += dir * movedist * Math.PI / 16;
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
@@ -362,7 +362,7 @@ public class TraceDemo
 		});
 		f.setVisible(true);
 		adj.requestFocus();
-				
+		
 		final Set<RenderResultChannel> desiredChannels = new HashSet<RenderResultChannel>();
 		desiredChannels.add(RenderResultChannel.RED);
 		desiredChannels.add(RenderResultChannel.GREEN);
@@ -422,7 +422,7 @@ public class TraceDemo
 				startTime = System.currentTimeMillis();
 				exp = cam.getExposure();
 				exp.clear();
-				adj.setExposure(exp, false);
+				adj.setExposure(exp);
 				scene = new Scene(root, new AdditiveSkySphere());
 				
 				File sceneFile = new File(renderDir+"/"+sceneName+"/"+sceneName+".scene");
@@ -439,14 +439,14 @@ public class TraceDemo
 				innerIterations = 1;
 				exp = ExposureScaler.scaleUp(exp);
 				System.err.println("Doubling resolution to "+exp.width+"x"+exp.height);
-				adj.setExposure(exp, false);
+				adj.setExposure(exp);
 				cam.setExposure(exp);
 			} else if( ti == TracerInstruction.HALVE ) {
 				restartWorker = true;
 				innerIterations = 1;
 				exp = ExposureScaler.scaleDown(exp, 2);
 				System.err.println("Halved resolution to "+exp.width+"x"+exp.height);
-				adj.setExposure(exp, false);
+				adj.setExposure(exp);
 				cam.setExposure(exp);
 			}
 			
@@ -489,7 +489,7 @@ public class TraceDemo
 			if( currentTime - lastRedraw > 200 ) {
 				lastRedraw = currentTime;
 				exp.add(nextResultExposure);
-				adj.exposureUpdated();
+				adj.setExposure(exp);
 			}
 			
 			// Autosave every 30 minutes!
@@ -518,7 +518,7 @@ public class TraceDemo
 			String baseName = renderDir+"/"+sceneName+"/"+sceneName+"-"+(int)exp.getAverageExposure();
 			
 			adj.exportFilenamePrefix = baseName;
-			adj.exposureUpdated();
+			adj.setExposure(exp);
 			
 			if( innerIterations == 1 ) { 
 				innerIterations = 10;

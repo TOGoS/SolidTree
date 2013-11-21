@@ -231,7 +231,7 @@ public class InetRenderWorker
 	}
 	
 	static Pattern IP6LITERALPATTERN = Pattern.compile("\\[([09a-fA-F:]+)\\]");
-	static Pattern HOSTPORTPATTERN = Pattern.compile("(.+)(?::(\\d+))?");
+	static Pattern HOSTPORTPATTERN = Pattern.compile("(.+?)(?::(\\d+))?");
 	
 	public static void main(String[] args) throws Exception {
 		String serverName = null;
