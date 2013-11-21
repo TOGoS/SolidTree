@@ -18,12 +18,15 @@ UI
 - -threads parameter for render client
 - command to list worker connections
 - reintroduce preview mode
+- Auto-focus?
 
 Networking
-- Remodel network client
-  To more elegantly handle server disconnects
-  client contains its own server and worker threads
-  main thread reads from server, requests tasks, restarts connection to server
+- Render server with nice web interface.
+  - Web interface shows all tasks with
+    - image preview
+    - priority
+    - dump download link
+  - HTTP task put / task take / result put / result get
 
 - HTTP-based protocol
   POST a task
