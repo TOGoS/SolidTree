@@ -1,0 +1,19 @@
+# grass is 1/8 meter tall
+
+# naming convention
+# <block>-1m       ; 1x1x1 meter
+# <block>-1mx2mx3d ; 1x2x(1/3) meter
+
+class Array
+  def rand
+    self[rand(self.length)]
+  end
+end
+
+grass-div8
+
+
+
+1m
+
+1d

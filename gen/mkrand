@@ -1,0 +1,19 @@
+#!/usr/bin/ruby
+
+args = $*.clone
+
+width  = args.shift.to_i
+height = args.shift.to_i
+depth  = args.shift.to_i
+
+options = args
+
+for y in 0...height
+  for z in 0...depth
+    for x in 0...width
+      print options[rand(options.length)]
+    end
+    puts
+  end
+  puts
+end

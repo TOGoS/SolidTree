@@ -1,0 +1,17 @@
+#!/usr/bin/ruby
+
+
+
+for y in 0..7
+  for z in 0..7
+    for x in 0..7
+      if ((x+1) & 2) == 2 or ((z+1) & 2) == 2
+        print ['a','b','c','d','a','b','a','c'][rand(8)]
+      else
+        print '.'
+      end
+    end
+    puts
+  end
+  puts
+end
