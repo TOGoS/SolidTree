@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class FisheyeProjection implements Projection, Serializable
 {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 	
 	/** Horizontal and vertical fields of view, in radians */
 	final double fovX, fovY;
@@ -25,7 +25,7 @@ public class FisheyeProjection implements Projection, Serializable
 			double ax = screenX[i] * fovX;
 			double avSquared = ay * ay + ax * ax;
 			double angleFromCenter = (double)Math.sqrt(avSquared);
-			double dz = (double)Math.cos(angleFromCenter);
+			double dz = -(double)Math.cos(angleFromCenter);
 			double dv = (double)Math.sin(angleFromCenter);
 			double dy, dx;
 			if (angleFromCenter == 0) {
