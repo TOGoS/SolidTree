@@ -308,9 +308,9 @@ public class TraceDemo
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
 					break;
-				case KeyEvent.VK_DOWN: case KP_0:
-					dir = -1;
 				case KeyEvent.VK_UP: case KP_5:
+					dir = -1;
+				case KeyEvent.VK_DOWN: case KP_0:
 					cam.x += dir * movedist * Math.sin(-cam.yaw) * Math.cos(cam.pitch);
 					cam.z += dir * movedist * Math.cos(-cam.yaw) * Math.cos(cam.pitch);
 					cam.y += dir * movedist * Math.sin(-cam.pitch);
@@ -324,23 +324,23 @@ public class TraceDemo
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
 					break;
-				case KeyEvent.VK_RIGHT: case KeyEvent.VK_KP_RIGHT: case KP_6:
-					dir = -1;
 				case KeyEvent.VK_LEFT: case KeyEvent.VK_KP_LEFT: case KP_4:
+					dir = -1;
+				case KeyEvent.VK_RIGHT: case KeyEvent.VK_KP_RIGHT: case KP_6:
 					cam.yaw += dir * movedist * Math.PI / 16;
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
 					break;
-				case KeyEvent.VK_KP_DOWN: case KP_2:
-					dir = -1;
 				case KeyEvent.VK_KP_UP: case KP_8:
+					dir = -1;
+				case KeyEvent.VK_KP_DOWN: case KP_2:
 					cam.pitch += dir * movedist * Math.PI / 16;
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);
 					break;
-				case KP_9:
-					dir = -1;
 				case KP_7:
+					dir = -1;
+				case KP_9:
 					cam.roll += dir * movedist * Math.PI / 16;
 					tii.set( TracerInstruction.RESET );
 					dumpCameraPosition(cam);

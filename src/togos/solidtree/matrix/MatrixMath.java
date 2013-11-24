@@ -85,9 +85,9 @@ public class MatrixMath
 		identity(scratchA);
 		axisAngleToRotationMatrix( 0, -1, 0, yaw  , scratchB );
 		multiply(scratchA, scratchB, dest);
-		axisAngleToRotationMatrix( 1, 0, 0, pitch, scratchB );
+		axisAngleToRotationMatrix( +1, 0, 0, pitch, scratchB );
 		multiply(dest, scratchB, scratchA);
-		axisAngleToRotationMatrix( 0, 0, 1, roll , scratchB );
+		axisAngleToRotationMatrix( 0, 0, -1, roll , scratchB );
 		multiply(scratchA, scratchB, dest);
 	}
 }
