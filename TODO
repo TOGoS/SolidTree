@@ -35,7 +35,15 @@ Networking
   POST task results
   GET task results
 
+- Add 'influence' tracer output to indicate how to weight sample.
+  - 0 when hitting NaN/infinity/otherwise incalculable paths
+  - >1 if tracer somehow does more than one sample
+  accumulated color += resulting color * weight
+  accumulated exposure += weight
 - Formalize task distribution system
+- Formalize scene description language(s)
+- Import Minecraft worlds
+  - Allow lazy-loading of nodes to support really huge worlds (like ones imported from MC)
 
 - Control all aspects of scene via forth control script
   - for interactive
@@ -91,11 +99,6 @@ Networking
 
 - ctx:... within forth as shorthand for "..." ctx-get
 
-- For animations, give camera position (maybe other things) as function of time
-  Frame is an interval.
-  Pick t within the interval for each batch of pixels.
-  Automatic motion blur!
-
 - +x+y+z mode for putting levels side-by-side
   so that 8x8x8s can fit more nicely in an 80-column text file
 
@@ -112,8 +115,6 @@ Networking
 
 - Sky spheres
   - Like sky boxes, but using a spherical projection that spaces samples more evenly
-
-- Import Minecraft worlds
 
 - Generate hilly terrain (use noise3 library from TMCMG!)
 
