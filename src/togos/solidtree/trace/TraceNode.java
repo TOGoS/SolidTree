@@ -36,12 +36,14 @@ public final class TraceNode implements Serializable
 	// For when div = DIV_FUNC:
 	public final DensityFunction splitFunc;
 	
-	// For when DIV = DIV_X|DIV_Y|DIV_Z:
-	public final TraceNode subNodeA;
+	// For when div = DIV_X/Y/Z:
 	public final double splitPoint;
+	
+	// For when div != DIV_NONE:
+	public final TraceNode subNodeA;
 	public final TraceNode subNodeB;
 	
-	private TraceNode( int div, PathTraceMaterial material, DensityFunction func, TraceNode subNodeA, double splitPoint, TraceNode subNodeB ) {
+	private TraceNode( int div, PathTraceMaterial material, DensityFunction func, double splitPoint, TraceNode subNodeA, TraceNode subNodeB ) {
 		// Make sure we never create a node of 2 identical homogeneous subnodes!
 		switch( div ) {
 		case DIV_NONE:
@@ -86,16 +88,16 @@ public final class TraceNode implements Serializable
 
 	}
 	
-	public TraceNode( int div, DensityFunction func ) {
-		this( div, null, func, null, Double.NaN, null );
+	public TraceNode( int div, DensityFunction func, TraceNode subNodeA, TraceNode subNodeB ) {
+		this( div, null, func, Double.NaN, subNodeA, subNodeB );
 	}
 	
 	public TraceNode( PathTraceMaterial material ) {
-		this( DIV_NONE, material, null, null, Double.NaN, null );
+		this( DIV_NONE, material, null, Double.NaN, null, null );
 	}
 	
-	public TraceNode( int div, TraceNode subNodeA, double splitPoint, TraceNode subNodeB ) {
-		this( div, null, null, subNodeA, splitPoint, subNodeB );
+	public TraceNode( int div, double splitPoint, TraceNode subNodeA, TraceNode subNodeB ) {
+		this( div, null, null, splitPoint, subNodeA, subNodeB );
 	}
 	
 	public boolean isSubdivided() {

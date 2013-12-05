@@ -9,6 +9,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.ObjectOutputStream;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,9 +24,13 @@ import togos.lang.SourceLocation;
 import togos.solidtree.NodeLoader;
 import togos.solidtree.NodeLoader.HashMapLoadContext;
 import togos.solidtree.NodeLoader.LoadContext;
+import togos.solidtree.DColor;
 import togos.solidtree.NodeRoot;
+import togos.solidtree.SimplexNoise;
 import togos.solidtree.SolidNode;
 import togos.solidtree.StandardMaterial;
+import togos.solidtree.SurfaceMaterial;
+import togos.solidtree.SurfaceMaterialLayer;
 import togos.solidtree.forth.Interpreter;
 import togos.solidtree.forth.REPL;
 import togos.solidtree.forth.StandardWordDefinition;
@@ -149,13 +154,44 @@ public class TraceDemo
 		
 		NodeLoader nl = new NodeLoader();
 		nl.includePath.add(new File("world"));
-		NodeRoot<TraceNode> root = toTraceNodeRoot( nl.get("world", loadCtx) ); 
+		//NodeRoot<TraceNode> root = toTraceNodeRoot( nl.get("world", loadCtx) );
+		final SimplexNoise sn = new SimplexNoise();
+		//final StandardMaterial brick = (StandardMaterial)nl.get("black-plastic", loadCtx);
+		final StandardMaterial noiseMaterial = StandardMaterial.opaque(
+			new SurfaceMaterial( new SurfaceMaterialLayer(
+				1, new DColor(0.4,0.3,0.2), DColor.BLACK, 0, 1, 1, 0
+			), new SurfaceMaterialLayer(
+				0.5, DColor.WHITE, DColor.BLACK, 1, 0, 0, 0
+			))
+		);
+		NodeRoot<TraceNode> root = new NodeRoot<TraceNode>(
+			new TraceNode(TraceNode.DIV_Y,
+				0.1,
+				new TraceNode(
+					(StandardMaterial)nl.get("light", loadCtx)
+				), new TraceNode(TraceNode.DIV_Y,
+					0.5,
+					new TraceNode(
+						StandardMaterial.SPACE
+					),
+					new TraceNode(TraceNode.DIV_FUNC_GLOBAL, new TraceNode.DensityFunction() {
+						@Override public double getMaxGradient() {
+							return 2;
+						}
+						@Override public double apply(double x, double y, double z) {
+							return sn.apply((float)x, (float)y, (float)z);
+							//return (y - 1)/2 + sn.apply((float)x, 0, (float)z) * x;
+						}
+					}, new TraceNode(StandardMaterial.SPACE), new TraceNode(noiseMaterial))
+				)
+			), 10
+		);
 		
 		final Camera cam = new Camera();
 		cam.imageWidth = 96;
 		cam.imageHeight = 48;
 		cam.x = 0.1;
-		cam.y = 30.1;
+		cam.y = 0.1;
 		cam.z = 0.1;
 		cam.yaw = Math.PI/8;
 		
@@ -428,11 +464,19 @@ public class TraceDemo
 				File sceneFile = new File(renderDir+"/"+sceneName+"/"+sceneName+".scene");
 				System.err.println("Saving scene to "+sceneFile);
 				FileUtil.mkParentDirs(sceneFile);
+				boolean successfullySavedScene = false;
 				ObjectOutputStream sceneOs = new ObjectOutputStream(new FileOutputStream(sceneFile));
 				try {
 					sceneOs.writeObject(scene);
+					successfullySavedScene = true;
+				} catch( NotSerializableException e ) {
+					System.err.println("Warning: Scene not serializable: "+e.getMessage());
 				} finally {
 					sceneOs.close();
+				}
+				if( !successfullySavedScene ) {
+					System.err.println("Deleting "+sceneFile);
+					sceneFile.delete();
 				}
 			} else if( ti == TracerInstruction.DOUBLE ) {
 				restartWorker = true;

@@ -241,6 +241,73 @@ public class Tracer
 	
 	protected static final double SMALL_VALUE = Math.pow(2, -10);
 	
+	protected static final boolean isNotSuperTiny(double v) {
+		return v > SMALL_VALUE || v < -SMALL_VALUE;
+	}
+	
+	protected boolean findNextIntersectionByFunction(
+		Cursor bound, Vector3D p, Vector3D d, Vector3D justInsideDest, Vector3D justOutsideDest
+	) {
+		TraceNode tn = bound.node;
+		assert tn.division == TraceNode.DIV_FUNC_LOCAL || tn.division == TraceNode.DIV_FUNC_GLOBAL;
+		assert bound.definite; // Cannot subdivide any further than leaves of a node with function-based division
+		
+		double sx0, sy0, sz0, sw, sh, sd, gradUnit; // How to scale coordinates for function input
+		double x = p.x, y = p.y, z = p.z;
+		if( bound.node.division == TraceNode.DIV_FUNC_LOCAL ) {
+			sx0 = bound.x0; sy0 = bound.y0; sz0 = bound.z0;
+			sw = bound.x1-sx0; sh = bound.y1-sy0; sd = bound.z1-sz0;
+			gradUnit = sw < sh ? sw : sh;
+			gradUnit = sd < gradUnit ? sd : gradUnit;
+		} else {
+			sx0 = sy0 = sz0 = 0;
+			sw = sh = sd = gradUnit = 1;
+		}
+		
+		final TraceNode.DensityFunction func = tn.splitFunc;
+		final double maxGrad = func.getMaxGradient() * gradUnit;
+		d.normalizeInPlace(1);
+		
+		// TODO: This is probably all sorts of buggy
+		// and weirdness when values approach zero
+		
+		double v = func.apply( (x-sx0)/sw, (y-sy0)/sh, (z-sz0)/sd );
+		double directionMultiplier = v > 0 ? 1 : -1;
+		double dist = SMALL_VALUE*2;
+		for( int iter=0; isNotSuperTiny(dist) && isNotSuperTiny(v) && iter<20; ++iter, v = func.apply( (x-sx0)/sw, (y-sy0)/sh, (z-sz0)/sd ) ) {
+			dist = v * directionMultiplier / maxGrad;
+			x += d.x*dist;
+			y += d.y*dist;
+			z += d.z*dist;
+			
+			if( !bound.definitelyContains(x, y, z) ) return false;
+		}
+		
+		if( dist < 0 ) {
+			// Put x just before boundary
+			x += dist*2*d.x;
+			y += dist*2*d.y;
+			z += dist*2*d.z;
+			dist *= -1;
+		}
+		
+		// There's probably a more clever/efficient way to do this
+		normal.set(
+			func.apply(x+dist, y, z) - v,
+			func.apply(x, y+dist, z) - v,
+			func.apply(x, y, z+dist) - v
+		);
+		assert normal.isRegular();
+		// Make sure normal and direction are >90 degrees apart
+		normal.normalizeInPlace( VectorMath.dotProduct(d, normal) > 0 ? -1 : 1 );
+		
+		justInsideDest.set( x, y, z );
+		justOutsideDest.set( x+dist*2*d.x, y+dist*2*d.y, z+dist*2*d.z );
+		
+		return true;
+	}
+	
+	// Scratch vector for use by findNextIntersection
 	Vector3D scaledDirection = new Vector3D();
 	protected boolean findNextIntersectionNew( Vector3D p, Vector3D d, Vector3D justInsideDest, Vector3D justOutsideDest ) {
 		if( cursorIdx == 0 ) {
@@ -249,6 +316,10 @@ public class Tracer
 		}
 		
 		Cursor c = cursors[cursorIdx];
+		if( !c.definite ) {
+			// Parent is function-divided!
+			if( findNextIntersectionByFunction( cursors[cursorIdx-1], p, d, justInsideDest, justOutsideDest ) ) return true;
+		}
 		
 		// Not important to the calculation, but
 		// makes d a non-ridiculously-small value,
@@ -324,7 +395,8 @@ public class Tracer
 	public static final int SIDE_NEG_Z = 5;
 	
 	// Note that normals are opposite sides (side +x has normal -x)
-	final Vector3D normal = new Vector3D(); 
+	// The normal vector should always be normalized!
+	final Vector3D normal = new Vector3D();
 	private double[] distances = new double[6];
 	private static double[] normals = {
 		-1,  0,  0,

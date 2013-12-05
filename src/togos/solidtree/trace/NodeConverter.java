@@ -30,7 +30,7 @@ public class NodeConverter
 		return intern(new TraceNode(mat));
 	}
 	protected TraceNode dividedTraceNode( int div, TraceNode subNodeA, double splitPoint, TraceNode subNodeB ) {
-		return intern(new TraceNode(div, subNodeA, splitPoint, subNodeB));
+		return intern(new TraceNode(div, splitPoint, subNodeA, subNodeB));
 	}
 	
 	protected TraceNode traceNodeForMaterial(PathTraceMaterial mat) {
