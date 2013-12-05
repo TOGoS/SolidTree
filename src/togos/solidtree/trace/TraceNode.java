@@ -7,7 +7,14 @@ import togos.solidtree.StandardMaterial;
 
 public final class TraceNode implements Serializable
 {
-	private static final long serialVersionUID = 1L;
+	interface DensityFunction {
+		public double getMaxGradient();
+		public double apply(
+			double x, double y, double z
+		);
+	}
+	
+	private static final long serialVersionUID = 2L;
 	
 	public static final TraceNode EMPTY = new TraceNode( StandardMaterial.SPACE );
 	
@@ -15,26 +22,56 @@ public final class TraceNode implements Serializable
 	public static final int DIV_X = 1;
 	public static final int DIV_Y = 2;
 	public static final int DIV_Z = 3;
+	public static final int DIV_FUNC_GLOBAL = 4;
+	public static final int DIV_FUNC_LOCAL = 5;
 	
 	public final int division;
+	public final int hashCode;
+	
+	// A union would be nice, here.
+	
+	// For when div = DIV_NONE:
 	public final PathTraceMaterial material;
+	
+	// For when div = DIV_FUNC:
+	public final DensityFunction splitFunc;
+	
+	// For when DIV = DIV_X|DIV_Y|DIV_Z:
 	public final TraceNode subNodeA;
 	public final double splitPoint;
 	public final TraceNode subNodeB;
-	public final int hashCode;
 	
-	private TraceNode( int div, PathTraceMaterial material, TraceNode subNodeA, double splitPoint, TraceNode subNodeB ) {
+	private TraceNode( int div, PathTraceMaterial material, DensityFunction func, TraceNode subNodeA, double splitPoint, TraceNode subNodeB ) {
 		// Make sure we never create a node of 2 identical homogeneous subnodes!
-		if( div == DIV_NONE ) {
-			assert material != null && subNodeA == null && subNodeB == null && Double.isNaN(splitPoint);
-		} else {
+		switch( div ) {
+		case DIV_NONE:
+			assert material != null;
+			assert func     == null;
+			assert subNodeA == null;
+			assert subNodeB == null;
+			assert Double.isNaN(splitPoint);
+			break;
+		case DIV_FUNC_GLOBAL: case DIV_FUNC_LOCAL:
+			assert material == null;
+			assert func     != null;
+			assert subNodeA != null;
+			assert subNodeB != null;
+			assert Double.isNaN(splitPoint);
+			break;
+		case DIV_X: case DIV_Y: case DIV_Z:
+			// Make sure the split is necessary:
 			assert subNodeA.division != DIV_NONE || subNodeB.division != DIV_NONE || !subNodeA.material.equals(subNodeB.material);
-			assert material == null && subNodeA != null && subNodeB != null && !Double.isNaN(splitPoint);
+			
+			assert material == null;
+			assert subNodeA != null;
+			assert subNodeB != null;
+			assert !Double.isNaN(splitPoint);
 			assert splitPoint > 0;
 			assert splitPoint < 1;
 		}
 		
 		this.division = div;
+		this.splitFunc = func;
 		this.material = material;
 		this.subNodeA = subNodeA;
 		this.splitPoint = splitPoint;
@@ -49,16 +86,20 @@ public final class TraceNode implements Serializable
 
 	}
 	
+	public TraceNode( int div, DensityFunction func ) {
+		this( div, null, func, null, Double.NaN, null );
+	}
+	
 	public TraceNode( PathTraceMaterial material ) {
-		this( DIV_NONE, material, null, Double.NaN, null );
+		this( DIV_NONE, material, null, null, Double.NaN, null );
 	}
 	
 	public TraceNode( int div, TraceNode subNodeA, double splitPoint, TraceNode subNodeB ) {
-		this( div, null, subNodeA, splitPoint, subNodeB );
+		this( div, null, null, subNodeA, splitPoint, subNodeB );
 	}
 	
 	public boolean isSubdivided() {
-		return division != DIV_NONE; 
+		return division != DIV_NONE;
 	}
 	
 	@Override public int hashCode() {

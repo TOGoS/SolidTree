@@ -18,20 +18,29 @@ public class Tracer
 	static final class Cursor {
 		TraceNode node;
 		double x0, y0, z0, x1, y1, z1;
+		boolean definite;
 		
-		public boolean contains( Vector3D pos ) {
-			return contains( pos.x, pos.y, pos.z );
+		public boolean mayContain( Vector3D pos ) {
+			return mayContain( pos.x, pos.y, pos.z );
 		}
 		
-		public boolean contains( double x, double y, double z ) {
+		public boolean mayContain( double x, double y, double z ) {
 			return
 				x >= x0 && x <= x1 &&
 				y >= y0 && y <= y1 &&
 				z >= z0 && z <= z1;
 		}
 		
+		public boolean definitelyContains( double x, double y, double z ) {
+			return
+				definite &&
+				x >= x0 && x <= x1 &&
+				y >= y0 && y <= y1 &&
+				z >= z0 && z <= z1;
+		}
+		
 		public boolean onEdge( double x, double y, double z ) {
-			return contains(x,y,z) && (
+			return mayContain(x,y,z) && (
 				x == x0 || x == x1 ||
 				y == y0 || y == y1 ||
 				z == z0 || z == z1
@@ -41,12 +50,14 @@ public class Tracer
 		public void set(
 			TraceNode node,
 			double x0, double y0, double z0,
-			double x1, double y1, double z1
+			double x1, double y1, double z1,
+			boolean definite
 		) {
 			assert node != null;
 			this.node = node;
 			this.x0 = x0; this.y0 = y0; this.z0 = z0;
 			this.x1 = x1; this.y1 = y1; this.z1 = z1;
+			this.definite = definite;
 		}
 	}
 	
@@ -67,13 +78,14 @@ public class Tracer
 		for( int i=0; i<cursors.length; ++i ) cursors[i] = new Cursor();
 		cursors[0].set( TraceNode.EMPTY,
 			Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY,
-			Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY
+			Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY,
+			true
 		);
 		setRoot( TraceNode.EMPTY, 0, 0, 0, 0, 0, 0 );
 	}
 	
 	public void setRoot( TraceNode root, double minX, double minY, double minZ, double maxX, double maxY, double maxZ ) {
-		cursors[1].set( root, minX, minY, minZ, maxX, maxY, maxZ );
+		cursors[1].set( root, minX, minY, minZ, maxX, maxY, maxZ, true );
 	}
 	
 	public void setRoot( NodeRoot<TraceNode> root ) {
@@ -96,7 +108,7 @@ public class Tracer
 	}
 	
 	protected static final void subdivide( Cursor c, double x, double y, double z, Cursor dest ) {
-		assert c.contains(x, y, z);
+		assert c.mayContain(x, y, z);
 		
 		final TraceNode n = c.node;
 		double mid;
@@ -104,39 +116,49 @@ public class Tracer
 		case TraceNode.DIV_X:
 			mid = c.x0 + n.splitPoint * (c.x1 - c.x0);
 			if( x < mid ) {
-				dest.set(n.subNodeA, c.x0, c.y0, c.z0, mid, c.y1, c.z1);
+				dest.set(n.subNodeA, c.x0, c.y0, c.z0, mid, c.y1, c.z1, c.definite);
 			} else {
-				dest.set(n.subNodeB, mid, c.y0, c.z0, c.x1, c.y1, c.z1);
+				dest.set(n.subNodeB, mid, c.y0, c.z0, c.x1, c.y1, c.z1, c.definite);
 			}
 			break;
 		case TraceNode.DIV_Y:
 			mid = c.y0 + n.splitPoint * (c.y1 - c.y0);
 			if( y < mid ) {
-				dest.set(n.subNodeA, c.x0, c.y0, c.z0, c.x1, mid, c.z1);
+				dest.set(n.subNodeA, c.x0, c.y0, c.z0, c.x1, mid, c.z1, c.definite);
 			} else {
-				dest.set(n.subNodeB, c.x0, mid, c.z0, c.x1, c.y1, c.z1);
+				dest.set(n.subNodeB, c.x0, mid, c.z0, c.x1, c.y1, c.z1, c.definite);
 			}
 			break;
 		case TraceNode.DIV_Z:
 			mid = c.z0 + n.splitPoint * (c.z1 - c.z0);
 			if( z < mid ) {
-				dest.set(n.subNodeA, c.x0, c.y0, c.z0, c.x1, c.y1, mid);
+				dest.set(n.subNodeA, c.x0, c.y0, c.z0, c.x1, c.y1, mid, c.definite);
 			} else {
-				dest.set(n.subNodeB, c.x0, c.y0, mid, c.x1, c.y1, c.z1);
+				dest.set(n.subNodeB, c.x0, c.y0, mid, c.x1, c.y1, c.z1, c.definite);
 			}
+			break;
+		case TraceNode.DIV_FUNC_GLOBAL:
+			dest.set( n.splitFunc.apply( x, y, z ) < 0 ? n.subNodeA : n.subNodeB, c.x0, c.y0, c.z0, c.x1, c.y1, c.z1, false );
+			break;
+		case TraceNode.DIV_FUNC_LOCAL:
+			dest.set( n.splitFunc.apply(
+				(x - c.x0) / (c.x1 - c.x0),
+				(y - c.y0) / (c.y1 - c.y0),
+				(z - c.z0) / (c.z1 - c.z0)
+			) < 0 ? n.subNodeA : n.subNodeB, c.x0, c.y0, c.z0, c.x1, c.y1, c.z1, false );
 			break;
 		default:
 			throw new RuntimeException("Invalid TraceNode division value: "+n.division);
 		}
 		
-		assert dest.contains(x, y, z);
+		assert dest.mayContain(x, y, z);
 	}
 	
 	protected Cursor fixCursor(double x, double y, double z) {
 		if( cursorIdx == 0 ) cursorIdx = 1;
 		
-		while( !cursors[cursorIdx].contains(x, y, z) ) {
-			// Back out until we fit
+		while( !cursors[cursorIdx].definitelyContains(x, y, z) ) {
+			// Back out until we know we're in the right place
 			--cursorIdx;
 		}
 		
@@ -166,7 +188,7 @@ public class Tracer
 		Cursor c = cursors[cursorIdx];
 		
 		assert !d.isZero();
-		assert c.contains(p);
+		assert c.mayContain(p);
 		
 		// TODO: There is some slowness when rays go directly along an edge.
 		// Figure a good way to deal with that situation.
@@ -175,12 +197,12 @@ public class Tracer
 		if( !c.onEdge(p.x, p.y, p.z) ) {
 			// Grow the direction vector until it
 			// pokes out of the current box...
-			while( c.contains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
+			while( c.mayContain(p.x+d.x, p.y+d.y, p.z+d.z) ) {
 				d.scaleInPlace(2);
 			}
 			// Shrink the direction vector until it fits
 			// within the current box...
-			while( !c.contains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
+			while( !c.mayContain(p.x+d.x, p.y+d.y, p.z+d.z) ) {
 				d.scaleInPlace((double)0.5);
 				
 				assert !d.isZero();
@@ -191,7 +213,7 @@ public class Tracer
 		// to the boundary as possible...
 		double ddx = d.x/2, ddy = d.y/2, ddz = d.z/2;
 		for( int i=0; i<10; ++i ) {
-			if( c.contains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
+			if( c.mayContain(p.x+d.x, p.y+d.y, p.z+d.z) ) {
 				d.x += ddx;
 				d.y += ddy;
 				d.z += ddz;
@@ -203,7 +225,7 @@ public class Tracer
 			ddx /= 2; ddy /= 2; ddz /= 2;
 		}
 		// Make sure it's just past the boundary
-		while( c.contains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
+		while( c.mayContain(p.x+d.x, p.y+d.y, p.z+d.z) ) {
 			assert ddx != 0 || ddy != 0 || ddz != 0;
 			d.x += ddx;
 			d.y += ddy;
@@ -234,7 +256,7 @@ public class Tracer
 		d.manhattanNormalizeInPlace(1);
 		
 		assert !d.isZero();
-		assert c.contains(p);
+		assert c.mayContain(p);
 		
 		double scale = Double.POSITIVE_INFINITY;
 		int side = -1;
