@@ -18,29 +18,25 @@ public class Tracer
 	static final class Cursor {
 		TraceNode node;
 		double x0, y0, z0, x1, y1, z1;
-		boolean definite;
+		/**
+		 * This will be false if some parent node
+		 * is divided other than along AABB edges.
+		 */
+		boolean fillsBoundingBox;
 		
 		public boolean mayContain( Vector3D pos ) {
-			return mayContain( pos.x, pos.y, pos.z );
+			return boundingBoxContains( pos.x, pos.y, pos.z );
 		}
 		
-		public boolean mayContain( double x, double y, double z ) {
+		public boolean boundingBoxContains( double x, double y, double z ) {
 			return
-				x >= x0 && x <= x1 &&
-				y >= y0 && y <= y1 &&
-				z >= z0 && z <= z1;
-		}
-		
-		public boolean definitelyContains( double x, double y, double z ) {
-			return
-				definite &&
 				x >= x0 && x <= x1 &&
 				y >= y0 && y <= y1 &&
 				z >= z0 && z <= z1;
 		}
 		
 		public boolean onEdge( double x, double y, double z ) {
-			return mayContain(x,y,z) && (
+			return boundingBoxContains(x,y,z) && (
 				x == x0 || x == x1 ||
 				y == y0 || y == y1 ||
 				z == z0 || z == z1
@@ -51,13 +47,13 @@ public class Tracer
 			TraceNode node,
 			double x0, double y0, double z0,
 			double x1, double y1, double z1,
-			boolean definite
+			boolean fillsBoundingBox
 		) {
 			assert node != null;
 			this.node = node;
 			this.x0 = x0; this.y0 = y0; this.z0 = z0;
 			this.x1 = x1; this.y1 = y1; this.z1 = z1;
-			this.definite = definite;
+			this.fillsBoundingBox = fillsBoundingBox;
 		}
 	}
 	
@@ -108,7 +104,7 @@ public class Tracer
 	}
 	
 	protected static final void subdivide( Cursor c, double x, double y, double z, Cursor dest ) {
-		assert c.mayContain(x, y, z);
+		assert c.boundingBoxContains(x, y, z);
 		
 		final TraceNode n = c.node;
 		double mid;
@@ -116,25 +112,25 @@ public class Tracer
 		case TraceNode.DIV_X:
 			mid = c.x0 + n.splitPoint * (c.x1 - c.x0);
 			if( x < mid ) {
-				dest.set(n.subNodeA, c.x0, c.y0, c.z0, mid, c.y1, c.z1, c.definite);
+				dest.set(n.subNodeA, c.x0, c.y0, c.z0, mid, c.y1, c.z1, c.fillsBoundingBox);
 			} else {
-				dest.set(n.subNodeB, mid, c.y0, c.z0, c.x1, c.y1, c.z1, c.definite);
+				dest.set(n.subNodeB, mid, c.y0, c.z0, c.x1, c.y1, c.z1, c.fillsBoundingBox);
 			}
 			break;
 		case TraceNode.DIV_Y:
 			mid = c.y0 + n.splitPoint * (c.y1 - c.y0);
 			if( y < mid ) {
-				dest.set(n.subNodeA, c.x0, c.y0, c.z0, c.x1, mid, c.z1, c.definite);
+				dest.set(n.subNodeA, c.x0, c.y0, c.z0, c.x1, mid, c.z1, c.fillsBoundingBox);
 			} else {
-				dest.set(n.subNodeB, c.x0, mid, c.z0, c.x1, c.y1, c.z1, c.definite);
+				dest.set(n.subNodeB, c.x0, mid, c.z0, c.x1, c.y1, c.z1, c.fillsBoundingBox);
 			}
 			break;
 		case TraceNode.DIV_Z:
 			mid = c.z0 + n.splitPoint * (c.z1 - c.z0);
 			if( z < mid ) {
-				dest.set(n.subNodeA, c.x0, c.y0, c.z0, c.x1, c.y1, mid, c.definite);
+				dest.set(n.subNodeA, c.x0, c.y0, c.z0, c.x1, c.y1, mid, c.fillsBoundingBox);
 			} else {
-				dest.set(n.subNodeB, c.x0, c.y0, mid, c.x1, c.y1, c.z1, c.definite);
+				dest.set(n.subNodeB, c.x0, c.y0, mid, c.x1, c.y1, c.z1, c.fillsBoundingBox);
 			}
 			break;
 		case TraceNode.DIV_FUNC_GLOBAL:
@@ -151,13 +147,55 @@ public class Tracer
 			throw new RuntimeException("Invalid TraceNode division value: "+n.division);
 		}
 		
-		assert dest.mayContain(x, y, z);
+		assert dest.boundingBoxContains(x, y, z);
+	}
+	
+	protected boolean cursorMayContainSubNodeAt( Cursor c, TraceNode subNode, double x, double y, double z ) {
+		assert c.boundingBoxContains(x, y, z);
+		
+		final double funcValue;
+		
+		switch( c.node.division ) {
+		case TraceNode.DIV_FUNC_LOCAL:
+			funcValue = c.node.splitFunc.apply( (x-c.x0)/(c.x1-c.x0), (x-c.x0)/(c.x1-c.x0), (x-c.x0)/(c.x1-c.x0) );
+			break;
+		case TraceNode.DIV_FUNC_GLOBAL:
+			funcValue = c.node.splitFunc.apply( x, y, z );
+			break;
+		default:
+			return true;
+		}
+		
+		return subNode == (funcValue < 0 ? c.node.subNodeA : c.node.subNodeB);
+	}
+	
+	/**
+	 * Determine exactly whether a cursor contains a point.
+	 * 
+	 * This takes into account both its bounding box and the
+	 * shapes of all enclosing node divisions.
+	 */
+	protected boolean cursorContains( int index, double x, double y, double z ) {
+		Cursor c = cursors[index];
+		if( !c.boundingBoxContains(x,y,z) ) return false;
+		if( c.fillsBoundingBox ) return true;
+		
+		TraceNode subNode = c.node;
+		--index;
+		
+		while( index >= 0 ) {
+			if( !cursorMayContainSubNodeAt(cursors[index], subNode, x, y, z) ) return false;
+			
+			subNode = c.node;
+			--index;
+		}
+		return true;
 	}
 	
 	protected Cursor fixCursor(double x, double y, double z) {
 		if( cursorIdx == 0 ) cursorIdx = 1;
 		
-		while( !cursors[cursorIdx].definitelyContains(x, y, z) ) {
+		while( !cursorContains(cursorIdx,x,y,z) ) {
 			// Back out until we know we're in the right place
 			--cursorIdx;
 		}
@@ -197,12 +235,12 @@ public class Tracer
 		if( !c.onEdge(p.x, p.y, p.z) ) {
 			// Grow the direction vector until it
 			// pokes out of the current box...
-			while( c.mayContain(p.x+d.x, p.y+d.y, p.z+d.z) ) {
+			while( c.boundingBoxContains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
 				d.scaleInPlace(2);
 			}
 			// Shrink the direction vector until it fits
 			// within the current box...
-			while( !c.mayContain(p.x+d.x, p.y+d.y, p.z+d.z) ) {
+			while( !c.boundingBoxContains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
 				d.scaleInPlace((double)0.5);
 				
 				assert !d.isZero();
@@ -213,7 +251,7 @@ public class Tracer
 		// to the boundary as possible...
 		double ddx = d.x/2, ddy = d.y/2, ddz = d.z/2;
 		for( int i=0; i<10; ++i ) {
-			if( c.mayContain(p.x+d.x, p.y+d.y, p.z+d.z) ) {
+			if( c.boundingBoxContains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
 				d.x += ddx;
 				d.y += ddy;
 				d.z += ddz;
@@ -225,7 +263,7 @@ public class Tracer
 			ddx /= 2; ddy /= 2; ddz /= 2;
 		}
 		// Make sure it's just past the boundary
-		while( c.mayContain(p.x+d.x, p.y+d.y, p.z+d.z) ) {
+		while( c.boundingBoxContains(p.x+d.x, p.y+d.y, p.z+d.z) ) {
 			assert ddx != 0 || ddy != 0 || ddz != 0;
 			d.x += ddx;
 			d.y += ddy;
@@ -246,11 +284,12 @@ public class Tracer
 	}
 	
 	protected boolean findNextIntersectionByFunction(
-		Cursor bound, Vector3D p, Vector3D d, Vector3D justInsideDest, Vector3D justOutsideDest
+		int cursorIndex, Vector3D p, Vector3D d, Vector3D justInsideDest, Vector3D justOutsideDest
 	) {
+		Cursor bound = cursors[cursorIndex-1];
 		TraceNode tn = bound.node;
 		assert tn.division == TraceNode.DIV_FUNC_LOCAL || tn.division == TraceNode.DIV_FUNC_GLOBAL;
-		assert bound.definite; // Cannot subdivide any further than leaves of a node with function-based division
+		//assert bound.fillsBoundingBox; // Cannot subdivide any further than leaves of a node with function-based division
 		
 		double sx0, sy0, sz0, sw, sh, sd, gradUnit; // How to scale coordinates for function input
 		double x = p.x, y = p.y, z = p.z;
@@ -271,6 +310,12 @@ public class Tracer
 		// TODO: This is probably all sorts of buggy
 		// and weirdness when values approach zero
 		
+		// TODO: This doesn't take density functions of parent nodes into account.
+		// Calling cursorContains on each iteration should won't prevent it from completely skipping over
+		// over alternate regions of parent nodes smaller than the local function / maximum gradient
+		// indicates we need to check. 
+		// Maybe someday I'll realize a nice elegant way to handle this all correctly.
+		
 		double v = func.apply( (x-sx0)/sw, (y-sy0)/sh, (z-sz0)/sd );
 		double directionMultiplier = v > 0 ? 1 : -1;
 		double dist = SMALL_VALUE*2;
@@ -280,7 +325,8 @@ public class Tracer
 			y += d.y*dist;
 			z += d.z*dist;
 			
-			if( !bound.definitelyContains(x, y, z) ) return false;
+			if( !cursorContains(cursorIndex-1, x, y, z) ) return false;
+			//if( !bound.definitelyContains(x, y, z) ) return false;
 		}
 		
 		if( dist < 0 ) {
@@ -316,9 +362,9 @@ public class Tracer
 		}
 		
 		Cursor c = cursors[cursorIdx];
-		if( !c.definite ) {
+		if( !c.fillsBoundingBox ) {
 			// Parent is function-divided!
-			if( findNextIntersectionByFunction( cursors[cursorIdx-1], p, d, justInsideDest, justOutsideDest ) ) return true;
+			if( findNextIntersectionByFunction( cursorIdx, p, d, justInsideDest, justOutsideDest ) ) return true;
 		}
 		
 		// Not important to the calculation, but

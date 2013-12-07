@@ -19,8 +19,10 @@ import togos.hdrutil.ChunkyDump;
 import togos.hdrutil.ExposureScaler;
 import togos.hdrutil.FileUtil;
 import togos.hdrutil.HDRExposure;
+import togos.lang.BaseSourceLocation;
 import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
+import togos.solidtree.GeneralMaterial;
 import togos.solidtree.NodeLoader;
 import togos.solidtree.NodeLoader.HashMapLoadContext;
 import togos.solidtree.NodeLoader.LoadContext;
@@ -156,35 +158,59 @@ public class TraceDemo
 		nl.includePath.add(new File("world"));
 		//NodeRoot<TraceNode> root = toTraceNodeRoot( nl.get("world", loadCtx) );
 		final SimplexNoise sn = new SimplexNoise();
-		//final StandardMaterial brick = (StandardMaterial)nl.get("black-plastic", loadCtx);
-		final StandardMaterial noiseMaterial = StandardMaterial.opaque(
+		final GeneralMaterial brickMaterial = togos.solidtree.NodeConverter.toVolumetricMaterial( nl.get("brick", loadCtx), BaseSourceLocation.NONE );
+		final GeneralMaterial lightMaterial = (StandardMaterial)nl.get("light", loadCtx);
+		final GeneralMaterial shinyMaterial = StandardMaterial.opaque(
 			new SurfaceMaterial( new SurfaceMaterialLayer(
 				1, new DColor(0.4,0.3,0.2), DColor.BLACK, 0, 1, 1, 0
 			), new SurfaceMaterialLayer(
 				0.5, DColor.WHITE, DColor.BLACK, 1, 0, 0, 0
 			))
 		);
+		
+		TraceNode.DensityFunction df1 = new TraceNode.DensityFunction() {
+			@Override public double getMaxGradient() {
+				return 2;
+			}
+			@Override public double apply(double x, double y, double z) {
+				return sn.apply((float)x, (float)y, (float)z);
+				//return (y - 1)/2 + sn.apply((float)x, 0, (float)z) * x;
+			}
+		};
+		TraceNode.DensityFunction df2 = new TraceNode.DensityFunction() {
+			@Override public double getMaxGradient() {
+				return 2;
+			}
+			@Override public double apply(double x, double y, double z) {
+				return sn.apply((float)(x+20)/2, (float)y/8, (float)z/8)-0.2;
+				//return (y - 1)/2 + sn.apply((float)x, 0, (float)z) * x;
+			}
+		};
+
 		NodeRoot<TraceNode> root = new NodeRoot<TraceNode>(
 			new TraceNode(TraceNode.DIV_Y,
-				0.1,
-				new TraceNode(
-					(StandardMaterial)nl.get("light", loadCtx)
-				), new TraceNode(TraceNode.DIV_Y,
-					0.5,
-					new TraceNode(
-						StandardMaterial.SPACE
-					),
-					new TraceNode(TraceNode.DIV_FUNC_GLOBAL, new TraceNode.DensityFunction() {
-						@Override public double getMaxGradient() {
-							return 2;
-						}
-						@Override public double apply(double x, double y, double z) {
-							return sn.apply((float)x, (float)y, (float)z);
-							//return (y - 1)/2 + sn.apply((float)x, 0, (float)z) * x;
-						}
-					}, new TraceNode(StandardMaterial.SPACE), new TraceNode(noiseMaterial))
+				0.4,
+				new TraceNode(TraceNode.DIV_FUNC_GLOBAL, df1,
+					new TraceNode(StandardMaterial.SPACE),
+					//new TraceNode(brickMaterial)
+					new TraceNode(TraceNode.DIV_FUNC_GLOBAL, df2,
+						new TraceNode(brickMaterial),
+						new TraceNode(shinyMaterial)
+					)
+				),
+				new TraceNode(TraceNode.DIV_Y,
+					0.2,
+					new TraceNode(StandardMaterial.SPACE),
+					new TraceNode(TraceNode.DIV_FUNC_GLOBAL, df1,
+						new TraceNode(StandardMaterial.SPACE),
+						//new TraceNode(brickMaterial)
+						new TraceNode(TraceNode.DIV_FUNC_GLOBAL, df2,
+							new TraceNode(shinyMaterial),
+							new TraceNode(lightMaterial)
+						)
+					)
 				)
-			), 10
+			), 100
 		);
 		
 		final Camera cam = new Camera();
