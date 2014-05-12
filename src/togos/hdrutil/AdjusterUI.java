@@ -17,6 +17,8 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import togos.hdrutil.effects.Bleed;
+
 /*
  * TODO: Resettable background thread for recalculating image
  * TODO: Save, eXport, Merge from the UI
@@ -30,12 +32,13 @@ public class AdjusterUI extends Canvas
 	public String exportFilenamePrefix;
 	public String[] extraStatusLines = EMPTY_STRING_ARRAY;
 	HDRExposure hdrExposure;
-	HDRImage hdrImage;
+	HDRImage hdrImage, hdrImage2;
 	int[] argbBuf;
 	BufferedImage bImg;
 	float exposure = 1;
 	float gamma = 2.2f;
 	boolean dither = true;
+	boolean bleed = false;
 	
 	class RecalculationThread extends Thread {
 		public RecalculationThread() {
@@ -46,7 +49,7 @@ public class AdjusterUI extends Canvas
 		protected void kick( boolean realHard ) {
 			if( !this.isAlive() ) start();
 			else if( realHard ) interrupt();
-			else notify();
+			else notifyAll();
 		}
 		
 		
@@ -79,6 +82,17 @@ public class AdjusterUI extends Canvas
 					hdrImage.load(hdrExposure);
 					hdrImage.multiply(exposure);
 					hdrImage.exponentiate( 1/gamma );
+					
+					if( bleed ) {
+						if( hdrImage2 == null || hdrImage2.width != hdrImage.width || hdrImage2.height != hdrImage.height ) {
+							hdrImage2 = new HDRImage(hdrImage.width, hdrImage.height);
+						}
+						Bleed.bleedXY(hdrImage, 0.8f, 0.01f, 0.5f, 0.5f, hdrImage2);
+						
+						HDRImage k = hdrImage;
+						hdrImage = hdrImage2;
+						hdrImage2 = k;
+					}
 					
 					hdrImage.toArgb(argbBuf, dither);
 					bImg.setRGB(0, 0, hdrImage.getWidth(), hdrImage.getHeight(), argbBuf, 0, hdrImage.getWidth());
@@ -120,6 +134,10 @@ public class AdjusterUI extends Canvas
 					break;
 				case KeyEvent.VK_D:
 					dither ^= true;
+					settingsUpdated();
+					break;
+				case KeyEvent.VK_B:
+					bleed ^= true;
 					settingsUpdated();
 					break;
 				case KeyEvent.VK_X:

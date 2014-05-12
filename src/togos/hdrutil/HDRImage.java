@@ -2,9 +2,9 @@ package togos.hdrutil;
 
 public class HDRImage
 {
-	final int width, height;
-	final float[] r, g, b;
-	final float[][] colorChannels;
+	public final int width, height;
+	public final float[] r, g, b;
+	public final float[][] colorChannels;
 	
 	public HDRImage( int width, int height ) {
 		this.r = new float[width*height];
