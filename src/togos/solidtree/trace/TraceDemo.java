@@ -156,7 +156,8 @@ public class TraceDemo
 		
 		NodeLoader nl = new NodeLoader();
 		nl.includePath.add(new File("world"));
-		//NodeRoot<TraceNode> root = toTraceNodeRoot( nl.get("world", loadCtx) );
+		NodeRoot<TraceNode> root = toTraceNodeRoot( nl.get("world", loadCtx) );
+		/*
 		final SimplexNoise sn = new SimplexNoise();
 		final GeneralMaterial brickMaterial = togos.solidtree.NodeConverter.toVolumetricMaterial( nl.get("brick", loadCtx), BaseSourceLocation.NONE );
 		final GeneralMaterial lightMaterial = (StandardMaterial)nl.get("light", loadCtx);
@@ -212,12 +213,13 @@ public class TraceDemo
 				)
 			), 100
 		);
+		*/
 		
 		final Camera cam = new Camera();
 		cam.imageWidth = 96;
 		cam.imageHeight = 48;
 		cam.x = 0.1;
-		cam.y = 0.1;
+		cam.y = 100.1;
 		cam.z = 0.1;
 		cam.yaw = Math.PI/8;
 		

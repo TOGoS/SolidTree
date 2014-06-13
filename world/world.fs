@@ -20,8 +20,8 @@ make-volumetric-material "space" def-value
 
   transparent-surface
   1.0
-  0.99997 0.99997 0.99997 make-color
-  0.00001 0.00001 0.00002 make-color
+  0.999997 0.999997 0.999997 make-color
+  0.000100 0.000199 0.000200 make-color
   0.0
   transparent-surface
 make-volumetric-material "haze" def-value
