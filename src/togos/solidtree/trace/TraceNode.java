@@ -7,7 +7,7 @@ import togos.solidtree.StandardMaterial;
 
 public final class TraceNode implements Serializable
 {
-	interface DensityFunction {
+	public interface DensityFunction {
 		public double getMaxGradient();
 		public double apply(
 			double x, double y, double z

@@ -192,6 +192,27 @@ public class NodeProcedures
 		}
 	};
 	
+	protected static SolidNode toSolidNode( Object o ) {
+		if( o instanceof SolidNode ) {
+			return (SolidNode)o;
+		} else if( o instanceof GeneralMaterial ) {
+			return new SolidNode( (GeneralMaterial)o );
+		} else {
+			throw new RuntimeException("Don't know how to turn "+o+" into a solid node");
+		}
+	}
+	
+	static final StandardWordDefinition MAKE_FUNCTIONALLY_SUBDIVIDED = new StandardWordDefinition() {
+		// material1, material2, density function -> Node
+		@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+			//TraceNode.DensityFunction df = interp.stackPop(TraceNode.DensityFunction.class, sLoc);
+			//SolidNode nodeB = toSolidNode(interp.stackPop(Object.class, sLoc));
+			//SolidNode nodeA = toSolidNode(interp.stackPop(Object.class, sLoc));
+			// whups, no way to represent this yet
+			throw new UnsupportedOperationException("Currently there's no way to represent SolidNodes split by a density function");
+		}
+	};
+	
 	public static void register( Map<String,? super WordDefinition> ctx ) {
 		ctx.put("empty-node", new ConstantValue(SolidNode.EMPTY) );
 		ctx.put("make-homogeneous-node", MAKE_HOMOGENEOUS_NODE);
