@@ -1,6 +1,9 @@
 package togos.solidtree.shape;
 
+import togos.solidtree.HomogeneousSolidNode;
+import togos.solidtree.RegularlySubdividedSolidNode;
 import togos.solidtree.SolidNode;
+import togos.solidtree.SolidNode.Type;
 import togos.solidtree.shape.Shape.Containment;
 
 public class NodeShaper
@@ -16,8 +19,8 @@ public class NodeShaper
 			
 			int divCount = divX*divY*divZ; 
 			SolidNode[] newKids = new SolidNode[divCount];
-			if( original.isSubdivided() ) {
-				if( original.divX != divX || original.divY != divY || original.divZ != divZ ) {
+			if( original.getType() == Type.REGULARLY_SUBDIVIDED ) {
+				if( original.getDivX() != divX || original.getDivY() != divY || original.getDivZ() != divZ ) {
 					throw new RuntimeException(
 						"Can't subdivide node; already subdivided with different divisions!"
 					);
@@ -53,8 +56,8 @@ public class NodeShaper
 				}
 			}
 			
-			return anythingChanged ? SolidNode.build(
-				original.material, divX, divY, divZ, newKids
+			return anythingChanged ? RegularlySubdividedSolidNode.build(
+				divX, divY, divZ, newKids
 			) : original;
 		default:
 			throw new RuntimeException("Invalid containment");
@@ -63,7 +66,7 @@ public class NodeShaper
 	
 	////
 	
-	public SolidNode root = SolidNode.EMPTY;
+	public SolidNode root = HomogeneousSolidNode.EMPTY;
 	public double rootMinX = -1, rootMinY = -1, rootMinZ = -1, rootMaxX = 1, rootMaxY = 1, rootMaxZ = 1;
 	
 	public void setRoot( SolidNode r, double minX, double minY, double minZ, double maxX, double maxY, double maxZ ) {

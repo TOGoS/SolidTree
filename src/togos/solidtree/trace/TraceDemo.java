@@ -19,20 +19,14 @@ import togos.hdrutil.ChunkyDump;
 import togos.hdrutil.ExposureScaler;
 import togos.hdrutil.FileUtil;
 import togos.hdrutil.HDRExposure;
-import togos.lang.BaseSourceLocation;
 import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
-import togos.solidtree.GeneralMaterial;
 import togos.solidtree.NodeLoader;
 import togos.solidtree.NodeLoader.HashMapLoadContext;
 import togos.solidtree.NodeLoader.LoadContext;
-import togos.solidtree.DColor;
 import togos.solidtree.NodeRoot;
-import togos.solidtree.SimplexNoise;
+import togos.solidtree.RegularlySubdividedSolidNode;
 import togos.solidtree.SolidNode;
-import togos.solidtree.StandardMaterial;
-import togos.solidtree.SurfaceMaterial;
-import togos.solidtree.SurfaceMaterialLayer;
 import togos.solidtree.forth.Interpreter;
 import togos.solidtree.forth.REPL;
 import togos.solidtree.forth.StandardWordDefinition;
@@ -90,7 +84,7 @@ public class TraceDemo
 	}
 	
 	protected static SolidNode mkNode( int w, int h, int d, SolidNode...parts ) {
-		return SolidNode.build( StandardMaterial.SPACE, w, h, d, parts );
+		return RegularlySubdividedSolidNode.build( w, h, d, parts );
 	}
 	
 	protected static File getNewOutputFile( String prefix, String suffix ) {

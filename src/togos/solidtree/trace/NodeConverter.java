@@ -42,11 +42,11 @@ public class NodeConverter
 	}
 	
 	protected PathTraceMaterial nodeIsHomogeneous( SolidNode sn ) {
-		if( !sn.isSubdivided() ) return sn.material;
+		if( sn.getType() == SolidNode.Type.HOMOGENEOUS ) return sn.getHomogeneousMaterial();
 		
 		Object o = nodeHomogeneityCache.get(sn);
 		if( o == null ) {
-			PathTraceMaterial m = regionIsHomogeneous( sn, 0, 0, 0, sn.divX, sn.divY, sn.divZ );
+			PathTraceMaterial m = regionIsHomogeneous( sn, 0, 0, 0, sn.getDivX(), sn.getDivY(), sn.getDivZ() );
 			nodeHomogeneityCache.put(sn, o = (m == null ? Boolean.FALSE : m));
 		}
 		return o == Boolean.FALSE ? null : (PathTraceMaterial)o;
@@ -171,9 +171,9 @@ public class NodeConverter
 		if( mat != null ) return traceNodeForMaterial(mat);
 		
 		//ensureSubdividable(sn);
-		assert sn.isSubdivided();
+		assert sn.getType() != SolidNode.Type.HOMOGENEOUS;
 		
-		return regionToTraceNode( sn, 0, 0, 0, sn.divX, sn.divY, sn.divZ );
+		return regionToTraceNode( sn, 0, 0, 0, sn.getDivX(), sn.getDivY(), sn.getDivZ() );
 	}
 	
 	public TraceNode toTraceNode( SolidNode sn ) {

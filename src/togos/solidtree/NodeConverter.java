@@ -29,7 +29,7 @@ public class NodeConverter
 			thing = StandardMaterial.opaque( (SurfaceMaterial)thing );
 		}
 		if( thing instanceof GeneralMaterial ) {
-			n = new SolidNode( (GeneralMaterial)thing );
+			n = new HomogeneousSolidNode( (GeneralMaterial)thing );
 		}
 		if( n == null ) throw new ScriptError("Needed a SolidNode, but found a "+thing.getClass()+", which cannot be converted to a a SolidNode", sLoc);
 		nodesFromOtherThings.put(thing, n);

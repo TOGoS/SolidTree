@@ -23,7 +23,7 @@ public class SolidNodePalette implements Serializable
 		assert idx < nodes.length;
 		return nodes[idx];
 	}
-
+	
 	public boolean containsAll( byte[] nodeIndexes, int count ) {
 		for( int i=0; i<count; ++i ) {
 			if( (nodeIndexes[i]&0xFF) >= nodes.length ) return false;

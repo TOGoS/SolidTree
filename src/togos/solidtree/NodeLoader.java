@@ -287,7 +287,7 @@ public class NodeLoader
 			snData[x+y*w+z*w*h] = charNodes.get(String.valueOf(data[j]));
 		}
 		try {
-			return SolidNode.build(StandardMaterial.SPACE, w, h, d, snData);
+			return RegularlySubdividedSolidNode.build(w, h, d, snData);
 		} catch( Exception e ) {
 			throw new ScriptError(e, new BaseSourceLocation(filename, dataLineNum, 0));
 		}

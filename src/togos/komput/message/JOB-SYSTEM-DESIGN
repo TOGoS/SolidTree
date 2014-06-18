@@ -1,0 +1,28 @@
+TaskID = Integer
+
+Komputr<I, O>
+  apply( input:I, iteration:Integer ) : O
+
+Task<I, O>
+  task ID : TaskID
+  komputr : Komputr<I, O>
+  input : I
+
+Messages
+  OpenTaskResultStream
+    task : Task
+    first iteration : Integer
+    last iteration : Integer
+  CancelTaskResultStream
+    task ID
+  TaskResult<I, O>
+    task ID : TaskID
+    iteration
+    result : O
+  TaskResultStreamEnd
+    task ID
+  TaskRequest
+  TaskProvision
+    task : Task
+    first iteration : Integer
+    last iteration : Integer

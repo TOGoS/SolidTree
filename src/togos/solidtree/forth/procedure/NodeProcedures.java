@@ -6,7 +6,9 @@ import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
 import togos.solidtree.DColor;
 import togos.solidtree.GeneralMaterial;
+import togos.solidtree.HomogeneousSolidNode;
 import togos.solidtree.NodeRoot;
+import togos.solidtree.RegularlySubdividedSolidNode;
 import togos.solidtree.SolidNode;
 import togos.solidtree.StandardMaterial;
 import togos.solidtree.SurfaceMaterial;
@@ -121,7 +123,7 @@ public class NodeProcedures
 		// GenericMaterial -> SolidNode
 		
 		@Override public void run( Interpreter interp, SourceLocation sLoc ) throws ScriptError {
-			interp.stackPush( new SolidNode(interp.stackPop( GeneralMaterial.class, sLoc )) );
+			interp.stackPush( new HomogeneousSolidNode(interp.stackPop( GeneralMaterial.class, sLoc )) );
         }
 	};
 	
@@ -137,7 +139,7 @@ public class NodeProcedures
 				subNodes[i] = interp.stackPop( SolidNode.class, sLoc );
 			}
 			
-			interp.stackPush( SolidNode.build(StandardMaterial.SPACE, divX, divY, divZ, subNodes) );
+			interp.stackPush( RegularlySubdividedSolidNode.build(divX, divY, divZ, subNodes) );
         }		
 	};
 	
@@ -171,7 +173,7 @@ public class NodeProcedures
 				   spaceDivisions*(spaceDivisions/2) +
 				   (spaceDivisions/2)
 				] = space;
-				space = SolidNode.build( StandardMaterial.SPACE, spaceDivisions, spaceDivisions, spaceDivisions, spaceSubNodes );
+				space = RegularlySubdividedSolidNode.build( spaceDivisions, spaceDivisions, spaceDivisions, spaceSubNodes );
 			}
 			
 			interp.stackPush( space );
@@ -196,7 +198,7 @@ public class NodeProcedures
 		if( o instanceof SolidNode ) {
 			return (SolidNode)o;
 		} else if( o instanceof GeneralMaterial ) {
-			return new SolidNode( (GeneralMaterial)o );
+			return new HomogeneousSolidNode( (GeneralMaterial)o );
 		} else {
 			throw new RuntimeException("Don't know how to turn "+o+" into a solid node");
 		}
@@ -214,7 +216,7 @@ public class NodeProcedures
 	};
 	
 	public static void register( Map<String,? super WordDefinition> ctx ) {
-		ctx.put("empty-node", new ConstantValue(SolidNode.EMPTY) );
+		ctx.put("empty-node", new ConstantValue(HomogeneousSolidNode.EMPTY) );
 		ctx.put("make-homogeneous-node", MAKE_HOMOGENEOUS_NODE);
 		ctx.put("make-composite-node", MAKE_COMPOSITE_NODE);
 		ctx.put("make-simple-volumetric-material", MAKE_SIMPLE_VISUAL_MATERIAL);
