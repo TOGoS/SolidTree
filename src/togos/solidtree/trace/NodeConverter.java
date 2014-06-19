@@ -44,6 +44,8 @@ public class NodeConverter
 	protected PathTraceMaterial nodeIsHomogeneous( SolidNode sn ) {
 		if( sn.getType() == SolidNode.Type.HOMOGENEOUS ) return sn.getHomogeneousMaterial();
 		
+		if( sn.getType() == SolidNode.Type.DENSITY_FUNCTION_SUBDIVIDED ) return null; // lets ignore this possibility for now
+		
 		Object o = nodeHomogeneityCache.get(sn);
 		if( o == null ) {
 			PathTraceMaterial m = regionIsHomogeneous( sn, 0, 0, 0, sn.getDivX(), sn.getDivY(), sn.getDivZ() );
@@ -170,10 +172,17 @@ public class NodeConverter
 		PathTraceMaterial mat = nodeIsHomogeneous(sn);
 		if( mat != null ) return traceNodeForMaterial(mat);
 		
-		//ensureSubdividable(sn);
-		assert sn.getType() != SolidNode.Type.HOMOGENEOUS;
+		switch( sn.getType() ) {
+		case REGULARLY_SUBDIVIDED:
+			return regionToTraceNode( sn, 0, 0, 0, sn.getDivX(), sn.getDivY(), sn.getDivZ() );
+		case DENSITY_FUNCTION_SUBDIVIDED:
+			return new TraceNode(TraceNode.DIV_FUNC_GLOBAL, sn.getDensityFunction(),
+				toTraceNode(sn.subNode(0)), toTraceNode(sn.subNode(1))
+			);
+		default:
+			throw new RuntimeException("Unexpected SolidNode type: "+sn.getType());
+		}
 		
-		return regionToTraceNode( sn, 0, 0, 0, sn.getDivX(), sn.getDivY(), sn.getDivZ() );
 	}
 	
 	public TraceNode toTraceNode( SolidNode sn ) {

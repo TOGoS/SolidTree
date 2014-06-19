@@ -5,10 +5,12 @@ import java.util.Map;
 import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
 import togos.solidtree.DColor;
+import togos.solidtree.DensityFunctionDividedSolidNode;
 import togos.solidtree.GeneralMaterial;
 import togos.solidtree.HomogeneousSolidNode;
 import togos.solidtree.NodeRoot;
 import togos.solidtree.RegularlySubdividedSolidNode;
+import togos.solidtree.SimplexNoise;
 import togos.solidtree.SolidNode;
 import togos.solidtree.StandardMaterial;
 import togos.solidtree.SurfaceMaterial;
@@ -16,6 +18,7 @@ import togos.solidtree.SurfaceMaterialLayer;
 import togos.solidtree.forth.Interpreter;
 import togos.solidtree.forth.StandardWordDefinition;
 import togos.solidtree.forth.WordDefinition;
+import togos.solidtree.trace.TraceNode;
 
 public class NodeProcedures
 {
@@ -204,14 +207,32 @@ public class NodeProcedures
 		}
 	}
 	
-	static final StandardWordDefinition MAKE_FUNCTIONALLY_SUBDIVIDED = new StandardWordDefinition() {
+	static final StandardWordDefinition MAKE_DENSITY_FUNCTION_DIVIDED_NODE = new StandardWordDefinition() {
 		// material1, material2, density function -> Node
 		@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
-			//TraceNode.DensityFunction df = interp.stackPop(TraceNode.DensityFunction.class, sLoc);
-			//SolidNode nodeB = toSolidNode(interp.stackPop(Object.class, sLoc));
-			//SolidNode nodeA = toSolidNode(interp.stackPop(Object.class, sLoc));
-			// whups, no way to represent this yet
-			throw new UnsupportedOperationException("Currently there's no way to represent SolidNodes split by a density function");
+			TraceNode.DensityFunction df = interp.stackPop(TraceNode.DensityFunction.class, sLoc);
+			SolidNode nodeB = toSolidNode(interp.stackPop(Object.class, sLoc));
+			SolidNode nodeA = toSolidNode(interp.stackPop(Object.class, sLoc));
+			interp.stackPush(new DensityFunctionDividedSolidNode(df, nodeA, nodeB));
+		}
+	};
+	
+	// TODO: NOT THREAD SAFE PLZ FIX
+	static final SimplexNoise sn = new SimplexNoise();
+	static final TraceNode.DensityFunction df = new TraceNode.DensityFunction() {
+		@Override public double getMaxGradient() {
+			return 0.1;
+		}
+		
+		@Override public double apply(double x, double y, double z) {
+			return y + 0.3 + 0.3 * sn.apply((float)x, (float)y, (float)z);
+		}
+	};
+	
+	static final StandardWordDefinition POND_RIPPLE_DENSITY_FUNCTION = new StandardWordDefinition() {
+		// -> DensityFunction
+		@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
+			interp.stackPush(df);
 		}
 	};
 	
@@ -219,6 +240,7 @@ public class NodeProcedures
 		ctx.put("empty-node", new ConstantValue(HomogeneousSolidNode.EMPTY) );
 		ctx.put("make-homogeneous-node", MAKE_HOMOGENEOUS_NODE);
 		ctx.put("make-composite-node", MAKE_COMPOSITE_NODE);
+		ctx.put("make-density-function-divided-node", MAKE_DENSITY_FUNCTION_DIVIDED_NODE);
 		ctx.put("make-simple-volumetric-material", MAKE_SIMPLE_VISUAL_MATERIAL);
 		ctx.put("make-surface-material", MAKE_SURFACE_MATERIAL);
 		ctx.put("make-surface-material-layer", MAKE_SURFACE_MATERIAL_LAYER);
@@ -226,5 +248,9 @@ public class NodeProcedures
 		ctx.put("make-color", MAKE_COLOR);
 		ctx.put("pad", PAD);
 		ctx.put("make-root", MAKE_ROOT);
+		
+		// until it's possible to define in scripts...
+		ctx.put("pond-ripple-density-function", POND_RIPPLE_DENSITY_FUNCTION);
+		
 	}
 }

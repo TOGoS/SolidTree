@@ -1,5 +1,7 @@
 package togos.solidtree;
 
+import togos.solidtree.trace.TraceNode.DensityFunction;
+
 public interface SolidNode
 {
 	enum Type {
@@ -18,5 +20,6 @@ public interface SolidNode
 	public SolidNode subNode(int idx);
 	public SolidNode subNode(int x, int y, int z);
 	// For nodes, split by a density function
-	// subNode(0 or 1) will be re-used	
+	// subNode(0 or 1) will be re-used
+	public DensityFunction getDensityFunction();
 }

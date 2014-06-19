@@ -166,7 +166,7 @@ public class NodeLoader
 			throw e;
 		}
 		
-		return interp.stackPop( Object.class, new BaseSourceLocation("While reading value from "+f.getPath(), 0, 0) );
+		return interp.stackPop( Object.class, new BaseSourceLocation(f.getPath(), 0, 0) );
 	}
 	
 	public Object readTextNode( File f, LoadContext<?> ctx ) throws ScriptError, IOException

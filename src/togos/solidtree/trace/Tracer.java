@@ -454,6 +454,8 @@ public class Tracer
 	};
 	
 	protected void setNormalForSide( int side ) {
+		assert side >= 0;
+		assert side < normals.length;
 		normal.set(
 			normals[side*3+0],
 			normals[side*3+1],
@@ -695,6 +697,11 @@ public class Tracer
 		step: for( int steps=0, bounces=0; steps<maxSteps && bounces<maxBounces && !filterIsBlack(); ++steps ) {
 			final PathTraceMaterial material = cursors[cursorIdx].node.material;
 			boolean scattered = false;
+			
+			if( direction.isZero() ) {
+				System.err.println("Zero direction vector!!!");
+				return;
+			}
 			
 			if( !findNextIntersection( pos, direction, preIntersect, postIntersect ) ) {
 				direction.normalizeInPlace(1);

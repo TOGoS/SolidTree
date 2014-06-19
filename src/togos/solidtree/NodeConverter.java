@@ -34,6 +34,5 @@ public class NodeConverter
 		if( n == null ) throw new ScriptError("Needed a SolidNode, but found a "+thing.getClass()+", which cannot be converted to a a SolidNode", sLoc);
 		nodesFromOtherThings.put(thing, n);
 		return n;
-
 	}
 }

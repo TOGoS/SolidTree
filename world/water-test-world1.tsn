@@ -1,0 +1,31 @@
+=defs
+
+empty = space
+
+b = bricks1
+r = brick
+w = rippled-water-surface--0.3m
+. = space
+l = light
+
+=data +x+z-y 4x4x4
+
+bbbb
+b..b
+b..b
+bbbb
+
+l...
+....
+bb..
+bb.b
+
+rrrr
+rwwr
+rwwr
+rrrr
+
+rrrr
+rbbr
+rbbr
+rrrr

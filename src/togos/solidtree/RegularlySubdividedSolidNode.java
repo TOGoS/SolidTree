@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import togos.solidtree.trace.TraceNode.DensityFunction;
+
 public class RegularlySubdividedSolidNode implements Serializable, SolidNode
 {
 	private static final long serialVersionUID = 1L;
@@ -77,4 +79,6 @@ public class RegularlySubdividedSolidNode implements Serializable, SolidNode
 	@Override public GeneralMaterial getHomogeneousMaterial() {
 		throw new UnsupportedOperationException("Regularly subdivided solid nodes have no homogeneous material");
 	}
+	
+	@Override public DensityFunction getDensityFunction() { throw new UnsupportedOperationException(); }
 }

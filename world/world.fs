@@ -12,14 +12,6 @@ make-volumetric-material "thick-fog" def-value
 
   transparent-surface
   1.0
-  white
-  black
-  0.0
-  transparent-surface
-make-volumetric-material "space" def-value
-
-  transparent-surface
-  1.0
   0.999997 0.999997 0.999997 make-color
   0.000100 0.000199 0.000200 make-color
   0.0
