@@ -221,11 +221,13 @@ public class NodeProcedures
 	static final SimplexNoise sn = new SimplexNoise();
 	static final TraceNode.DensityFunction df = new TraceNode.DensityFunction() {
 		@Override public double getMaxGradient() {
-			return 0.1;
+			return 0.5;
 		}
 		
 		@Override public double apply(double x, double y, double z) {
-			return y + 0.3 + 0.3 * sn.apply((float)x, (float)y, (float)z);
+			return (y + 0.3) * 0.3 +
+				0.02 * sn.apply((float)x, (float)0, (float)z) +
+				0.01 * sn.apply((float)x * 10, (float)0, (float)z * 10);
 		}
 	};
 	

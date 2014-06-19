@@ -106,7 +106,7 @@ public class TraceDemo
 	}
 	
 	static class LensSettings {
-		public double fovY = Math.PI*0.3;
+		public double fovY = Math.PI*0.5;
 		public double apertureSize = 0;
 		public double focalOffset = 4;
 		

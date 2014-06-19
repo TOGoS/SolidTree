@@ -2,7 +2,8 @@
 
 empty = space
 
-b = bricks1
+material = bricks1
+b = repeat64
 r = brick
 w = rippled-water-surface--0.3m
 . = space
@@ -22,7 +23,7 @@ bb.b
 
 rrrr
 rwwr
-rwwr
+rrwr
 rrrr
 
 rrrr
