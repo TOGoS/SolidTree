@@ -13,7 +13,7 @@ make-volumetric-material "thick-fog" def-value
   transparent-surface
   1.0
   0.999997 0.999997 0.999997 make-color
-  0.000100 0.000199 0.000200 make-color
+  0.000100 0.000100 0.000300 make-color
   0.0
   transparent-surface
 make-volumetric-material "haze" def-value
@@ -28,6 +28,8 @@ make-volumetric-material "sun" def-value
 
 # 1.7801960336557516 750.8770650821589 -9.949649823723387 set-camera-position -2.9452431127404317 set-camera-yaw -5.890486225480866 set-camera-pitch 0.0 set-camera-roll
 # 1.7801960336557516 540.1 -9.949649823723387 set-camera-position
+
+"space" import
 
 sun       "sun"   ctx-put
 space     "space" ctx-put

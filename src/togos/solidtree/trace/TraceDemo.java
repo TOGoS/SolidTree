@@ -150,64 +150,7 @@ public class TraceDemo
 		
 		NodeLoader nl = new NodeLoader();
 		nl.includePath.add(new File("world"));
-		NodeRoot<TraceNode> root = toTraceNodeRoot( nl.get("water-test-world", loadCtx) );
-		/*
-		final SimplexNoise sn = new SimplexNoise();
-		final GeneralMaterial brickMaterial = togos.solidtree.NodeConverter.toVolumetricMaterial( nl.get("brick", loadCtx), BaseSourceLocation.NONE );
-		final GeneralMaterial lightMaterial = (StandardMaterial)nl.get("light", loadCtx);
-		final GeneralMaterial shinyMaterial = StandardMaterial.opaque(
-			new SurfaceMaterial( new SurfaceMaterialLayer(
-				1, new DColor(0.4,0.3,0.2), DColor.BLACK, 0, 1, 1, 0
-			), new SurfaceMaterialLayer(
-				0.5, DColor.WHITE, DColor.BLACK, 1, 0, 0, 0
-			))
-		);
-		
-		TraceNode.DensityFunction df1 = new TraceNode.DensityFunction() {
-			@Override public double getMaxGradient() {
-				return 2;
-			}
-			@Override public double apply(double x, double y, double z) {
-				return sn.apply((float)x, (float)y, (float)z);
-				//return (y - 1)/2 + sn.apply((float)x, 0, (float)z) * x;
-			}
-		};
-		TraceNode.DensityFunction df2 = new TraceNode.DensityFunction() {
-			@Override public double getMaxGradient() {
-				return 2;
-			}
-			@Override public double apply(double x, double y, double z) {
-				return sn.apply((float)(x+20)/2, (float)y/8, (float)z/8)-0.2;
-				//return (y - 1)/2 + sn.apply((float)x, 0, (float)z) * x;
-			}
-		};
-
-		NodeRoot<TraceNode> root = new NodeRoot<TraceNode>(
-			new TraceNode(TraceNode.DIV_Y,
-				0.4,
-				new TraceNode(TraceNode.DIV_FUNC_GLOBAL, df1,
-					new TraceNode(StandardMaterial.SPACE),
-					//new TraceNode(brickMaterial)
-					new TraceNode(TraceNode.DIV_FUNC_GLOBAL, df2,
-						new TraceNode(brickMaterial),
-						new TraceNode(shinyMaterial)
-					)
-				),
-				new TraceNode(TraceNode.DIV_Y,
-					0.2,
-					new TraceNode(StandardMaterial.SPACE),
-					new TraceNode(TraceNode.DIV_FUNC_GLOBAL, df1,
-						new TraceNode(StandardMaterial.SPACE),
-						//new TraceNode(brickMaterial)
-						new TraceNode(TraceNode.DIV_FUNC_GLOBAL, df2,
-							new TraceNode(shinyMaterial),
-							new TraceNode(lightMaterial)
-						)
-					)
-				)
-			), 100
-		);
-		*/
+		NodeRoot<TraceNode> root = toTraceNodeRoot( nl.get("world", loadCtx) );
 		
 		final Camera cam = new Camera();
 		cam.imageWidth = 96;

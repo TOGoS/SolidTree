@@ -10,6 +10,7 @@ c = brick
 x = bricks-in-grass-1
 y = bricks-in-grass-2
 z = bricks-in-grass-3
+w = rippled-water-surface-+25.8m
 
 =data +x+z-y 8x8x8
 
@@ -60,20 +61,20 @@ z = bricks-in-grass-3
 
 gggggggg
 gggggggg
-ggggglgg
-gggggggg
-gggggggg
-gggggggg
-glgggggg
+ggg..lgg
+gg....gg
+gg....gg
+ggg...gg
+glg..ggg
 gggggggg
 
 dddddddd
-dddddddd
-dddddddd
-dddddddd
-dddddddd
-dddddddd
-dddddddd
+dddwwddd
+dwwwwddd
+ddwwwwdd
+ddwwwwdd
+dddwwwdd
+dddwwddd
 dddddddd
 
 cccccccc

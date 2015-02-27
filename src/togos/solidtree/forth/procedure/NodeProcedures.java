@@ -219,22 +219,22 @@ public class NodeProcedures
 	
 	// TODO: NOT THREAD SAFE PLZ FIX
 	static final SimplexNoise sn = new SimplexNoise();
-	static final TraceNode.DensityFunction df = new TraceNode.DensityFunction() {
-		@Override public double getMaxGradient() {
-			return 0.5;
-		}
-		
-		@Override public double apply(double x, double y, double z) {
-			return (y + 0.3) * 0.3 +
-				0.02 * sn.apply((float)x, (float)0, (float)z) +
-				0.01 * sn.apply((float)x * 10, (float)0, (float)z * 10);
-		}
-	};
 	
-	static final StandardWordDefinition POND_RIPPLE_DENSITY_FUNCTION = new StandardWordDefinition() {
+	static final StandardWordDefinition MAKE_POND_RIPPLE_DENSITY_FUNCTION = new StandardWordDefinition() {
 		// -> DensityFunction
 		@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
-			interp.stackPush(df);
+			final double surfaceY = interp.stackPop( Number.class, sLoc ).doubleValue();
+			interp.stackPush(new TraceNode.DensityFunction() {
+				@Override public double getMaxGradient() {
+					return 0.5;
+				}
+				
+				@Override public double apply(double x, double y, double z) {
+					return (y - surfaceY) * 0.3 +
+						0.02 * sn.apply((float)x, (float)0, (float)z) +
+						0.01 * sn.apply((float)x * 10, (float)0, (float)z * 10);
+				}
+			});
 		}
 	};
 	
@@ -252,7 +252,6 @@ public class NodeProcedures
 		ctx.put("make-root", MAKE_ROOT);
 		
 		// until it's possible to define in scripts...
-		ctx.put("pond-ripple-density-function", POND_RIPPLE_DENSITY_FUNCTION);
-		
+		ctx.put("make-pond-ripple-density-function", MAKE_POND_RIPPLE_DENSITY_FUNCTION);
 	}
 }
