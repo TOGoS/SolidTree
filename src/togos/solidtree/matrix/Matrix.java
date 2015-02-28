@@ -17,11 +17,11 @@ public class Matrix implements Serializable
 	}
 	
 	public final double get( int row, int col ) {
-		return values[row*height+col];
+		return values[row*width+col];
 	}
 	
 	public final void put( int row, int col, double v ) {
-		values[row*height+col] = v;
+		values[row*width+col] = v;
 	}
 	
 	public void clear() {
