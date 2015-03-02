@@ -190,12 +190,12 @@ public class RGBE
 	//// Write!
 	
 	public static String rawRgbeExtension( int width, int height, int spp ) {
-		return width+"x"+height+(spp != -1 ? "."+spp+"ssp" : "")+".rgbe";
+		return width+"x"+height+(spp != -1 ? "."+spp+"spp" : "")+".rgbe";
 	}
 	
 	public static void write( float[] r, float[] g, float[] b, float[] exp, DataOutputStream dos, int size ) throws IOException {
 		for( int i=0; i<size; ++i ) {
-			dos.write(encode(r[i]/exp[i], g[i]/exp[i], b[i]/exp[i]));
+			dos.writeInt(encode(r[i]/exp[i], g[i]/exp[i], b[i]/exp[i]));
 		}
 	}
 	
