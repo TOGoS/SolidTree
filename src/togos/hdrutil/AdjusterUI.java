@@ -52,7 +52,6 @@ public class AdjusterUI extends Canvas
 			else notifyAll();
 		}
 		
-		
 		boolean needsRecalculation = true;
 		
 		public synchronized void settingsUpdated() {
@@ -286,7 +285,7 @@ public class AdjusterUI extends Canvas
 	public static void main( String[] args ) throws Exception {
 		String sceneName = null;
 		HDRExposure sum = null;
-		int chunkySpp = 0;
+		int avgSpp = 0;
 		for( String arg : args ) {
 			if( arg.endsWith(".dump") ) {
 				String dumpFilename = arg;
@@ -298,13 +297,32 @@ public class AdjusterUI extends Canvas
 				System.err.println("  -> "+exp.width+"x"+exp.height);
 				if( exp.e.length > 0 ) {
 					// Don't bother averaging; chunky dumps have the same spp everywhere
-					chunkySpp += (int)exp.e[0];
+					avgSpp += (int)exp.e[0];
 				}
 				if( sum == null ) {
 					sum = exp;
 				} else {
 					sum = addScaleyAndDestructively(sum,exp);
 				}
+			} else if( arg.endsWith(".rgbe") ) {
+				File rgbeFile = new File(arg);
+				sceneName = rgbeFile.getName();
+				sceneName = sceneName.substring(0, sceneName.length()-5);
+				System.err.println("Loading "+rgbeFile+"...");
+				HDRExposure exp = RGBE.loadExposureFromRawRgbe(rgbeFile);
+				System.err.println("  -> "+exp.width+"x"+exp.height);
+				if( exp.e.length > 0 ) {
+					// Don't bother averaging; RGBE files have the same spp everywhere
+					avgSpp += (int)exp.e[0];
+				}
+				if( sum == null ) {
+					sum = exp;
+				} else {
+					sum = addScaleyAndDestructively(sum,exp);
+				}
+			} else {
+				System.err.println("Invalid argument: "+arg);
+				System.exit(1);
 			}
 		}
 		
@@ -318,7 +336,7 @@ public class AdjusterUI extends Canvas
 		
 		final Frame f = new Frame("Image adjuster");
 		AdjusterUI adj = new AdjusterUI();
-		adj.exportFilenamePrefix = sceneName + (chunkySpp == 0 ? "" : "-"+chunkySpp);
+		adj.exportFilenamePrefix = sceneName + (avgSpp == 0 ? "" : "-"+avgSpp);
 		adj.setExposure(sum);
 		f.add(adj);
 		f.pack();

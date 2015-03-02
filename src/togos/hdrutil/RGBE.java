@@ -147,13 +147,13 @@ public class RGBE
 		
 		m = SPP_EXTENSION_PATTERN.matcher(filename);
 		while( m.find() ) {
-			spp = Integer.parseInt(m.group(3));
+			spp = Integer.parseInt(m.group(1));
 		}
 		
 		return new ImageMetadata( w, h, spp );
 	}
 	
-	public void readData( DataInputStream dis, int w, int h, float[] r, float[] g, float[] b ) throws IOException {
+	public static void readData( DataInputStream dis, int w, int h, float[] r, float[] g, float[] b ) throws IOException {
 		assert Util.dimensionsSane(w, h);
 		int size = w*h;
 		
@@ -163,7 +163,7 @@ public class RGBE
 		decode( buf, r, g, b, size );
 	}
 	
-	public HDRExposure loadExposureFromRawRgbe( File f ) throws IOException {
+	public static HDRExposure loadExposureFromRawRgbe( File f ) throws IOException {
 		ImageMetadata m = guessMetadata(f.getName());
 		if( m.width == -1 || m.height == -1 ) {
 			throw new IOException("Dimensions not found in filename: "+f.getName());
