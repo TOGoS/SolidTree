@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectOutputStream;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -19,6 +20,7 @@ import togos.hdrutil.ChunkyDump;
 import togos.hdrutil.ExposureScaler;
 import togos.hdrutil.FileUtil;
 import togos.hdrutil.HDRExposure;
+import togos.hdrutil.RGBE;
 import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
 import togos.solidtree.NodeLoader;
@@ -139,8 +141,18 @@ public class TraceDemo
 	}
 	
 	public static void main( String[] args ) throws Exception {
+		long creationTime = System.currentTimeMillis();
+		
 		final String renderDir = "renders";
-		final String sceneName = "testrender"+System.currentTimeMillis();
+		Calendar c = Calendar.getInstance();
+		c.setTimeInMillis(creationTime);
+		c.get(Calendar.YEAR);
+		final String sceneSubDir = String.format("%d/%02d/%d_%02d_%02d",
+			c.get(Calendar.YEAR),c.get(Calendar.MONTH)+1,
+			c.get(Calendar.YEAR),c.get(Calendar.MONTH)+1,c.get(Calendar.DAY_OF_MONTH));
+		final String sceneName = "testrender"+creationTime;
+		
+		final String sceneFileBaseName = renderDir+"/"+sceneSubDir+"/"+sceneName+"/"+sceneName;
 		
 		final Interrupt<TracerInstruction> tii = new Interrupt<TracerInstruction>();
 		
@@ -163,7 +175,15 @@ public class TraceDemo
 		final LensSettings lensSettings = new LensSettings();
 		lensSettings.apply(cam);
 		
-		final AdjusterUI adj = new AdjusterUI();
+		class ClassyAdjusterUI extends AdjusterUI {
+			private static final long serialVersionUID = 1L;
+			
+			public void exportImage() throws IOException {
+				super.exportImage();
+			}
+		}
+		
+		final ClassyAdjusterUI adj = new ClassyAdjusterUI();
 		
 		// Figure a nice default window size:
 		int scaledWidth = cam.imageWidth;
@@ -283,16 +303,19 @@ public class TraceDemo
 				double movedist = controlled ? 0.2 : shifted ? 5 : 1; 
 				
 				switch( kevt.getKeyCode() ) {
-				case KeyEvent.VK_D:
-					String baseName = renderDir+"/"+sceneName+"/"+sceneName+"-"+(int)cam.getExposure().getAverageExposure();
-					File saveFile = getNewOutputFile(baseName+"-", ".dump");
+				case KeyEvent.VK_Q:
 					try {
-						System.err.println("Saving as "+saveFile);
-						ChunkyDump.saveExposure(cam.getExposure(), saveFile);
-						System.err.println("Saved!");
+						saveExposureDump(sceneFileBaseName, cam.getExposure());
+						adj.exportImage();
+						System.exit(0);
 					} catch( IOException e ) {
-						System.err.println("ERROR SAVING DUMP!");
-						e.printStackTrace(System.err);
+						System.err.println("Failed to save! " + e.getMessage());
+					}
+				case KeyEvent.VK_D:
+					try {
+						saveExposureDump(sceneFileBaseName, cam.getExposure());
+					} catch( IOException e ) {
+						System.err.println("Failed to save! " + e.getMessage());
 					}
 					break;
 				case KeyEvent.VK_P:
@@ -426,7 +449,7 @@ public class TraceDemo
 				adj.setExposure(exp);
 				scene = new Scene(root, new AdditiveSkySphere());
 				
-				File sceneFile = new File(renderDir+"/"+sceneName+"/"+sceneName+".scene");
+				File sceneFile = new File(sceneFileBaseName+".scene");
 				System.err.println("Saving scene to "+sceneFile);
 				FileUtil.mkParentDirs(sceneFile);
 				boolean successfullySavedScene = false;
@@ -524,9 +547,7 @@ public class TraceDemo
 				"Average samples per pixel: " + exp.getAverageExposure()
 			};
 			
-			String baseName = renderDir+"/"+sceneName+"/"+sceneName+"-"+(int)exp.getAverageExposure();
-			
-			adj.exportFilenamePrefix = baseName;
+			adj.exportFilenamePrefix = sceneFileBaseName+"-"+(int)exp.getAverageExposure();
 			adj.setExposure(exp);
 			
 			if( innerIterations == 1 ) { 
@@ -534,5 +555,18 @@ public class TraceDemo
 				restartWorker = true;
 			}
 		}
+	}
+
+	protected static void saveExposureDump(String sceneFileBaseName, HDRExposure exp) throws IOException {
+		int avgSpp = (int)Math.round(exp.getAverageExposure());
+		String baseName = sceneFileBaseName+"-"+avgSpp;
+		File chunkyDumpFile = getNewOutputFile(baseName+"-", ".dump");
+		File rgbeFile = getNewOutputFile(baseName+"-", "."+RGBE.rawRgbeExtension(exp.width, exp.height, avgSpp));
+		
+		System.err.println("Saving "+chunkyDumpFile+"...");
+		ChunkyDump.saveExposure(exp, chunkyDumpFile);
+		System.err.println("Saving "+rgbeFile+"...");
+		RGBE.write(exp, rgbeFile);
+		System.err.println("Saved!");
 	}
 }
