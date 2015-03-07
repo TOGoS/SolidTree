@@ -140,7 +140,26 @@ public class TraceDemo
 		}
 	}
 	
-	public static void main( String[] args ) throws Exception {
+	public static int _main( String[] args ) throws Exception {
+		String worldUrn = null;
+		for( int i=0; i<args.length; ++i ) {
+			if( args[i].startsWith("-") ) {
+				System.err.println("Unrecognized argument: '"+args[i]+"'");
+				return 1;
+			} else {
+				if( worldUrn == null ) {
+					worldUrn = args[i];
+				} else {
+					System.err.println("More than one world specified: '"+worldUrn+"', '"+args[i]+"'");
+					return 1;
+				}
+			}
+		}
+		if( worldUrn == null ) {
+			System.err.println("No world specified");
+			return 1;
+		}
+		
 		long creationTime = System.currentTimeMillis();
 		
 		final String renderDir = "renders";
@@ -162,7 +181,8 @@ public class TraceDemo
 		
 		NodeLoader nl = new NodeLoader();
 		nl.includePath.add(new File("world"));
-		NodeRoot<TraceNode> root = toTraceNodeRoot( nl.get("world", loadCtx) );
+		nl.includePath.add(new File("."));
+		NodeRoot<TraceNode> root = toTraceNodeRoot( nl.get(worldUrn, loadCtx) );
 		
 		final Camera cam = new Camera();
 		cam.imageWidth = 96;
@@ -556,7 +576,7 @@ public class TraceDemo
 			}
 		}
 	}
-
+	
 	protected static void saveExposureDump(String sceneFileBaseName, HDRExposure exp) throws IOException {
 		int avgSpp = (int)Math.round(exp.getAverageExposure());
 		String baseName = sceneFileBaseName+"-"+avgSpp;
@@ -568,5 +588,9 @@ public class TraceDemo
 		System.err.println("Saving "+rgbeFile+"...");
 		RGBE.write(exp, rgbeFile);
 		System.err.println("Saved!");
+	}
+	
+	public static void main( String[] args ) throws Exception {
+		System.exit(_main(args));
 	}
 }

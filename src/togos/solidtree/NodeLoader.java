@@ -66,16 +66,31 @@ public class NodeLoader
 	
 	public ArrayList<File> includePath = new ArrayList<File>();
 	
+	protected File find(String name) {
+		File f;
+		for( File d : includePath ) {
+			f = new File( d, name );
+			if( f.exists() ) return f;
+			f = new File( d, name + ".tsn" );
+			if( f.exists() ) return f;
+			f = new File( d, name + ".fs" );
+			if( f.exists() ) return f;
+		}
+		return null;
+	}
+	
 	public Object get( String name, LoadContext<?> ctx ) throws ScriptError, IOException {
 		Object fromCtx = ctx.get(name);
 		if( fromCtx != null ) return fromCtx;
 		
-		for( File d : includePath ) {
-			File f = new File( d, name + ".tsn" );
-			if( f.exists() ) return readTextNode(f, ctx);
-			
-			f = new File( d, name + ".fs" );
-			if( f.exists() ) return readForthNode(f, ctx);
+		File f = find(name);
+		
+		if( f.getName().endsWith(".tsn") ) {
+			return readTextNode(f, ctx);
+		} else if( f.getName().endsWith(".fs") ) {
+			return readForthNode(f, ctx);
+		} else {
+			System.err.println("Unrecognized filename extension on supposed node file '"+f+"'");
 		}
 		
 		return null;
