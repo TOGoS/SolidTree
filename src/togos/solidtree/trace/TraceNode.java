@@ -2,18 +2,12 @@ package togos.solidtree.trace;
 
 import java.io.Serializable;
 
+import togos.solidtree.DensityFunction;
 import togos.solidtree.PathTraceMaterial;
 import togos.solidtree.StandardMaterial;
 
 public final class TraceNode implements Serializable
 {
-	public interface DensityFunction {
-		public double getMaxGradient();
-		public double apply(
-			double x, double y, double z
-		);
-	}
-	
 	private static final long serialVersionUID = 2L;
 	
 	public static final TraceNode EMPTY = new TraceNode( StandardMaterial.SPACE );

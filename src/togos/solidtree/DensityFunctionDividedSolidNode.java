@@ -1,15 +1,13 @@
 package togos.solidtree;
 
-import togos.solidtree.trace.TraceNode;
-import togos.solidtree.trace.TraceNode.DensityFunction;
 
 public class DensityFunctionDividedSolidNode implements SolidNode
 {
-	protected final TraceNode.DensityFunction df;
+	protected final DensityFunction df;
 	protected final SolidNode nodeA;
 	protected final SolidNode nodeB;
 	
-	public DensityFunctionDividedSolidNode( TraceNode.DensityFunction df, SolidNode nodeA, SolidNode nodeB ) {
+	public DensityFunctionDividedSolidNode( DensityFunction df, SolidNode nodeA, SolidNode nodeB ) {
 		this.df = df;
 		this.nodeA = nodeA;
 		this.nodeB = nodeB;
@@ -37,5 +35,5 @@ public class DensityFunctionDividedSolidNode implements SolidNode
 		throw new UnsupportedOperationException();
 	}
 
-	@Override public DensityFunction getDensityFunction() { return df; }
+	@Override public DensityFunction getSubdivisionFunction() { return df; }
 }

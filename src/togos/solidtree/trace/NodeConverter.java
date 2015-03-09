@@ -176,7 +176,7 @@ public class NodeConverter
 		case REGULARLY_SUBDIVIDED:
 			return regionToTraceNode( sn, 0, 0, 0, sn.getDivX(), sn.getDivY(), sn.getDivZ() );
 		case DENSITY_FUNCTION_SUBDIVIDED:
-			return new TraceNode(TraceNode.DIV_FUNC_GLOBAL, sn.getDensityFunction(),
+			return new TraceNode(TraceNode.DIV_FUNC_GLOBAL, sn.getSubdivisionFunction(),
 				toTraceNode(sn.subNode(0)), toTraceNode(sn.subNode(1))
 			);
 		default:

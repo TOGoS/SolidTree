@@ -5,6 +5,7 @@ import java.util.Map;
 import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
 import togos.solidtree.DColor;
+import togos.solidtree.DensityFunction;
 import togos.solidtree.DensityFunctionDividedSolidNode;
 import togos.solidtree.GeneralMaterial;
 import togos.solidtree.HomogeneousSolidNode;
@@ -18,7 +19,6 @@ import togos.solidtree.SurfaceMaterialLayer;
 import togos.solidtree.forth.Interpreter;
 import togos.solidtree.forth.StandardWordDefinition;
 import togos.solidtree.forth.WordDefinition;
-import togos.solidtree.trace.TraceNode;
 
 public class NodeProcedures
 {
@@ -210,7 +210,7 @@ public class NodeProcedures
 	static final StandardWordDefinition MAKE_DENSITY_FUNCTION_DIVIDED_NODE = new StandardWordDefinition() {
 		// material1, material2, density function -> Node
 		@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
-			TraceNode.DensityFunction df = interp.stackPop(TraceNode.DensityFunction.class, sLoc);
+			DensityFunction df = interp.stackPop(DensityFunction.class, sLoc);
 			SolidNode nodeB = toSolidNode(interp.stackPop(Object.class, sLoc));
 			SolidNode nodeA = toSolidNode(interp.stackPop(Object.class, sLoc));
 			interp.stackPush(new DensityFunctionDividedSolidNode(df, nodeA, nodeB));
@@ -224,7 +224,7 @@ public class NodeProcedures
 		// -> DensityFunction
 		@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
 			final double surfaceY = interp.stackPop( Number.class, sLoc ).doubleValue();
-			interp.stackPush(new TraceNode.DensityFunction() {
+			interp.stackPush(new DensityFunction() {
 				@Override public double getMaxGradient() {
 					return 0.5;
 				}

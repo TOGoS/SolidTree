@@ -3,6 +3,7 @@ package togos.solidtree.trace;
 import java.util.Random;
 
 import togos.solidtree.DColor;
+import togos.solidtree.DensityFunction;
 import togos.solidtree.NodeRoot;
 import togos.solidtree.PathTraceMaterial;
 import togos.solidtree.SimplexNoise;
@@ -303,7 +304,7 @@ public class Tracer
 			sw = sh = sd = gradUnit = 1;
 		}
 		
-		final TraceNode.DensityFunction func = tn.splitFunc;
+		final DensityFunction func = tn.splitFunc;
 		final double maxGrad = func.getMaxGradient() * gradUnit;
 		d.normalizeInPlace(1);
 		

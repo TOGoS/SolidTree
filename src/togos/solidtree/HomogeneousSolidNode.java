@@ -1,6 +1,5 @@
 package togos.solidtree;
 
-import togos.solidtree.trace.TraceNode.DensityFunction;
 
 public class HomogeneousSolidNode implements SolidNode
 {
@@ -22,5 +21,5 @@ public class HomogeneousSolidNode implements SolidNode
 	@Override public int getDivZ() { throw new UnsupportedOperationException(noDivsText); }
 	@Override public SolidNode subNode(int idx) { throw new UnsupportedOperationException(noDivsText); }
 	@Override public SolidNode subNode(int x, int y, int z) { throw new UnsupportedOperationException(noDivsText); }
-	@Override public DensityFunction getDensityFunction() { throw new UnsupportedOperationException(noDivsText); }
+	@Override public DensityFunction getSubdivisionFunction() { throw new UnsupportedOperationException(noDivsText); }
 }
