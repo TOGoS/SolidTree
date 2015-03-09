@@ -19,6 +19,7 @@ import togos.solidtree.SurfaceMaterialLayer;
 import togos.solidtree.forth.Interpreter;
 import togos.solidtree.forth.StandardWordDefinition;
 import togos.solidtree.forth.WordDefinition;
+import togos.solidtree.func.BaseDensityFunction;
 
 public class NodeProcedures
 {
@@ -224,11 +225,7 @@ public class NodeProcedures
 		// -> DensityFunction
 		@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
 			final double surfaceY = interp.stackPop( Number.class, sLoc ).doubleValue();
-			interp.stackPush(new DensityFunction() {
-				@Override public double getMaxGradient() {
-					return 0.5;
-				}
-				
+			interp.stackPush(new BaseDensityFunction() {
 				@Override public double apply(double x, double y, double z) {
 					return (y - surfaceY) * 0.3 +
 						0.02 * sn.apply((float)x, (float)0, (float)z) +
