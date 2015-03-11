@@ -13,6 +13,8 @@ import togos.hdrutil.AdjusterUI;
 import togos.hdrutil.HDRExposure;
 import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
+import togos.solidtree.DereferenceException;
+import togos.solidtree.NodeDereffer;
 import togos.solidtree.NodeLoader;
 import togos.solidtree.NodeLoader.HashMapLoadContext;
 import togos.solidtree.NodeLoader.LoadContext;
@@ -129,19 +131,21 @@ public class TraceUI
 		});
 	}
 	
+	NodeDereffer nodeDereffer = new NodeDereffer(); 
+	
 	// TODO: Move these into some utility class or something
 	
-	protected static TraceNode toTraceNode( Object o ) {
+	protected TraceNode toTraceNode( Object o ) throws DereferenceException {
 		if( o instanceof TraceNode ) {
 			return (TraceNode)o;
 		} else if( o instanceof SolidNode ) {
-			return new NodeConverter().toTraceNode((SolidNode)o);
+			return new NodeConverter(nodeDereffer).toTraceNode((SolidNode)o);
 		} else {
 			throw new RuntimeException("Don't know how to turn "+o+" into a trace node");
 		}
 	}
 	
-	protected static NodeRoot<TraceNode> toTraceNodeRoot( Object o ) {
+	protected NodeRoot<TraceNode> toTraceNodeRoot( Object o ) throws DereferenceException {
 		if( o instanceof NodeRoot ) {
 			@SuppressWarnings("rawtypes")
 			NodeRoot r = (NodeRoot)o;
@@ -151,7 +155,7 @@ public class TraceUI
 		}
 	}
 	
-	public static void main(String[] args) throws IOException, ScriptError {
+	public void _main(String[] args) throws DereferenceException, IOException, ScriptError {
 		TraceUI traceUi = new TraceUI();
 		
 		final Frame f = new Frame("TraceUI");
@@ -188,6 +192,18 @@ public class TraceUI
 				e.printStackTrace();
 				System.err.println("Resuming interpreter");
 			}
+		}
+	}
+	
+	public static void main(String[] args) {
+		try {
+			new TraceUI()._main(args);
+		} catch( DereferenceException e ) {
+			throw new RuntimeException(e);
+		} catch( IOException e ) {
+			throw new RuntimeException(e);
+		} catch( ScriptError e ) {
+			throw new RuntimeException(e);
 		}
 	}
 }

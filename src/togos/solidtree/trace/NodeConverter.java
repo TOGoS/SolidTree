@@ -2,16 +2,25 @@ package togos.solidtree.trace;
 
 import java.util.WeakHashMap;
 
+import togos.lazy.Ref;
+import togos.solidtree.DereferenceException;
+import togos.solidtree.NodeDereffer;
 import togos.solidtree.PathTraceMaterial;
 import togos.solidtree.SolidNode;
 
 public class NodeConverter
 {
+	protected final NodeDereffer nodeDereffer;
+	
 	protected final WeakHashMap<TraceNode,TraceNode> canonicalTraceNodes = new WeakHashMap<TraceNode,TraceNode>(); 
 	protected final WeakHashMap<PathTraceMaterial,TraceNode> materialTraceNodeCache = new WeakHashMap<PathTraceMaterial,TraceNode>();
 	protected final WeakHashMap<SolidNode,TraceNode> solidTraceNodeCache = new WeakHashMap<SolidNode,TraceNode>();
 	/** Maps to FALSE when not homogeneous, material otherwise. */
 	protected final WeakHashMap<SolidNode,Object> nodeHomogeneityCache = new WeakHashMap<SolidNode,Object>();
+	
+	public NodeConverter( NodeDereffer nodeDereffer ) {
+		this.nodeDereffer = nodeDereffer;
+	}
 	
 	public void reset() {
 		materialTraceNodeCache.clear();
@@ -41,7 +50,7 @@ public class NodeConverter
 		return tn;
 	}
 	
-	protected PathTraceMaterial nodeIsHomogeneous( SolidNode sn ) {
+	protected PathTraceMaterial nodeIsHomogeneous( SolidNode sn ) throws DereferenceException {
 		if( sn.getType() == SolidNode.Type.HOMOGENEOUS ) return sn.getHomogeneousMaterial();
 		
 		if( sn.getType() == SolidNode.Type.DENSITY_FUNCTION_SUBDIVIDED ) return null; // lets ignore this possibility for now
@@ -54,14 +63,16 @@ public class NodeConverter
 		return o == Boolean.FALSE ? null : (PathTraceMaterial)o;
 	}
 	
-	protected PathTraceMaterial regionIsHomogeneous( SolidNode sn, int rx, int ry, int rz, int rw, int rh, int rd ) {
-		SolidNode subNode = sn.subNode(rx, ry, rz);
+	protected PathTraceMaterial regionIsHomogeneous( SolidNode sn, int rx, int ry, int rz, int rw, int rh, int rd )
+		throws DereferenceException
+	{
+		SolidNode subNode = nodeDereffer.deref(sn.subNode(rx, ry, rz), SolidNode.class);
 		
 		PathTraceMaterial mat0 = nodeIsHomogeneous(subNode);
 		if( mat0 == null ) return null;
 		
 		for( int dz=0; dz<rd; ++dz ) for( int dy=0; dy<rh; ++dy ) for( int dx=0; dx<rw; ++dx ) {
-			PathTraceMaterial matN = nodeIsHomogeneous(sn.subNode(rx+dx, ry+dy, rz+dz));
+			PathTraceMaterial matN = nodeIsHomogeneous(nodeDereffer.deref(sn.subNode(rx+dx, ry+dy, rz+dz), SolidNode.class));
 			if( matN != mat0 ) return null;
 		}
 		
@@ -85,7 +96,9 @@ public class NodeConverter
 	}
 	*/
 	
-	protected TraceNode regionToTraceNode( SolidNode sn, int rx, int ry, int rz, int rw, int rh, int rd ) {
+	protected TraceNode regionToTraceNode( SolidNode sn, int rx, int ry, int rz, int rw, int rh, int rd )
+		throws DereferenceException
+	{
 		assert rw > 0;
 		assert rh > 0;
 		assert rd > 0;
@@ -168,7 +181,7 @@ public class NodeConverter
 		}
 	}
 	
-	protected TraceNode _toTraceNode( SolidNode sn ) {
+	protected TraceNode _toTraceNode( SolidNode sn ) throws DereferenceException {
 		PathTraceMaterial mat = nodeIsHomogeneous(sn);
 		if( mat != null ) return traceNodeForMaterial(mat);
 		
@@ -185,11 +198,15 @@ public class NodeConverter
 		
 	}
 	
-	public TraceNode toTraceNode( SolidNode sn ) {
+	public TraceNode toTraceNode( SolidNode sn ) throws DereferenceException {
 		TraceNode tn = solidTraceNodeCache.get(sn);
 		if( tn == null ) {
 			solidTraceNodeCache.put(sn, tn = _toTraceNode(sn));
 		}
 		return tn;
+	}
+	
+	public TraceNode toTraceNode( Ref<SolidNode> sn ) throws DereferenceException {
+		return toTraceNode( nodeDereffer.deref(sn, SolidNode.class) );
 	}
 }

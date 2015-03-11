@@ -23,11 +23,13 @@ import togos.hdrutil.HDRExposure;
 import togos.hdrutil.RGBE;
 import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
+import togos.lazy.Ref;
+import togos.solidtree.DereferenceException;
+import togos.solidtree.NodeDereffer;
 import togos.solidtree.NodeLoader;
 import togos.solidtree.NodeLoader.HashMapLoadContext;
 import togos.solidtree.NodeLoader.LoadContext;
 import togos.solidtree.NodeRoot;
-import togos.solidtree.RegularlySubdividedSolidNode;
 import togos.solidtree.SolidNode;
 import togos.solidtree.forth.Interpreter;
 import togos.solidtree.forth.REPL;
@@ -85,9 +87,7 @@ public class TraceDemo
 		RESET
 	}
 	
-	protected static SolidNode mkNode( int w, int h, int d, SolidNode...parts ) {
-		return RegularlySubdividedSolidNode.build( w, h, d, parts );
-	}
+	NodeDereffer nodeDereffer = new NodeDereffer();
 	
 	protected static File getNewOutputFile( String prefix, String suffix ) {
 		File f;
@@ -120,17 +120,21 @@ public class TraceDemo
 		}
 	}
 	
-	protected static TraceNode toTraceNode( Object o ) {
+	protected TraceNode toTraceNode( Object o ) throws DereferenceException {
 		if( o instanceof TraceNode ) {
 			return (TraceNode)o;
+		} else if( o instanceof Ref ) {
+			@SuppressWarnings({"rawtypes", "unchecked"})
+			Object deref = nodeDereffer.deref((Ref)o, Object.class);
+			return toTraceNode( deref );
 		} else if( o instanceof SolidNode ) {
-			return new NodeConverter().toTraceNode((SolidNode)o);
+			return new NodeConverter(nodeDereffer).toTraceNode((SolidNode)o);
 		} else {
 			throw new RuntimeException("Don't know how to turn "+o+" into a trace node");
 		}
 	}
 	
-	protected static NodeRoot<TraceNode> toTraceNodeRoot( Object o ) {
+	protected NodeRoot<TraceNode> toTraceNodeRoot( Object o ) throws DereferenceException {
 		if( o instanceof NodeRoot ) {
 			@SuppressWarnings("rawtypes")
 			NodeRoot r = (NodeRoot)o;
@@ -140,7 +144,7 @@ public class TraceDemo
 		}
 	}
 	
-	public static int _main( String[] args ) throws Exception {
+	public int _main( String[] args ) throws Exception {
 		String worldUrn = null;
 		for( int i=0; i<args.length; ++i ) {
 			if( args[i].startsWith("-") ) {
@@ -591,6 +595,6 @@ public class TraceDemo
 	}
 	
 	public static void main( String[] args ) throws Exception {
-		System.exit(_main(args));
+		System.exit(new TraceDemo()._main(args));
 	}
 }

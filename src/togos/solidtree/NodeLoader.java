@@ -6,12 +6,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import togos.lang.BaseSourceLocation;
 import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
+import togos.lazy.Ref;
+import togos.lazy.SoftHandle;
 import togos.solidtree.forth.Interpreter;
 import togos.solidtree.forth.StandardWordDefinition;
 import togos.solidtree.forth.procedure.SafeProcedures;
@@ -104,6 +107,14 @@ public class NodeLoader
 	
 	public SolidNode getNode( String name, LoadContext<?> ctx, SourceLocation sLoc ) throws IOException, ScriptError {
 		return NodeConverter.from( getNotNull(name, ctx, sLoc), sLoc );
+	}
+	
+	public Ref<SolidNode> getNodeRef( final String name, final LoadContext<?> ctx, final SourceLocation sLoc ) throws IOException, ScriptError {
+		return new SoftHandle<SolidNode>( new Callable<SolidNode>() {
+			@Override public SolidNode call() throws Exception {
+				return NodeConverter.from( getNotNull(name, ctx, sLoc), sLoc );
+			}
+		});
 	}
 	
 	File findOnIncludePath( String filename ) {
@@ -285,18 +296,19 @@ public class NodeLoader
 		// Cache all unique nodes here,
 		// Otherwise getNode could return a different one for each cell,
 		// even when the character's the same.
-		HashMap<String,SolidNode> charNodes = new HashMap<String,SolidNode>();
+		HashMap<String,Ref<SolidNode>> charNodes = new HashMap<String,Ref<SolidNode>>();
 		for( int j=0; j<dataSize; ++j ) {
 			String c = String.valueOf(data[j]);
 			if( !charNodes.containsKey(c) ) {
-				charNodes.put( c, getNode(c, context, new BaseSourceLocation(filename, dataLineNum, 0)));
+				charNodes.put( c, getNodeRef(c, context, new BaseSourceLocation(filename, dataLineNum, 0)));
 			}
 		}
 		
 		if( dataSize == 0 ) throw new ScriptError("Zero-sized node", new BaseSourceLocation(filename, lineNum, 0));
 		if( dataSize == 1 ) return getNode(String.valueOf(data[0]), context, new BaseSourceLocation(filename, dataLineNum, 0));
 		
-		final SolidNode[] snData = new SolidNode[dataSize];
+		@SuppressWarnings("unchecked")
+		final Ref<SolidNode>[] snData = new Ref[dataSize];
 		final int w = dims[0], d = dims[1], h = dims[2];
 		for( int j=0, y=h-1; y>=0; --y ) for( int z=0; z<d; ++z ) for( int x=0; x<w; ++x, ++j ) {
 			snData[x+y*w+z*w*h] = charNodes.get(String.valueOf(data[j]));

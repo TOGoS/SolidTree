@@ -1,9 +1,12 @@
 package togos.solidtree.forth.procedure;
 
+import java.lang.reflect.Array;
 import java.util.Map;
 
 import togos.lang.ScriptError;
 import togos.lang.SourceLocation;
+import togos.lazy.HardHandle;
+import togos.lazy.Ref;
 import togos.solidtree.DColor;
 import togos.solidtree.DensityFunction;
 import togos.solidtree.DensityFunctionDividedSolidNode;
@@ -138,9 +141,12 @@ public class NodeProcedures
 			int divZ = interp.stackPop( Number.class, sLoc ).intValue();
 			int divY = interp.stackPop( Number.class, sLoc ).intValue();
 			int divX = interp.stackPop( Number.class, sLoc ).intValue();
-			SolidNode[] subNodes = new SolidNode[divX*divY*divZ];
+			@SuppressWarnings("unchecked")
+			Ref<SolidNode>[] subNodes = new Ref[divX*divY*divZ];
 			for( int i=divX*divY*divZ-1; i>=0; --i ) {
-				subNodes[i] = interp.stackPop( SolidNode.class, sLoc );
+				@SuppressWarnings("unchecked")
+				Ref<SolidNode> sn = interp.stackPop( Ref.class, sLoc );
+				subNodes[i] = sn;
 			}
 			
 			interp.stackPush( RegularlySubdividedSolidNode.build(divX, divY, divZ, subNodes) );
@@ -153,8 +159,10 @@ public class NodeProcedures
 		public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
 			int spaceIterations = interp.stackPop( Number.class, sLoc).intValue();
 			int spaceDivisions  = interp.stackPop( Number.class, sLoc).intValue();
-			SolidNode pad  = interp.stackPop( SolidNode.class, sLoc );
-			SolidNode core = interp.stackPop( SolidNode.class, sLoc );
+			@SuppressWarnings("unchecked")
+			Ref<SolidNode> pad  = interp.stackPop( Ref.class, sLoc );
+			@SuppressWarnings("unchecked")
+			Ref<SolidNode> core = interp.stackPop( Ref.class, sLoc );
 			
 			if( spaceDivisions < 1 ) {
 				throw new ScriptError("padding divisions must be >= 1; "+spaceDivisions+" given", sLoc);
@@ -165,9 +173,10 @@ public class NodeProcedures
 			
 			final int spaceDivisions3 = spaceDivisions*spaceDivisions*spaceDivisions;
 			
-			SolidNode space = core;
+			Ref<SolidNode> space = core;
 			for( int i=0; i<spaceIterations; ++i ) {
-				SolidNode[] spaceSubNodes = new SolidNode[spaceDivisions3];
+				@SuppressWarnings("unchecked")
+				Ref<SolidNode>[] spaceSubNodes = new Ref[spaceDivisions3];
 				for( int j=0; j<spaceDivisions3; ++j ) {
 					spaceSubNodes[j] = pad;
 				}
@@ -177,7 +186,9 @@ public class NodeProcedures
 				   spaceDivisions*(spaceDivisions/2) +
 				   (spaceDivisions/2)
 				] = space;
-				space = RegularlySubdividedSolidNode.build( spaceDivisions, spaceDivisions, spaceDivisions, spaceSubNodes );
+				space = new HardHandle<SolidNode>(
+					RegularlySubdividedSolidNode.build( spaceDivisions, spaceDivisions, spaceDivisions, spaceSubNodes )
+				);
 			}
 			
 			interp.stackPush( space );
@@ -212,8 +223,8 @@ public class NodeProcedures
 		// material1, material2, density function -> Node
 		@Override public void run(Interpreter interp, SourceLocation sLoc) throws ScriptError {
 			DensityFunction df = interp.stackPop(DensityFunction.class, sLoc);
-			SolidNode nodeB = toSolidNode(interp.stackPop(Object.class, sLoc));
-			SolidNode nodeA = toSolidNode(interp.stackPop(Object.class, sLoc));
+			Ref<SolidNode> nodeB = new HardHandle<SolidNode>(toSolidNode(interp.stackPop(Object.class, sLoc)));
+			Ref<SolidNode> nodeA = new HardHandle<SolidNode>(toSolidNode(interp.stackPop(Object.class, sLoc)));
 			interp.stackPush(new DensityFunctionDividedSolidNode(df, nodeA, nodeB));
 		}
 	};

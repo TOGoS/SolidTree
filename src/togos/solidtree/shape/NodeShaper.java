@@ -1,6 +1,10 @@
 package togos.solidtree.shape;
 
+import togos.lazy.HardHandle;
+import togos.lazy.Ref;
+import togos.solidtree.DereferenceException;
 import togos.solidtree.HomogeneousSolidNode;
+import togos.solidtree.NodeDereffer;
 import togos.solidtree.RegularlySubdividedSolidNode;
 import togos.solidtree.SolidNode;
 import togos.solidtree.SolidNode.Type;
@@ -10,15 +14,22 @@ public class NodeShaper
 {
 	public int divX = 3, divY = 3, divZ = 3;
 	
-	public SolidNode add( SolidNode original, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, Shape s, SolidNode leaf, int maxRecursion ) {
+	protected NodeDereffer nodeDereffer;
+	
+	public Ref<SolidNode> add( Ref<SolidNode> originalRef, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, Shape s, Ref<SolidNode> leafRef, int maxRecursion )
+		throws DereferenceException
+	{
 		switch( s.contains(minX, minY, minZ, maxX, maxY, maxZ) ) {
-		case NONE: return original;
-		case ALL: return leaf;
+		case NONE: return originalRef;
+		case ALL: return leafRef;
 		case SOME:
-			if( maxRecursion == 0 ) return original;
+			if( maxRecursion == 0 ) return originalRef;
+			
+			SolidNode original = nodeDereffer.deref(originalRef, SolidNode.class);
 			
 			int divCount = divX*divY*divZ; 
-			SolidNode[] newKids = new SolidNode[divCount];
+			@SuppressWarnings("unchecked")
+			Ref<SolidNode>[] newKids = new Ref[divCount];
 			if( original.getType() == Type.REGULARLY_SUBDIVIDED ) {
 				if( original.getDivX() != divX || original.getDivY() != divY || original.getDivZ() != divZ ) {
 					throw new RuntimeException(
@@ -30,7 +41,7 @@ public class NodeShaper
 				}
 			} else {
 				for(int i=divCount-1; i>=0; --i ) {
-					newKids[i] = original;
+					newKids[i] = originalRef;
 				}
 			}
 			
@@ -50,15 +61,15 @@ public class NodeShaper
 						double sMaxX = minX + ssX*(x+1);
 						if( s.contains(sMinX, sMinY, sMinZ, sMaxX, sMaxY, sMaxZ) != Containment.NONE ) {
 							anythingChanged = true;
-							newKids[i] = add( newKids[i], sMinX, sMinY, sMinZ, sMaxX, sMaxY, sMaxZ, s, leaf, maxRecursion - 1 );
+							newKids[i] = add( newKids[i], sMinX, sMinY, sMinZ, sMaxX, sMaxY, sMaxZ, s, leafRef, maxRecursion - 1 );
 						}
 					}
 				}
 			}
 			
-			return anythingChanged ? RegularlySubdividedSolidNode.build(
+			return anythingChanged ? new HardHandle<SolidNode>(RegularlySubdividedSolidNode.build(
 				divX, divY, divZ, newKids
-			) : original;
+			)) : originalRef;
 		default:
 			throw new RuntimeException("Invalid containment");
 		}
@@ -66,21 +77,21 @@ public class NodeShaper
 	
 	////
 	
-	public SolidNode root = HomogeneousSolidNode.EMPTY;
+	public Ref<SolidNode> rootRef = new HardHandle<SolidNode>(HomogeneousSolidNode.EMPTY);
 	public double rootMinX = -1, rootMinY = -1, rootMinZ = -1, rootMaxX = 1, rootMaxY = 1, rootMaxZ = 1;
 	
-	public void setRoot( SolidNode r, double minX, double minY, double minZ, double maxX, double maxY, double maxZ ) {
-		root = r;
+	public void setRoot( Ref<SolidNode> r, double minX, double minY, double minZ, double maxX, double maxY, double maxZ ) {
+		rootRef = r;
 		rootMinX = minX; rootMaxX = maxX;
 		rootMinY = minY; rootMaxY = maxY;
 		rootMinZ = minZ; rootMaxZ = maxZ;
 	}
 	
-	public void setRoot( SolidNode r, double radius ) {
+	public void setRoot( Ref<SolidNode> r, double radius ) {
 		setRoot( r, -radius, -radius, -radius, radius, radius, radius );
 	}
 	
-	public void add( Shape s, SolidNode leaf, int maxRecursion ) {
-		root = add( root, rootMinX, rootMinY, rootMinZ, rootMaxX, rootMaxY, rootMaxZ, s, leaf, maxRecursion );
+	public void add( Shape s, Ref<SolidNode> leafRef, int maxRecursion ) throws DereferenceException {
+		rootRef = add( rootRef, rootMinX, rootMinY, rootMinZ, rootMaxX, rootMaxY, rootMaxZ, s, leafRef, maxRecursion );
 	}
 }

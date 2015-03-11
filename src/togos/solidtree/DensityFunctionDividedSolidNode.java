@@ -1,13 +1,15 @@
 package togos.solidtree;
 
+import togos.lazy.Ref;
+
 
 public class DensityFunctionDividedSolidNode implements SolidNode
 {
 	protected final DensityFunction df;
-	protected final SolidNode nodeA;
-	protected final SolidNode nodeB;
+	protected final Ref<SolidNode> nodeA;
+	protected final Ref<SolidNode> nodeB;
 	
-	public DensityFunctionDividedSolidNode( DensityFunction df, SolidNode nodeA, SolidNode nodeB ) {
+	public DensityFunctionDividedSolidNode( DensityFunction df, Ref<SolidNode> nodeA, Ref<SolidNode> nodeB ) {
 		this.df = df;
 		this.nodeA = nodeA;
 		this.nodeB = nodeB;
@@ -21,7 +23,7 @@ public class DensityFunctionDividedSolidNode implements SolidNode
 	@Override public int getDivY() { throw new UnsupportedOperationException(); }
 	@Override public int getDivZ() { throw new UnsupportedOperationException(); }
 
-	@Override public SolidNode subNode(int idx) {
+	@Override public Ref<SolidNode> subNode(int idx) {
 		switch( idx ) {
 		case 0: return nodeA;
 		case 1: return nodeB;
@@ -30,7 +32,7 @@ public class DensityFunctionDividedSolidNode implements SolidNode
 		}
 	}
 
-	@Override public SolidNode subNode(int x, int y, int z) {
+	@Override public Ref<SolidNode> subNode(int x, int y, int z) {
 		// actually could; but might never need to
 		throw new UnsupportedOperationException();
 	}

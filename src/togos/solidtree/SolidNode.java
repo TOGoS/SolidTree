@@ -1,5 +1,7 @@
 package togos.solidtree;
 
+import togos.lazy.Ref;
+
 
 public interface SolidNode
 {
@@ -16,8 +18,8 @@ public interface SolidNode
 	public int getDivX();
 	public int getDivY();
 	public int getDivZ();
-	public SolidNode subNode(int idx);
-	public SolidNode subNode(int x, int y, int z);
+	public Ref<SolidNode> subNode(int idx);
+	public Ref<SolidNode> subNode(int x, int y, int z);
 	// For nodes, split by a density function
 	// subNode(0 or 1) will be re-used
 	public DensityFunction getSubdivisionFunction();

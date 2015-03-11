@@ -1,4 +1,6 @@
+.classpath
+.java-src.lst
+.project
 renders
 bin
-.classpath
-.project
+SolidTree.jar
