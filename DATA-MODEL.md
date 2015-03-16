@@ -36,12 +36,13 @@ A 'surface material layer' defines:
 
 A 'node root' provides a node and its X, Y, Z bounds
 
-A 'camera setting' includes:
+A 'camera setting' includes all information needed to map sensor coordinates to vectors:
 - position
 - orientation
-- projection (mapping of pixel X,Y -> 
-- aperture size
-- focal distance
+- lens characteristics; for a relatively normal lens this might include:
+  - projection (mapping of pixel X,Y -> vector)
+  - aperture size and shape
+  - size and shape of focal surface (plane, sphere, etc)
 
 A 'render task' includes:
 - A scene
